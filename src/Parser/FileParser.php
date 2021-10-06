@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Parser;
 
 use Donquixote\QuickAttributes\Exception\SyntaxException;
-use Donquixote\QuickAttributes\Util\ParserUtilPhp7;
+use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
@@ -63,11 +63,11 @@ class FileParser {
           case '(':
           case '{':
           case '[':
-            ParserUtilPhp7::skipSubtree($tokens, $i);
+            ParserUtil::skipSubtree($tokens, $i);
             break;
 
           case '"':
-            ParserUtilPhp7::skipDoubleQuotedString($tokens, $i);
+            ParserUtil::skipDoubleQuotedString($tokens, $i);
             break;
 
           case ')':
@@ -143,13 +143,13 @@ class FileParser {
           case T_INTERFACE:
           case T_TRAIT:
             ++$i;
-            $shortname = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+            $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
             $class = $terminatedNamespace . $shortname;
             yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
             $this->skipClassLikeExtendsImplements($tokens, $i);
-            assert(ParserUtilPhp7::expect($tokens, $i, '{'));
+            assert(ParserUtil::expect($tokens, $i, '{'));
             yield from $this->parseClassLikeBody($tokens, $i, $class);
-            assert(ParserUtilPhp7::expect($tokens, $i, '}'));
+            assert(ParserUtil::expect($tokens, $i, '}'));
             break;
 
           case T_STRING:
@@ -174,10 +174,10 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseNamespace(array $tokens, int &$pos): string {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_NAMESPACE));
+    assert(ParserUtil::expect($tokens, $pos, T_NAMESPACE));
     $i = $pos + 1;
-    ParserUtilPhp7::skipFillerWs($tokens, $i);
-    $namespace = ParserUtilPhp7::parseQcn($tokens, $i);
+    ParserUtil::skipFillerWs($tokens, $i);
+    $namespace = ParserUtil::parseQcn($tokens, $i);
     $pos = $i;
     return $namespace;
   }
@@ -191,7 +191,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function skipClassLikeExtendsImplements(array $tokens, int &$pos): void {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_STRING));
+    assert(ParserUtil::expect($tokens, $pos, T_STRING));
 
     // Skip all extends and implements.
     for ($i = $pos + 1;; ++$i) {
@@ -237,7 +237,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseClassLikeBody(array $tokens, int &$pos, string $class): \Iterator {
-    assert(ParserUtilPhp7::expect($tokens, $pos, '{'));
+    assert(ParserUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
@@ -246,11 +246,11 @@ class FileParser {
           case '(':
           case '{':
           case '[':
-            ParserUtilPhp7::skipSubtree($tokens, $i);
+            ParserUtil::skipSubtree($tokens, $i);
             break;
 
           case '"':
-            ParserUtilPhp7::skipDoubleQuotedString($tokens, $i);
+            ParserUtil::skipDoubleQuotedString($tokens, $i);
             break;
 
           case ')':
@@ -367,19 +367,19 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public function parseFunctionHead(array $tokens, int &$pos): ?string {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_FUNCTION));
+    assert(ParserUtil::expect($tokens, $pos, T_FUNCTION));
 
     $i = $pos + 1;
-    $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $i);
     if ($id === '&') {
       ++$i;
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
     }
 
     if ($id === T_STRING) {
       $shortName = $tokens[$i][1];
       ++$i;
-      ParserUtilPhp7::skipFillerWsExpectChar($tokens, $i, '(');
+      ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
       $pos = $i;
       return $shortName;
     }
@@ -406,13 +406,13 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseFunction(array $tokens, int &$pos, ?string $class, string $terminatedNamespace, array $attributesComments, bool $allowAnonymous = FALSE): \Iterator {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_FUNCTION));
+    assert(ParserUtil::expect($tokens, $pos, T_FUNCTION));
 
     $i = $pos + 1;
-    $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $i);
     if ($id === '&') {
       ++$i;
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
     }
 
     if ($id === T_STRING) {
@@ -424,7 +424,7 @@ class FileParser {
         yield $symbol => RawSymbolInfo::forInnerSymbol($attributesComments);
       }
       ++$i;
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
     }
     elseif ($allowAnonymous) {
       $shortName = NULL;
@@ -453,12 +453,12 @@ class FileParser {
     }
     else {
       // Ignore the parameters.
-      ParserUtilPhp7::skipSubtree($tokens, $i);
-      assert(ParserUtilPhp7::expect($tokens, $i, ')'));
+      ParserUtil::skipSubtree($tokens, $i);
+      assert(ParserUtil::expect($tokens, $i, ')'));
     }
 
     ++$i;
-    $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $i);
 
     if ($id === ':') {
       // Return type declaration.
@@ -468,7 +468,7 @@ class FileParser {
           switch ($token) {
             case '(':
             case '[':
-              ParserUtilPhp7::skipSubtree($tokens, $i);
+              ParserUtil::skipSubtree($tokens, $i);
               break;
 
             case ')':
@@ -487,7 +487,7 @@ class FileParser {
 
     if ($tokens[$i] === '{') {
       // Skip function body.
-      ParserUtilPhp7::skipSubtree($tokens, $i);
+      ParserUtil::skipSubtree($tokens, $i);
       $pos = $i;
       return;
     }
@@ -513,7 +513,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseParams(array $tokens, int &$pos): \Iterator {
-    assert(ParserUtilPhp7::expect($tokens, $pos, '('));
+    assert(ParserUtil::expect($tokens, $pos, '('));
     /** @var string[] $attributeComments */
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
@@ -525,11 +525,11 @@ class FileParser {
           case '(':
           case '{':
           case '[':
-            ParserUtilPhp7::skipSubtree($tokens, $i);
+            ParserUtil::skipSubtree($tokens, $i);
             break;
 
           case '"':
-            ParserUtilPhp7::skipDoubleQuotedString($tokens, $i);
+            ParserUtil::skipDoubleQuotedString($tokens, $i);
             break;
 
           case ')':
@@ -560,7 +560,7 @@ class FileParser {
             yield $token[1] => $attributeComments;
             $attributeComments = [];
             ++$i;
-            $id = ParserUtilPhp7::skipHeaderWs($tokens, $i);
+            $id = ParserUtil::skipHeaderWs($tokens, $i);
             if ($id === '=') {
               $id = $this->skipVarDefault($tokens, $i, TRUE);
             }
@@ -590,11 +590,11 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseClassPropertyGroup(array $tokens, int &$pos): array {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_VARIABLE));
+    assert(ParserUtil::expect($tokens, $pos, T_VARIABLE));
     $names = [substr($tokens[$pos][1], 1)];
 
     $i = $pos + 1;
-    $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $i);
     while (true) {
       if ($id === '=') {
         $id = $this->skipVarDefault($tokens, $i, FALSE);
@@ -606,13 +606,13 @@ class FileParser {
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in property declaration');
       }
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== T_VARIABLE) {
         throw SyntaxException::expectedButFound($tokens, $i, 'T_VARIABLE');
       }
       $names[] = substr($tokens[$i][1], 1);
       ++$i;
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
     }
   }
 
@@ -626,13 +626,13 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseClassConstGroup(array $tokens, int &$pos): array {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_CONST));
+    assert(ParserUtil::expect($tokens, $pos, T_CONST));
 
     $i = $pos + 1;
-    $names[] = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+    $names[] = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
 
     ++$i;
-    $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $i);
     while (true) {
       if ($id === '=') {
         $id = $this->skipVarDefault($tokens, $i, FALSE);
@@ -644,13 +644,13 @@ class FileParser {
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in constant declaration');
       }
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== T_STRING) {
         throw SyntaxException::expectedButFound($tokens, $i, 'T_VARIABLE');
       }
       $names[] = $tokens[$i][1];
       ++$i;
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
     }
   }
 
@@ -665,7 +665,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public function skipVarDefault(array $tokens, int &$pos, bool $isParam): string {
-    assert(ParserUtilPhp7::expect($tokens, $pos, '='));
+    assert(ParserUtil::expect($tokens, $pos, '='));
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
       if (is_string($token)) {
@@ -673,7 +673,7 @@ class FileParser {
           case '(':
           case '{':
           case '[':
-            ParserUtilPhp7::skipSubtree($tokens, $i);
+            ParserUtil::skipSubtree($tokens, $i);
             break;
 
           case ',':
@@ -723,18 +723,18 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   protected function parseImportGroup(array $tokens, int &$pos, array &$imports): void {
-    assert(ParserUtilPhp7::expect($tokens, $pos, T_USE));
+    assert(ParserUtil::expect($tokens, $pos, T_USE));
     $i = $pos + 1;
-    $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $i);
     if ($id === T_CONST) {
       $type = 'const ';
       ++$i;
-      $qcn = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+      $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
     }
     elseif ($id === T_FUNCTION) {
       $type = 'function ';
       ++$i;
-      $qcn = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+      $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
     }
     elseif ($id !== T_STRING) {
       throw SyntaxException::unexpected($tokens, $i, 'in imports');
@@ -745,10 +745,10 @@ class FileParser {
     }
     $first = TRUE;
     while (TRUE) {
-      assert(ParserUtilPhp7::expect($tokens, $i, T_STRING));
+      assert(ParserUtil::expect($tokens, $i, T_STRING));
       assert(preg_match('@^\w+$@', $qcn));
       while (TRUE) {
-        assert(ParserUtilPhp7::expect($tokens, $i, T_STRING));
+        assert(ParserUtil::expect($tokens, $i, T_STRING));
         assert(preg_match('@^\w+(?:\\\\\w+)*$@', $qcn));
         ++$i;
         if ($tokens[$i][0] !== T_NS_SEPARATOR) {
@@ -764,14 +764,14 @@ class FileParser {
         $qcn .= '\\' . $tokens[$i][1];
       }
       $alias = $tokens[$i - 1][1];
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === T_AS) {
         ++$i;
-        $alias = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+        $alias = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
         if (isset($imports[$alias])) {
           throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.", FALSE);
         }
-        $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+        $id = ParserUtil::skipFillerWs($tokens, $i);
       }
       $imports[$type . $alias] = $qcn;
       if ($id === ';') {
@@ -781,22 +781,22 @@ class FileParser {
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
-      $qcn = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+      $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
       $first = FALSE;
     }
 
-    assert(ParserUtilPhp7::expect($tokens, $i - 1, T_NS_SEPARATOR));
+    assert(ParserUtil::expect($tokens, $i - 1, T_NS_SEPARATOR));
     assert($tokens[$i][0] !== T_STRING);
 
-    ParserUtilPhp7::skipFillerWsExpectChar($tokens, $i, '{');
+    ParserUtil::skipFillerWsExpectChar($tokens, $i, '{');
 
-    $subQcn = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+    $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
 
     while (TRUE) {
-      assert(ParserUtilPhp7::expect($tokens, $i, T_STRING));
+      assert(ParserUtil::expect($tokens, $i, T_STRING));
       assert(preg_match('@^\w+$@', $subQcn));
       while (TRUE) {
-        assert(ParserUtilPhp7::expect($tokens, $i, T_STRING));
+        assert(ParserUtil::expect($tokens, $i, T_STRING));
         assert(preg_match('@^\w+(?:\\\\\w+)*$@', $subQcn));
         ++$i;
         if ($tokens[$i][0] !== T_NS_SEPARATOR) {
@@ -809,25 +809,25 @@ class FileParser {
         $subQcn .= '\\' . $tokens[$i][1];
       }
       $alias = $tokens[$i - 1][1];
-      $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === T_AS) {
         ++$i;
-        $alias = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+        $alias = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
         if (isset($imports[$alias])) {
           throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.", FALSE);
         }
-        $id = ParserUtilPhp7::skipFillerWs($tokens, $i);
+        $id = ParserUtil::skipFillerWs($tokens, $i);
       }
       $imports[$type . $alias] = $qcn . '\\' . $subQcn;
       if ($id === '}') {
-        ParserUtilPhp7::skipFillerWsExpectChar($tokens, $i, ';');
+        ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
         $pos = $i;
         return;
       }
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
-      $subQcn = ParserUtilPhp7::skipFillerWsExpectToken($tokens, $i, T_STRING);
+      $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
     }
   }
 

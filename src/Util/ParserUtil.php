@@ -6,7 +6,7 @@ namespace Donquixote\QuickAttributes\Util;
 
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 
-class ParserUtilPhp7 {
+class ParserUtil {
 
   const T_ATTRIBUTE = PHP_VERSION_ID >= 80000
     ? \T_ATTRIBUTE

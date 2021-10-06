@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Exception;
 
-use Donquixote\QuickAttributes\Util\ParserUtilPhp7;
+use Donquixote\QuickAttributes\Util\ParserUtil;
 
 class SyntaxException extends ParserException {
 
@@ -21,7 +21,7 @@ class SyntaxException extends ParserException {
       $pos,
       sprintf(
         'Unexpected %s %s.',
-        ParserUtilPhp7::formatToken($tokens[$pos]),
+        ParserUtil::formatToken($tokens[$pos]),
         $where),
       FALSE);
   }
@@ -38,8 +38,8 @@ class SyntaxException extends ParserException {
       $tokens,
       $pos,
       \vsprintf('Unexpected %s after %s.', [
-        ParserUtilPhp7::formatToken($tokens[$pos]),
-        $preceding ?? ParserUtilPhp7::formatToken($tokens[$pos - 1]),
+        ParserUtil::formatToken($tokens[$pos]),
+        $preceding ?? ParserUtil::formatToken($tokens[$pos - 1]),
       ]),
       FALSE);
   }
@@ -58,7 +58,7 @@ class SyntaxException extends ParserException {
       sprintf(
         'Expected %s, but found %s.',
         $expected,
-        ParserUtilPhp7::formatToken($tokens[$pos])),
+        ParserUtil::formatToken($tokens[$pos])),
       FALSE);
   }
 

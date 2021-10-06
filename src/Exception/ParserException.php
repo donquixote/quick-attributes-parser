@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Exception;
 
-use Donquixote\QuickAttributes\Util\ParserUtilPhp7;
+use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\TokenPositionUtil;
 
 class ParserException extends \Exception {
@@ -47,7 +47,7 @@ class ParserException extends \Exception {
     [$line, $chrpos] = TokenPositionUtil::findLineChrPos($tokens, $pos);
     $message = "Line $line:$chrpos: $message";
     if ($append_found) {
-      $message .= ' Found ' . ParserUtilPhp7::formatToken($tokens[$pos]) . '.';
+      $message .= ' Found ' . ParserUtil::formatToken($tokens[$pos]) . '.';
     }
     return new static($message);
   }
