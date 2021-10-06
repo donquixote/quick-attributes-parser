@@ -7,7 +7,7 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
-use Donquixote\QuickAttributes\Registry\SymbolInfoRegistryPhp7;
+use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Tests\Fixture\CAdvanced;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use PHPUnit\Framework\TestCase;
@@ -57,7 +57,7 @@ class ClassesTest extends TestCase {
    * @throws \ReflectionException
    */
   public function testRegistry(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
-    $registry = SymbolInfoRegistryPhp7::create();
+    $registry = SymbolInfoRegistry::create();
     $importss = Yaml::parseFile($importsYmlFile);
     foreach ($importss as $symbolId => $imports) {
       $symbol = SymbolHandle::fromId($symbolId);

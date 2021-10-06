@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
-class SymbolInfoRegistryPhp7 {
+class SymbolInfoRegistry {
 
   /**
    * @var \Donquixote\QuickAttributes\Parser\FileParser
