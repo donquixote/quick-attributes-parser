@@ -43,7 +43,7 @@ class ParserException extends \Exception {
    *
    * @noinspection PhpMissingReturnTypeInspection
    */
-  public static function fromTokenPos(array $tokens, int $pos, string $message, bool $append_found = TRUE) {
+  public static function fromTokenPos(array $tokens, int $pos, string $message, bool $append_found = FALSE) {
     [$line, $chrpos] = TokenPositionUtil::findLineChrPos($tokens, $pos);
     $message = "Line $line:$chrpos: $message";
     if ($append_found) {
