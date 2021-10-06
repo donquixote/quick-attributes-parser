@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Util\ParserUtilPhp7;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
-class ParserPhp7 {
+class FileParser {
 
   public function __construct() {
     if (PHP_VERSION_ID >= 80000) {

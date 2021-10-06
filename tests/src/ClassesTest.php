@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
-use Donquixote\QuickAttributes\Parser\ParserPhp7;
+use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistryPhp7;
 use Donquixote\QuickAttributes\Tests\Fixture\CAdvanced;
@@ -21,7 +21,7 @@ class ClassesTest extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testParser(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
-    $parser = new ParserPhp7();
+    $parser = new FileParser();
     $rc = new \ReflectionClass(CAdvanced::class);
     $file = $rc->getFileName();
     $importss = [];

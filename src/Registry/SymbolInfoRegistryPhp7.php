@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
-use Donquixote\QuickAttributes\Parser\ParserPhp7;
+use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
 class SymbolInfoRegistryPhp7 {
 
   /**
-   * @var \Donquixote\QuickAttributes\Parser\ParserPhp7
+   * @var \Donquixote\QuickAttributes\Parser\FileParser
    */
-  private ParserPhp7 $parser;
+  private FileParser $parser;
 
   /**
    * @var \Donquixote\QuickAttributes\Value\RawSymbolInfo[]
@@ -29,9 +29,9 @@ class SymbolInfoRegistryPhp7 {
   /**
    * Constructor.
    *
-   * @param \Donquixote\QuickAttributes\Parser\ParserPhp7 $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileParser $parser
    */
-  public function __construct(ParserPhp7 $parser) {
+  public function __construct(FileParser $parser) {
     if (PHP_VERSION_ID >= 80000) {
       throw new \RuntimeException('This class should only be used in PHP < 8.');
     }
@@ -42,7 +42,7 @@ class SymbolInfoRegistryPhp7 {
    * @return self
    */
   public static function create(): self {
-    return new self(new ParserPhp7());
+    return new self(new FileParser());
   }
 
   /**
