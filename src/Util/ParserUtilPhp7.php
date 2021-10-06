@@ -6,10 +6,19 @@ namespace Donquixote\QuickAttributes\Util;
 
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 
-/**
- * This class should only be used in PHP < 8.
- */
 class ParserUtilPhp7 {
+
+  const T_ATTRIBUTE = PHP_VERSION_ID >= 80000
+    ? \T_ATTRIBUTE
+    : -99;
+
+  const T_NAME_QUALIFIED = PHP_VERSION_ID >= 80000
+    ? \T_NAME_QUALIFIED
+    : -97;
+
+  const T_NAME_FULLY_QUALIFIED = PHP_VERSION_ID >= 80000
+    ? \T_NAME_FULLY_QUALIFIED
+    : -97;
 
   const ACCESS_MODIFIERS = [
     T_PUBLIC => 'public',
@@ -24,6 +33,8 @@ class ParserUtilPhp7 {
     ]
     : [
       T_STRING => TRUE,
+      self::T_NAME_FULLY_QUALIFIED => TRUE,
+      self::T_NAME_QUALIFIED => TRUE,
     ];
 
   const WS_MAPS = [
@@ -72,6 +83,7 @@ class ParserUtilPhp7 {
 
   private const SKIP_SQUARE_MAP = [
     '[' => 1,
+    self::T_ATTRIBUTE => 1,
     ']' => -1,
     // End of file marker.
     '#' => 0,
