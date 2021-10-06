@@ -1,0 +1,27 @@
+{
+    "name": "donquixote/quick-attributes-parser",
+    "description": "Quick Attributes Parser",
+    "license": "GPL-2.0-or-later",
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "symfony/yaml": "^5.3"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Donquixote\\QuickAttributes\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Donquixote\\QuickAttributes\\Tests\\": "tests/src"
+        }
+    },
+    "require": {
+        "php": "^7.4|^8.0"
+    }
+}

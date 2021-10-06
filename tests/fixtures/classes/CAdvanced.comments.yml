@@ -1,0 +1,20 @@
+Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
+    - "#[A0('class')]\n"
+    - "#[A1()]\n"
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::U':
+    - "#[A0('const U')]\n"
+    - "#[A1]\n"
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::V': {  }
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$x': {  }
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$y':
+    - "#[A0('property $y')]\n"
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct()':
+    - "#[A0('constructor')]\n"
+    - "#[A1()]\n"
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($x)': {  }
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($y)':
+    - "#[A0('param y')]\n"
+    - "#[A1]\n"
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($args)': {  }
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::f()': {  }
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::abs()': {  }

@@ -1,0 +1,88 @@
+<?xml version="1.0"?>
+<!--
+   See http://pear.php.net/manual/en/package.php.php-codesniffer.annotated-ruleset.php
+   See https://github.com/squizlabs/PHP_CodeSniffer/wiki/Annotated-Ruleset
+-->
+<ruleset name="ObjectConstructionKit">
+  <description>Drupal coding standard, relaxed for 'Object Construction Kit' package.</description>
+
+  <!-- Inherit everything from "Drupal" coding standard. -->
+  <arg name="extensions" value="inc,info,install,module,php,profile,test,theme,js,css"/>
+
+  <!-- Don't scane the vendor dir. -->
+  <exclude-pattern>/vendor/*</exclude-pattern>
+
+  <!-- This project originated in a Drupal context, so we keep the code style. -->
+  <rule ref="Drupal">
+
+    <!-- Allow files, classes and member vars without doc. -->
+    <exclude name="Drupal.Commenting.FileComment.Missing"/>
+    <exclude name="Drupal.Commenting.ClassComment.Missing"/>
+    <exclude name="Drupal.Commenting.VariableComment.Missing"/>
+
+    <!-- Don't require descriptions on param and return docs. -->
+    <exclude name="Drupal.Commenting.FunctionComment.MissingParamComment"/>
+    <exclude name="Drupal.Commenting.FunctionComment.MissingReturnComment"/>
+
+    <!-- Allow blank line after inline comments. -->
+    <exclude name="DrupalPractice.Commenting.CommentEmptyLine.SpacingAfter"/>
+    <exclude name="Drupal.Commenting.InlineComment.SpacingAfter"/>
+
+    <!-- Allow generic-style types and 'never-return' in docs. -->
+    <exclude name="Drupal.Commenting.FunctionComment.InvalidReturn"/>
+
+    <!-- Allow Perl-style comments and long lines for commented-out code. -->
+    <exclude name="Drupal.Commenting.InlineComment.WrongStyle"/>
+    <exclude name="Drupal.Files.LineLength.TooLong"/>
+
+    <!-- Allow inline /** @var ... */ docs.. -->
+    <exclude name="Drupal.Commenting.InlineComment.DocBlQuickAttributes"/>
+
+    <!-- Allow class names with underscore. -->
+    <exclude name="Drupal.NamingConventions.ValidClassName.NoUnderscores"/>
+
+    <!-- Allow acronyms with full uppercase letters in function names. -->
+    <exclude name="Drupal.NamingConventions.ValidFunctionName.ScopeNotCamelCaps"/>
+
+    <!-- Allow unnecessary string concat for readability. -->
+    <exclude name="Drupal.Strings.UnnecessaryStringConcat.Found"/>
+
+    <!-- Allow docs on hook implementations, for better IDE support. -->
+    <exclude name="Drupal.Commenting.HookComment.HookParamDoc"/>
+
+    <!-- False positive: Multi-line expressions in array values. -->
+    <exclude name="Drupal.Arrays.Array.ArrayIndentation"/>
+
+    <!-- Warnings for PhpStorm comment suppression syntax. -->
+    <exclude name="Drupal.Commenting.DocComment.ContentAfterOpen"/>
+    <exclude name="Drupal.Commenting.FileComment.NamespaceNoFileDoc"/>
+
+    <!-- Don't require comments on object properties. -->
+    <exclude name="Drupal.Commenting.DocComment.MissingShort"/>
+
+    <!-- Allow sloppy deprecated tags. -->
+    <exclude name="Drupal.Commenting.Deprecated.DeprecatedMissingSeeTag"/>
+    <exclude name="Drupal.Commenting.Deprecated.DeprecatedWrongSeeUrlFormat"/>
+    <exclude name="Drupal.Commenting.Deprecated.IncorrectTextLayout"/>
+
+    <!-- Don't require native type hints for 'callable'. -->
+    <!--
+    <exclude name="Drupal.Commenting.FunctionComment.TypeHintMissing"/>
+    -->
+
+    <!-- Don't get confused for functions that always throw and never return. -->
+    <exclude name="Drupal.Commenting.FunctionComment.InvalidNoReturn"/>
+
+    <!-- Allow overriding constructors with more specific signature. -->
+    <exclude name="Generic.CodeAnalysis.UselessOverridingMethod.Found"/>
+
+    <!-- Text::t() mistaken as Drupal t(). -->
+    <exclude name="Drupal.Semantics.FunctionT.NotLiteralString"/>
+
+  </rule>
+
+  <!-- Inherit from DrupalPractice -->
+  <rule ref="DrupalPractice">
+  </rule>
+
+</ruleset>
