@@ -8,7 +8,6 @@ use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
-use Donquixote\QuickAttributes\Tests\Fixture\CAdvanced;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -22,8 +21,6 @@ class ClassesTest extends TestCase {
    */
   public function testParser(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
     $parser = new FileParser();
-    $rc = new \ReflectionClass(CAdvanced::class);
-    $file = $rc->getFileName();
     $importss = [];
     $commentss = [];
     try {
