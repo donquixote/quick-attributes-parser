@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
+use Donquixote\QuickAttributes\AttributeReader\AttributeReader_Fallback;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Value\SymbolHandle;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
+use Donquixote\QuickAttributes\Value\SymbolHandle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
 
@@ -76,6 +77,29 @@ class ClassesTest extends TestCase {
     self::assertSame(
       array_keys($importss),
       array_keys($toplevelNamesMap));
+  }
+
+  /**
+   * @dataProvider providerTestClasses()
+   *
+   * @throws \Exception
+   */
+  public function testReader(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
+    $reader = AttributeReader_Fallback::create();
+    $commentss = Yaml::parseFile($commentsYmlFile);
+    $stats = [];
+    foreach ($commentss as $id => $comments) {
+      $symbol = SymbolHandle::fromId($id);
+      $list = $reader->read($symbol);
+      self::assertSame(count($comments), $list ? $list->count() : 0);
+      if ($list) {
+        $instances = $list->createInstances();
+        foreach ($instances as $instance) {
+          $stats[$id][] = serialize($instance);
+        }
+      }
+    }
+    echo "\n", Yaml::dump($stats), "\n";
   }
 
   public function testNoOrphanYmlFiles(): void {
