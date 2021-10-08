@@ -682,7 +682,7 @@ class FileParser {
         ++$i;
         $alias = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
         if (isset($imports[$alias])) {
-          throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.", FALSE);
+          throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
         }
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
@@ -727,7 +727,7 @@ class FileParser {
         ++$i;
         $alias = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
         if (isset($imports[$alias])) {
-          throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.", FALSE);
+          throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
         }
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
