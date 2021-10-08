@@ -20,7 +20,9 @@ class ClassesTest extends TestCase {
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function testParser(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
+  public function testParser(string $shortname) {
+    $ymlDir = $this->getYmlDir();
+    $file = $this->getClassesDir() . '/' . $shortname . '.php';
     $parser = new FileParser();
     $importss = [];
     $commentss = [];
@@ -45,8 +47,8 @@ class ClassesTest extends TestCase {
       $e->setSourceFile($file, dirname(__DIR__, 2));
       throw $e;
     }
-    TestUtil::assertFileContentsYml($importsYmlFile, $importss);
-    TestUtil::assertFileContentsYml($commentsYmlFile, $commentss);
+    TestUtil::assertFileContentsYml("$ymlDir/$shortname.imports.yml", $importss);
+    TestUtil::assertFileContentsYml("$ymlDir/$shortname.comments.yml", $commentss);
   }
 
   /**
@@ -54,14 +56,15 @@ class ClassesTest extends TestCase {
    *
    * @throws \ReflectionException
    */
-  public function testRegistry(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
+  public function testRegistry(string $shortname) {
+    $ymlDir = $this->getYmlDir();
     $registry = SymbolInfoRegistry::create();
-    $importss = Yaml::parseFile($importsYmlFile);
+    $importss = Yaml::parseFile("$ymlDir/$shortname.imports.yml");
     foreach ($importss as $symbolId => $imports) {
       $symbol = SymbolHandle::fromId($symbolId);
       self::assertSame($imports, $registry->symbolGetImports($symbol));
     }
-    $commentss = Yaml::parseFile($commentsYmlFile);
+    $commentss = Yaml::parseFile("$ymlDir/$shortname.comments.yml");
     $toplevelNamesMap = [];
     foreach ($commentss as $symbolId => $comments) {
       $symbol = SymbolHandle::fromId($symbolId);
@@ -84,14 +87,14 @@ class ClassesTest extends TestCase {
    *
    * @throws \Exception
    */
-  public function testReader(string $file, string $class, string $importsYmlFile, string $commentsYmlFile) {
+  public function testReader(string $shortname) {
+    $ymlDir = $this->getYmlDir();
     $reader = AttributeReader_Fallback::create();
-    $commentss = Yaml::parseFile($commentsYmlFile);
+    $commentss = Yaml::parseFile("$ymlDir/$shortname.comments.yml");
     $stats = [];
     foreach ($commentss as $id => $comments) {
       $symbol = SymbolHandle::fromId($id);
       $list = $reader->read($symbol);
-      self::assertSame(count($comments), $list ? $list->count() : 0);
       if ($list) {
         $instances = $list->createInstances();
         foreach ($instances as $instance) {
@@ -103,43 +106,62 @@ class ClassesTest extends TestCase {
   }
 
   public function testNoOrphanYmlFiles(): void {
-    $ymlDir = dirname(__DIR__) . '/fixtures/classes';
-    $argss = $this->providerTestClasses();
+    $ymlDir = $this->getYmlDir();
 
     // Verify that no orphan yml files exist.
-    $orphanFiles = [];
+    $actualFilesMap = [];
     foreach (scandir($ymlDir) as $candidate) {
-      if (preg_match('@^(\w+)\.(\w+)\.yml$@', $candidate, $m)) {
-        [, $name, $type] = $m;
-        if (!isset($argss[$name])) {
-          $orphanFiles["$ymlDir/$candidate"] = "Found yml file for unknown name '$name'";
-        }
-        if (!in_array($type, ['imports', 'comments'])) {
-          $orphanFiles["$ymlDir/$candidate"] = "Found yml file for unknown type '$type'";
-        }
+      if (preg_match('@\.yml$@', $candidate, $m)) {
+        $actualFilesMap["$ymlDir/$candidate"] = TRUE;
       }
     }
+    ksort($actualFilesMap);
 
-    self::assertEmpty($orphanFiles);
+    $expectedFilesMap = [];
+    foreach ($this->getClassShortNames() as $shortname) {
+      foreach([
+        "$ymlDir/$shortname.imports.yml",
+        "$ymlDir/$shortname.comments.yml",
+      ] as $file) {
+        $expectedFilesMap[$file] = TRUE;
+      }
+    }
+    ksort($expectedFilesMap);
+
+    self::assertSame($expectedFilesMap, $actualFilesMap);
   }
 
-  public function providerTestClasses(): array {
-    $argss = [];
-    $classesDir = __DIR__ . '/Fixture';
-    $ymlDir = dirname(__DIR__) . '/fixtures/classes';
+  public function providerTestClasses(): \Iterator {
+    foreach ($this->getClassShortNames() as $shortname) {
+      yield [$shortname];
+    }
+  }
+
+  /**
+   * @return string[]
+   */
+  protected function getClassShortNames(): array {
+    $names = [];
+    $classesDir = $this->getClassesDir();
     foreach (scandir($classesDir) as $candidate) {
       if (preg_match('@^(\w+)\.php$@', $candidate, $m)) {
-        $shortname = $m[1];
-        $argss[$shortname] = [
-          $classesDir . '/' . $candidate,
-          __NAMESPACE__ . '\\Fixture\\' . $shortname,
-          $ymlDir . '/' . $shortname . '.imports.yml',
-          $ymlDir . '/' . $shortname . '.comments.yml',
-        ];
+        $names[] = $m[1];
       }
     }
 
-    return $argss;
+    return $names;
+  }
+
+  private function getClassesDir(): string {
+    return __DIR__ . '/Fixture';
+  }
+
+  private function getYmlDir(): string {
+    return dirname(__DIR__) . '/fixtures/classes';
+  }
+
+  private function getNamespace(): string {
+    return __NAMESPACE__ . '\\Fixture';
   }
 
 }
