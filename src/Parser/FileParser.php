@@ -538,6 +538,7 @@ class FileParser {
     assert(ParserUtil::expect($tokens, $pos, T_CONST));
 
     $i = $pos + 1;
+    $names = [];
     $names[] = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
 
     ++$i;
