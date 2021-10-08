@@ -617,6 +617,9 @@ class FileParser {
       }
       // Ignore any non-char tokens.
     }
+    // Silence Psalm.
+    /** @noinspection PhpUnreachableStatementInspection */
+    throw new \RuntimeException('Unreachable code.');
   }
 
   /**
