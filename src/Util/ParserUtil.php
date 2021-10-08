@@ -348,6 +348,72 @@ class ParserUtil {
   /**
    * @param array $tokens
    * @param int $pos
+   *   Before: First non-whitespace, non-comment token in the value expression.
+   *   After: Position of closing symbol.
+   *
+   * @return string
+   *   Closing symbol, e.g. ';', ',', ')', ']'.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  public static function skipValueExpression(array $tokens, int &$pos): string {
+    for ($i = $pos;; ++$i) {
+      $token = $tokens[$i];
+      if (is_string($token)) {
+        switch ($token) {
+          case '(':
+          case '{':
+          case '[':
+            self::skipSubtree($tokens, $i);
+            break;
+
+          case ',':
+          case ')':
+          case ';':
+          case ']':
+            if ($pos === $i) {
+              throw SyntaxException::expectedButFound($tokens, $i, 'Value expression');
+            }
+            $pos = $i;
+            return $token;
+
+          case '}':
+            throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected '$token' in parameters.");
+
+          case '#':
+            throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
+
+          default:
+            break;
+        }
+      }
+      // Ignore any non-char tokens.
+    }
+  }
+
+  /**
+   * @param array $tokens
+   * @param int $begin
+   * @param int $end
+   *
+   * @return string
+   */
+  public static function concatTokens(array $tokens, int $begin, int $end): string {
+    $code = '';
+    for ($i = $begin; $i < $end; ++$i) {
+      if (is_string($tokens[$i])) {
+        $code .= $tokens[$i];
+      }
+      else {
+        $code .= $tokens[$i][1];
+      }
+    }
+    return $code;
+  }
+
+  /**
+   * @param array $tokens
+   * @param int $pos
    * @param int|string $expected
    *
    * @return bool
