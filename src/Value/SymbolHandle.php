@@ -360,4 +360,80 @@ final class SymbolHandle {
     }
   }
 
+  /**
+   * Gets the namespace name.
+   *
+   * @return string|null
+   */
+  public function getNamespaceName(): ?string {
+    $qcn = $this->getToplevelQcn();
+    if (FALSE === $pos = strrpos($qcn, '\\')) {
+      return substr($qcn, $pos);
+    }
+    return NULL;
+  }
+
+  /**
+   * Gets the namespace name with ending '\\'.
+   *
+   * @return string
+   */
+  public function getTerminatingNamespaceName(): string {
+    $qcn = $this->getToplevelQcn();
+    if (FALSE === $pos = strrpos($qcn, '\\')) {
+      return substr($qcn, $pos + 1);
+    }
+    return '';
+  }
+
+  /**
+   * Gets the class name, e.g. to resolve 'self'.
+   *
+   * @return string|null
+   */
+  public function getToplevelQcn(): ?string {
+    switch ($this->reflectorClass) {
+      case \ReflectionMethod::class:
+      case \ReflectionProperty::class:
+      case \ReflectionClassConstant::class:
+      case \ReflectionClass::class:
+      case \ReflectionFunction::class:
+        return $this->reflectorArgs[0];
+
+      case \ReflectionParameter::class:
+        return is_array($this->reflectorArgs[0])
+          ? $this->reflectorArgs[0][0]
+          : $this->reflectorArgs[0];
+
+      default:
+        throw new \RuntimeException('Unreachable code.');
+    }
+  }
+
+  /**
+   * Gets the class name, e.g. to resolve 'self'.
+   *
+   * @return string|null
+   */
+  public function getClassName(): ?string {
+    switch ($this->reflectorClass) {
+      case \ReflectionFunction::class:
+        return NULL;
+
+      case \ReflectionParameter::class:
+        return is_array($this->reflectorArgs[0])
+          ? $this->reflectorArgs[0][0]
+          : NULL;
+
+      case \ReflectionClass::class:
+      case \ReflectionMethod::class:
+      case \ReflectionProperty::class:
+      case \ReflectionClassConstant::class:
+        return $this->reflectorArgs[0];
+
+      default:
+        throw new \RuntimeException('Unreachable code.');
+    }
+  }
+
 }
