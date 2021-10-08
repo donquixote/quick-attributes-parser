@@ -326,7 +326,7 @@ class FileParser {
           case T_FUNCTION:
             $method = $this->parseFunctionHead($tokens, $i);
             if ($method === NULL) {
-              throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function is not allowed here.', FALSE);
+              throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function is not allowed here.');
             }
             $symbol = SymbolHandle::fromMethod($class, $method);
             yield $symbol => RawSymbolInfo::forInnerSymbol($attributeComments);
