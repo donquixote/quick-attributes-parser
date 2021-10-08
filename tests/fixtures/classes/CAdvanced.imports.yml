@@ -1,3 +1,4 @@
 Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
     A0: Donquixote\QuickAttributes\Tests\Attribute\A0
     A1: Donquixote\QuickAttributes\Tests\Attribute\A1
+    SubA0: Donquixote\QuickAttributes\Tests\Attribute\Sub\A0

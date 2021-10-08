@@ -6,9 +6,10 @@ namespace Donquixote\QuickAttributes\Tests\Fixture;
 
 use Donquixote\QuickAttributes\Tests\Attribute\A0;
 use Donquixote\QuickAttributes\Tests\Attribute\A1;
+use Donquixote\QuickAttributes\Tests\Attribute\Sub\A0 as SubA0;
 
 #[A0('class')]
-#[A1()]
+#[A1(), SubA0]
 abstract class CAdvanced {
 
   #[A0('const U')]

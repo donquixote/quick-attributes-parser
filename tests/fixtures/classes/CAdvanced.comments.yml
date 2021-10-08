@@ -1,6 +1,6 @@
 Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
     - "#[A0('class')]\n"
-    - "#[A1()]\n"
+    - "#[A1(), SubA0]\n"
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::U':
     - "#[A0('const U')]\n"
     - "#[A1]\n"
