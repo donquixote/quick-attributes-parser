@@ -21,7 +21,7 @@ class FileParser {
   /**
    * @param string $file
    *
-   * @return \Iterator|iterable<SymbolHandle, RawSymbolInfo>
+   * @return \Iterator<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -35,7 +35,7 @@ class FileParser {
   /**
    * @param array $tokens
    *
-   * @return \Iterator|iterable<SymbolHandle, RawSymbolInfo>
+   * @return \Iterator<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -48,7 +48,7 @@ class FileParser {
    * @param array $tokens
    * @param int $pos
    *
-   * @return \Iterator|iterable<SymbolHandle, RawSymbolInfo>
+   * @return \Iterator<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -250,7 +250,7 @@ class FileParser {
    * @param int $pos
    * @param string $class
    *
-   * @return \Iterator|iterable<SymbolHandle, RawSymbolInfo>
+   * @return \Iterator<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
