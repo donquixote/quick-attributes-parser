@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Parser;
 
 use Donquixote\QuickAttributes\Exception\SyntaxException;
+use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
@@ -176,8 +177,25 @@ class FileParser {
   public function parseNamespace(array $tokens, int &$pos): string {
     assert(ParserUtil::expect($tokens, $pos, T_NAMESPACE));
     $i = $pos + 1;
-    ParserUtil::skipFillerWs($tokens, $i);
-    $namespace = ParserUtil::parseQcn($tokens, $i);
+    $namespace = ParserUtil::skipFillerWsExpectTString($tokens, $i);
+    while (TRUE) {
+      ++$i;
+      if ($tokens[$i][0] !== T_NS_SEPARATOR) {
+        break;
+      }
+      ++$i;
+      if ($tokens[$i][0] !== T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
+      }
+      $namespace .= '\\' . $tokens[$i][1];
+    }
+    $id = ParserUtil::skipFillerWs($tokens, $i);
+    if ($id !== ';') {
+      if ($id === '{') {
+        throw UnsupportedSyntaxException::fromTokenPos($tokens, $i, 'Nested namespace syntax is not supported.');
+      }
+      throw SyntaxException::expectedButFound($tokens, $i, ';');
+    }
     $pos = $i;
     return $namespace;
   }

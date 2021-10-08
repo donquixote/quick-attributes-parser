@@ -280,6 +280,21 @@ class ParserUtil {
   /**
    * @param array $tokens
    * @param int $pos
+   *
+   * @return string
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  public static function skipFillerWsExpectTString(array $tokens, int &$pos): string {
+    $id = self::skipFillerWs($tokens, $pos);
+    if ($id !== T_STRING) {
+      throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+    }
+    return $tokens[$pos][1];
+  }
+
+  /**
+   * @param array $tokens
+   * @param int $pos
    * @param string $expected
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
