@@ -22,8 +22,7 @@ class SyntaxException extends ParserException {
       sprintf(
         'Unexpected %s %s.',
         ParserUtil::formatToken($tokens[$pos]),
-        $where),
-      FALSE);
+        $where));
   }
 
   /**
@@ -40,8 +39,7 @@ class SyntaxException extends ParserException {
       \vsprintf('Unexpected %s after %s.', [
         ParserUtil::formatToken($tokens[$pos]),
         $preceding ?? ParserUtil::formatToken($tokens[$pos - 1]),
-      ]),
-      FALSE);
+      ]));
   }
 
   /**
@@ -58,8 +56,7 @@ class SyntaxException extends ParserException {
       sprintf(
         'Expected %s, but found %s.',
         $expected,
-        ParserUtil::formatToken($tokens[$pos])),
-      FALSE);
+        ParserUtil::formatToken($tokens[$pos])));
   }
 
 }
