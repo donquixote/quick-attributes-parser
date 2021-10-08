@@ -684,6 +684,7 @@ class FileParser {
         if (isset($imports[$alias])) {
           throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
         }
+        ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
       $imports[$type . $alias] = $qcn;
