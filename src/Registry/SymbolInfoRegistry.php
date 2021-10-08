@@ -48,17 +48,20 @@ class SymbolInfoRegistry {
   /**
    * @param \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
    *
-   * @return string[]|null
+   * @return string[]
    *   Format (class, namespace): $[$alias] = $qcn.
    *   Format (function): $["function $alias"] = $qcn.
    *   Format (constant): $["const $alias"] = $qcn.
-   *   For non toplevel symbols this is NULL.
    *
    * @throws \ReflectionException
    *   Failed to load imports for this symbol.
    */
-  public function symbolGetImports(SymbolHandle $symbol): ?array {
-    return $this->symbolGetInfo($symbol->getTopLevel())->getImports();
+  public function symbolGetImports(SymbolHandle $symbol): array {
+    $imports = $this->symbolGetInfo($symbol->getTopLevel())->getImports();
+    if ($imports === NULL) {
+      throw new \RuntimeException('Imports for a top-level symbol can never be NULL.');
+    }
+    return $imports;
   }
 
   /**
