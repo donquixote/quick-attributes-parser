@@ -417,11 +417,11 @@ class FileParser {
    *   Before: Position at '(' before the parameters.
    *   After: Position at ')' after the parameters.
    *
-   * @return \Iterator|iterable<string, string[]>
+   * @return iterable<string, string[]>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseParams(array $tokens, int &$pos): \Iterator {
+  public function parseParams(array $tokens, int &$pos): iterable {
     assert(ParserUtil::expect($tokens, $pos, '('));
     /** @var string[] $attributeComments */
     $attributeComments = [];
