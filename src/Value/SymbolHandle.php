@@ -8,6 +8,8 @@ namespace Donquixote\QuickAttributes\Value;
  * Value object. Handle to identify a reflectable symbol without loading it.
  *
  * Only symbols that can have attributes are supported.
+ *
+ * @template-covariant T as \Donquixote\QuickAttributes\Stub\SymbolReflectionInterface
  */
 final class SymbolHandle {
 
@@ -34,20 +36,20 @@ final class SymbolHandle {
   ];
 
   /**
-   * @var string
+   * @var class-string<T>
    */
   private string $reflectorClass;
 
   /**
-   * @var array
+   * @var array{string}|array{string, string}|array{array{string, string}, string}
    */
   private array $reflectorArgs;
 
   /**
    * Constructor.
    *
-   * @param string $reflectorClass
-   * @param array $reflectorArgs
+   * @param class-string<T> $reflectorClass
+   * @param array{string}|array{string, string}|array{array{string, string}, string} $reflectorArgs
    */
   public function __construct(string $reflectorClass, array $reflectorArgs) {
     assert(isset(self::ALLOWED_REFLECTOR_CLASSES_MAP[$reflectorClass]));
@@ -60,7 +62,7 @@ final class SymbolHandle {
    *
    * @param string $class
    *
-   * @return self
+   * @return self<\ReflectionClass>
    */
   public static function fromClass(string $class): self {
     return new self(\ReflectionClass::class, [$class]);
@@ -71,7 +73,7 @@ final class SymbolHandle {
    *
    * @param string $function
    *
-   * @return self
+   * @return self<\ReflectionFunction>
    */
   public static function fromFunction(string $function): self {
     return new self(\ReflectionFunction::class, [$function]);
@@ -83,7 +85,7 @@ final class SymbolHandle {
    * @param string $class
    * @param string $method
    *
-   * @return self
+   * @return self<\ReflectionMethod>
    */
   public static function fromMethod(string $class, string $method): self {
     return new self(\ReflectionMethod::class, [$class, $method]);
@@ -95,7 +97,7 @@ final class SymbolHandle {
    * @param string $class
    * @param string $property
    *
-   * @return self
+   * @return self<\ReflectionProperty>
    */
   public static function fromClassProperty(string $class, string $property): self {
     return new self(\ReflectionProperty::class, [$class, $property]);
@@ -107,7 +109,7 @@ final class SymbolHandle {
    * @param string $class
    * @param string $constant
    *
-   * @return self
+   * @return self<\ReflectionClassConstant>
    */
   public static function fromClassConstant(string $class, string $constant): self {
     return new self(\ReflectionClassConstant::class, [$class, $constant]);
@@ -119,7 +121,7 @@ final class SymbolHandle {
    * @param string $function
    * @param string $parameter
    *
-   * @return self
+   * @return self<\ReflectionParameter>
    */
   public static function fromFunctionParameter(string $function, string $parameter): self {
     return new self(\ReflectionParameter::class, [$function, $parameter]);
@@ -132,7 +134,7 @@ final class SymbolHandle {
    * @param string $method
    * @param string $parameter
    *
-   * @return self
+   * @return self<\ReflectionParameter>
    */
   public static function fromMethodParameter(string $class, string $method, string $parameter): self {
     return new self(\ReflectionParameter::class, [[$class, $method], $parameter]);
@@ -144,7 +146,7 @@ final class SymbolHandle {
    * @param string $id
    *   Id identifying the symbol, as returned from self::__toString().
    *
-   * @return self
+   * @return self<\Donquixote\QuickAttributes\Stub\SymbolReflectionInterface>
    *
    * @see __toString()
    */
@@ -188,9 +190,12 @@ final class SymbolHandle {
   /**
    * Static factory.
    *
-   * @param \Reflector $reflector
+   * @template TF as \Donquixote\QuickAttributes\Stub\SymbolReflectionInterface
    *
-   * @return static
+   * @param \Reflector $reflector
+   * @psalm-param TF $reflector
+   *
+   * @return self<TF>
    * @throws \ReflectionException
    */
   public static function fromReflector(\Reflector $reflector): self {
@@ -205,6 +210,7 @@ final class SymbolHandle {
             get_class($reflector)));
       }
     }
+    /** @var class-string<TF> $class */
     return new self(
       $class,
       self::reflectorGetConstructorArgs($class, $reflector));
@@ -214,7 +220,7 @@ final class SymbolHandle {
    * @param string $class
    * @param \Reflector $reflector
    *
-   * @return array
+   * @return array{string}|array{string, string}|array{array{string, string}, string}
    *
    * @throws \ReflectionException
    */
@@ -252,6 +258,7 @@ final class SymbolHandle {
    *
    * @return \ReflectionClass|\ReflectionFunction|\ReflectionMethod|\ReflectionParameter|\ReflectionProperty|\ReflectionClassConstant
    *   Native reflector object.
+   * @psalm-return T
    */
   public function reflect(): \Reflector {
     return new $this->reflectorClass(...$this->reflectorArgs);
@@ -260,7 +267,7 @@ final class SymbolHandle {
   /**
    * Gets the canonical reflector class.
    *
-   * @return string
+   * @return class-string<T>
    */
   public function getReflectorClass(): string {
     return $this->reflectorClass;
@@ -280,28 +287,36 @@ final class SymbolHandle {
    *
    * @see fromId()
    */
-  public function __toString() {
+  public function __toString(): string {
     $args = $this->reflectorArgs;
     switch ($this->reflectorClass) {
       case \ReflectionClass::class:
+        /** @var array{string} $args */
         return $args[0];
 
       case \ReflectionFunction::class:
+        /** @var array{string} $args */
         return $args[0] . '()';
 
       case \ReflectionMethod::class:
+        /** @var array{string, string} $args */
         return $args[0] . '::' . $args[1] . '()';
 
       case \ReflectionProperty::class:
+        /** @var array{string, string} $args */
         return $args[0] . '::$' . $args[1];
 
       case \ReflectionClassConstant::class:
+        /** @var array{string, string} $args */
         return $args[0] . '::' . $args[1];
 
       case \ReflectionParameter::class:
-        return is_array($args[0])
-          ? $args[0][0] . '::' . $args[0][1] . '($' . $args[1] . ')'
-          : $args[0] . '($' . $args[1] . ')';
+        if (is_array($args[0])) {
+          /** @var array{array{string, string}, string} $args */
+          return $args[0][0] . '::' . $args[0][1] . '($' . $args[1] . ')';
+        }
+        /** @var array{string, string} $args */
+        return $args[0] . '($' . $args[1] . ')';
 
       default:
         throw new \RuntimeException('Unreachable case.');
@@ -311,13 +326,14 @@ final class SymbolHandle {
   /**
    * Gets a handle to the top-level symbol that contains this.
    *
-   * @return self
+   * @return self<\ReflectionClass>|self<\ReflectionFunction>
    */
   public function getTopLevel(): self {
     switch ($this->reflectorClass) {
       case \ReflectionMethod::class:
       case \ReflectionProperty::class:
       case \ReflectionClassConstant::class:
+        /** @psalm-suppress PossiblyInvalidArgument, PossiblyInvalidCast */
         return self::fromClass($this->reflectorArgs[0]);
 
       case \ReflectionParameter::class:
@@ -327,7 +343,9 @@ final class SymbolHandle {
 
       case \ReflectionClass::class:
       case \ReflectionFunction::class:
-        return $this;
+        /** @var self<\ReflectionClass>|self<\ReflectionFunction> $ret */
+        $ret = $this;
+        return $ret;
 
       default:
         throw new \RuntimeException('Unreachable code.');
@@ -342,18 +360,23 @@ final class SymbolHandle {
   public function getFileName(): string {
     switch ($this->reflectorClass) {
       case \ReflectionFunction::class:
+        /** @psalm-suppress InvalidArgument */
         return (new \ReflectionFunction($this->reflectorArgs[0]))->getFileName();
 
       case \ReflectionParameter::class:
+        /** @psalm-suppress ArgumentTypeCoercion */
         return is_array($this->reflectorArgs[0])
-          ? (new \ReflectionClass($this->reflectorArgs[0][0]))->getFileName()
+          ? (new \ReflectionMethod(...$this->reflectorArgs[0]))->getDeclaringClass()->getFileName()
           : (new \ReflectionFunction($this->reflectorArgs[0]))->getFileName();
 
       case \ReflectionClass::class:
+        /** @psalm-suppress InvalidArgument */
+        return (new \ReflectionClass($this->reflectorArgs[0]))->getFileName();
+
       case \ReflectionMethod::class:
       case \ReflectionProperty::class:
       case \ReflectionClassConstant::class:
-        return (new \ReflectionClass($this->reflectorArgs[0]))->getFileName();
+        return (new $this->reflectorClass(...$this->reflectorArgs))->getDeclaringClass()->getFileName();
 
       default:
         throw new \RuntimeException('Unreachable code.');
@@ -367,8 +390,8 @@ final class SymbolHandle {
    */
   public function getNamespaceName(): ?string {
     $qcn = $this->getToplevelQcn();
-    if (FALSE === $pos = strrpos($qcn, '\\')) {
-      return substr($qcn, $pos);
+    if (FALSE !== $pos = strrpos($qcn, '\\')) {
+      return substr($qcn, 0, $pos);
     }
     return NULL;
   }
@@ -380,7 +403,7 @@ final class SymbolHandle {
    */
   public function getTerminatingNamespaceName(): string {
     $qcn = $this->getToplevelQcn();
-    if (FALSE === $pos = strrpos($qcn, '\\')) {
+    if (FALSE !== $pos = strrpos($qcn, '\\')) {
       return substr($qcn, $pos + 1);
     }
     return '';
@@ -389,15 +412,18 @@ final class SymbolHandle {
   /**
    * Gets the class name, e.g. to resolve 'self'.
    *
-   * @return string|null
+   * @return string
+   *
+   * @psalm-suppress InvalidReturnType
    */
-  public function getToplevelQcn(): ?string {
+  public function getToplevelQcn(): string {
     switch ($this->reflectorClass) {
       case \ReflectionMethod::class:
       case \ReflectionProperty::class:
       case \ReflectionClassConstant::class:
       case \ReflectionClass::class:
       case \ReflectionFunction::class:
+        /** @psalm-suppress InvalidReturnStatement */
         return $this->reflectorArgs[0];
 
       case \ReflectionParameter::class:
@@ -413,7 +439,9 @@ final class SymbolHandle {
   /**
    * Gets the class name, e.g. to resolve 'self'.
    *
-   * @return string|null
+   * @return class-string|null
+   *
+   * @psalm-suppress InvalidReturnType
    */
   public function getClassName(): ?string {
     switch ($this->reflectorClass) {
@@ -421,6 +449,7 @@ final class SymbolHandle {
         return NULL;
 
       case \ReflectionParameter::class:
+        /** @psalm-suppress LessSpecificReturnStatement */
         return is_array($this->reflectorArgs[0])
           ? $this->reflectorArgs[0][0]
           : NULL;
@@ -429,6 +458,7 @@ final class SymbolHandle {
       case \ReflectionMethod::class:
       case \ReflectionProperty::class:
       case \ReflectionClassConstant::class:
+        /** @psalm-suppress InvalidReturnStatement */
         return $this->reflectorArgs[0];
 
       default:

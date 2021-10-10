@@ -7,7 +7,7 @@ namespace Donquixote\QuickAttributes\AttributesList;
 interface AttributesListInterface {
 
   /**
-   * @template T
+   * @template T as object
    *
    * @param class-string<T>|null $type
    *
@@ -16,7 +16,7 @@ interface AttributesListInterface {
   public function has(string $type = NULL): bool;
 
   /**
-   * @template T
+   * @template T as object
    *
    * @param class-string<T>|null $type
    *
@@ -25,7 +25,7 @@ interface AttributesListInterface {
   public function count(string $type = NULL): int;
 
   /**
-   * @template T
+   * @template T as object
    *
    * @param class-string<T>|null $type
    *

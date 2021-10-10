@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Util\ParserUtil;
 class SyntaxException extends ParserException {
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string $where
    *
@@ -26,7 +26,7 @@ class SyntaxException extends ParserException {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string|null $preceding
    *
@@ -43,7 +43,7 @@ class SyntaxException extends ParserException {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string $expected
    *

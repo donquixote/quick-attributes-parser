@@ -1,0 +1,73 @@
+parameters:
+    - $a
+    - '$b = null'
+php: |-
+    return static function($a, $b = null) {
+      return func_get_args();
+    };
+calls:
+    serial:
+        arguments:
+            - A
+            - B
+        rewritten:
+            - A
+            - B
+    named:
+        arguments:
+            a: A
+            b: B
+        rewritten:
+            - A
+            - B
+    named.flipped:
+        arguments:
+            b: B
+            a: A
+        rewritten:
+            - A
+            - B
+    named.unknown:
+        arguments:
+            b: B
+            z: Z
+        exception:
+            class: ReflectionException
+            message: 'Unknown argument name ''z''.'
+        error.php8:
+            class: Error
+            message: 'Unknown named parameter $z'
+    mixed:
+        arguments:
+            0: zero
+            b: B
+        rewritten:
+            - zero
+            - B
+    mixed.wrongIndex:
+        arguments:
+            5: five
+            b: B
+        rewritten:
+            - five
+            - B
+    mixed.numericAfterNamed:
+        arguments:
+            a: A
+            5: five
+        exception:
+            class: ReflectionException
+            message: 'Cannot have positional arguments after named arguments.'
+        error.php8:
+            class: Error
+            message: 'Cannot use positional argument after named argument during unpacking'
+    mixed.namedOverwritingNumeric:
+        arguments:
+            5: five
+            a: A
+        exception:
+            class: ReflectionException
+            message: 'Cannot overwrite argument.'
+        error.php8:
+            class: Error
+            message: 'Named parameter $a overwrites previous argument'

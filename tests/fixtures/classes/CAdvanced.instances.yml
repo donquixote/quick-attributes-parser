@@ -1,0 +1,30 @@
+Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A0
+        $name: class
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A1
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\Sub\A0
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::U':
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A0
+        $name: 'const U'
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A1
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$y':
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A0
+        $name: 'property $y'
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct()':
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A0
+        $name: constructor
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A1
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($y)':
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A0
+        $name: 'param y'
+    -
+        class: Donquixote\QuickAttributes\Tests\Attribute\A1

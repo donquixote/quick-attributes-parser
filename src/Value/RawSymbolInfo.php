@@ -7,14 +7,14 @@ namespace Donquixote\QuickAttributes\Value;
 class RawSymbolInfo {
 
   /**
-   * @var string[]|null
+   * @var array<string, string>|null
    */
   private ?array $imports = NULL;
 
   /**
    * @var string[]
    */
-  private array $attributeComments;
+  private array $attributeComments = [];
 
   /**
    * Private constructor.
@@ -34,7 +34,7 @@ class RawSymbolInfo {
 
   /**
    * @param string[] $attributeComments
-   * @param string[] $imports
+   * @param array<string, string> $imports
    *
    * @return self
    */
@@ -46,7 +46,7 @@ class RawSymbolInfo {
   }
 
   /**
-   * @param array $imports
+   * @param array<string, string> $imports
    *
    * @return static
    */
@@ -59,7 +59,7 @@ class RawSymbolInfo {
   /**
    * Imports declared for the global symbol.
    *
-   * @return string[]|null
+   * @return array<string, string>|null
    *   Format (class, namespace): $[$alias] = $qcn.
    *   Format (function): $["function $alias"] = $qcn.
    *   Format (constant): $["const $alias"] = $qcn.

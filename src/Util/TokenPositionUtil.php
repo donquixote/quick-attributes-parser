@@ -9,7 +9,7 @@ class TokenPositionUtil {
   /**
    * Builds a formatted string from line number and character position.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with appended terminating '#'.
    * @param int $pos
    *   Token index.
@@ -25,7 +25,7 @@ class TokenPositionUtil {
   /**
    * Finds line number and character position of a token.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with appended terminating '#'.
    * @param int $pos
    *   Token index.
@@ -59,7 +59,7 @@ class TokenPositionUtil {
   /**
    * Finds the line number of a token.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with appended terminating '#'.
    * @param int $pos
    *   Token index.
@@ -84,7 +84,7 @@ class TokenPositionUtil {
   /**
    * Finds the token character position within its line of code.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with appended terminating '#'.
    * @param int $pos
    *   Token index.

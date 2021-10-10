@@ -1,15 +1,47 @@
 <?xml version="1.0"?>
 <psalm
-    errorLevel="3"
-    resolveFromConfigFile="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+
+    errorLevel="1"
+    resolveFromConfigFile="true"
+    hoistConstants="true"
+    allowPhpStormGenerics="true"
+    findUnusedPsalmSuppress="true"
+    findUnusedVariablesAndParams="true"
+    ensureArrayStringOffsetsExist="true"
+    addParamDefaultToDocblockType="true"
 >
-    <projectFiles>
-        <directory name="." />
-        <ignoreFiles>
-            <directory name="vendor" />
-        </ignoreFiles>
-    </projectFiles>
+  <projectFiles>
+    <directory name="src" />
+    <directory name="tests/src" />
+    <ignoreFiles>
+      <directory name="vendor" />
+    </ignoreFiles>
+  </projectFiles>
+
+  <stubs>
+    <file name="stubs/constants.php"/>
+    <file name="stubs/Generator.phpstub"/>
+    <file name="stubs/ReflectionAttribute.phpstub"/>
+    <file name="stubs/ReflectionClass.phpstub"/>
+    <file name="stubs/ReflectionFunction.phpstub"/>
+    <file name="stubs/ReflectionFunctionAbstract.phpstub"/>
+    <file name="stubs/ReflectionParameter.phpstub"/>
+    <file name="stubs/ReflectionProperty.phpstub"/>
+    <file name="stubs/ReflectionClassConstant.phpstub"/>
+  </stubs>
+
+  <issueHandlers>
+    <UndefinedClass>
+      <errorLevel type="suppress">
+        <referencedClass name="Reflection_Attribute"/>
+      </errorLevel>
+    </UndefinedClass>
+  </issueHandlers>
+
+  <ignoreExceptions>
+    <classAndDescendants name="RuntimeException" />
+  </ignoreExceptions>
 </psalm>

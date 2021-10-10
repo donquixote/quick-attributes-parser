@@ -23,6 +23,13 @@ abstract class CAdvanced {
   #[A0('property $y')]
   public string $y;
 
+  /**
+   * Constructor.
+   *
+   * @param int $x
+   * @param string $y
+   * @param mixed ...$args
+   */
   #[A0('constructor')]
   #[A1()]
   public function __construct(
@@ -36,8 +43,8 @@ abstract class CAdvanced {
     $this->y = $y;
   }
 
-  public function f() {}
+  public function f(): void {}
 
-  abstract protected function abs();
+  abstract protected function abs(): void;
 
 }

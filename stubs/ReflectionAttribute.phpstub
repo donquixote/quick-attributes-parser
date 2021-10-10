@@ -1,0 +1,68 @@
+<?php
+
+use JetBrains\PhpStorm\Pure;
+
+/**
+ * @template T as object
+ */
+class ReflectionAttribute
+{
+  /**
+   * Indicates that the search for a suitable attribute should not be by
+   * strict comparison, but by the inheritance chain.
+   *
+   * Used for the argument of flags of the "getAttribute" method.
+   */
+  public const IS_INSTANCEOF = 2;
+
+  /**
+   * ReflectionAttribute cannot be created explicitly.
+   */
+  private function __construct() {}
+
+  /**
+   * Gets attribute name
+   *
+   * @return class-string<T> The name of the attribute parameter.
+   */
+  #[Pure]
+  public function getName() {}
+
+  /**
+   * Returns the target of the attribute as a bit mask format.
+   *
+   * @return int
+   */
+  #[Pure]
+  public function getTarget() {}
+
+  /**
+   * Returns {@see true} if the attribute is repeated.
+   *
+   * @return bool
+   */
+  #[Pure]
+  public function isRepeated() {}
+
+  /**
+   * Gets list of passed attribute's arguments.
+   *
+   * @return array
+   */
+  #[Pure]
+  public function getArguments() {}
+
+  /**
+   * Creates a new instance of the attribute with passed arguments
+   *
+   * @return T
+   */
+  public function newInstance() {}
+
+  /**
+   * ReflectionAttribute cannot be cloned
+   *
+   * @return void
+   */
+  private function __clone() {}
+}

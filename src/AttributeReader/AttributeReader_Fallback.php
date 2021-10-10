@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\AttributeReader;
 
+use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
+use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface;
 use Donquixote\QuickAttributes\AttributesList\AttributesList_Fallback;
 use Donquixote\QuickAttributes\AttributesList\AttributesListInterface;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
-use Donquixote\QuickAttributes\Parser\AttributeCommentParser;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
@@ -19,17 +20,17 @@ class AttributeReader_Fallback implements AttributeReaderInterface {
   private SymbolInfoRegistry $registry;
 
   /**
-   * @var \Donquixote\QuickAttributes\Parser\AttributeCommentParser
+   * @var \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface
    */
-  private AttributeCommentParser $attributeCommentParser;
+  private AttributeCommentParserInterface $attributeCommentParser;
 
   /**
    * Constructor.
    *
    * @param \Donquixote\QuickAttributes\Registry\SymbolInfoRegistry $registry
-   * @param \Donquixote\QuickAttributes\Parser\AttributeCommentParser $attributeCommentParser
+   * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface $attributeCommentParser
    */
-  public function __construct(SymbolInfoRegistry $registry, AttributeCommentParser $attributeCommentParser) {
+  public function __construct(SymbolInfoRegistry $registry, AttributeCommentParserInterface $attributeCommentParser) {
     $this->registry = $registry;
     $this->attributeCommentParser = $attributeCommentParser;
   }

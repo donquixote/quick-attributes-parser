@@ -12,13 +12,17 @@ class ParserUtil {
     ? \T_ATTRIBUTE
     : -99;
 
-  const T_NAME_QUALIFIED = PHP_VERSION_ID >= 80000
+  const T_NAME_QUALIFIED = (PHP_VERSION_ID >= 80000)
     ? \T_NAME_QUALIFIED
     : -97;
 
-  const T_NAME_FULLY_QUALIFIED = PHP_VERSION_ID >= 80000
+  const T_NAME_QUALIFIED_ = \T_NAME_QUALIFIED;
+
+  const T_NAME_FULLY_QUALIFIED = (PHP_VERSION_ID >= 80000)
     ? \T_NAME_FULLY_QUALIFIED
     : -97;
+
+  const T_NAME_FULLY_QUALIFIED_ = \T_NAME_FULLY_QUALIFIED;
 
   const ACCESS_MODIFIERS = [
     T_PUBLIC => 'public',
@@ -26,6 +30,8 @@ class ParserUtil {
     T_PRIVATE => 'private',
   ];
 
+  /** @var true[] */
+  /** @psalm-suppress MixedArrayOffset */
   const IDENTIFIER_START_TOKENS = (PHP_VERSION_ID < 80000)
     ? [
       T_STRING => TRUE,
@@ -72,6 +78,7 @@ class ParserUtil {
     T_DOC_COMMENT => TRUE,
   ];
 
+  /** @var (-1|0|1)[] */
   private const SKIP_CURLY_MAP = [
     '{' => 1,
     T_CURLY_OPEN => 1,
@@ -81,6 +88,8 @@ class ParserUtil {
     '#' => 0,
   ];
 
+  /** @var (-1|0|1)[] */
+  /** @psalm-suppress MixedArrayOffset */
   private const SKIP_SQUARE_MAP = [
     '[' => 1,
     self::T_ATTRIBUTE => 1,
@@ -89,6 +98,7 @@ class ParserUtil {
     '#' => 0,
   ];
 
+  /** @var (-1|0|1)[] */
   private const SKIP_PARENS_MAP = [
     '(' => 1,
     ')' => -1,
@@ -96,6 +106,7 @@ class ParserUtil {
     '#' => 0,
   ];
 
+  /** @var (-1|0|1)[][] */
   public const SKIP_MAP = [
     '{' => self::SKIP_CURLY_MAP,
     T_CURLY_OPEN => self::SKIP_CURLY_MAP,
@@ -104,6 +115,7 @@ class ParserUtil {
     '[' => self::SKIP_SQUARE_MAP,
   ];
 
+  /** @var (-1|0|1)[][] */
   public const SKIP_MAP_REVERSE = [
     '}' => self::SKIP_CURLY_MAP,
     ')' => self::SKIP_PARENS_MAP,
@@ -121,7 +133,7 @@ class ParserUtil {
    *
    * It is assumed that the code in between is valid.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '(', '[' or '{'.
@@ -133,7 +145,8 @@ class ParserUtil {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public static function skipSubtree(array $tokens, int &$pos): void {
-    $map = self::SKIP_MAP[$tokens[$pos]] ?? NULL;
+    /** @var (-1|0|1)[]|null $map */
+    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? NULL;
     if ($map === NULL) {
       throw new \RuntimeException(
         'skipSubtree() was called on an invalid position.');
@@ -165,7 +178,7 @@ class ParserUtil {
    *
    * It is assumed that the code in between is valid.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '"'.
@@ -195,7 +208,7 @@ class ParserUtil {
    *
    * It is assumed that the code in between is valid.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the closing ')', ']' or '}'.
@@ -207,7 +220,8 @@ class ParserUtil {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public static function skipSubtreeReverse(array $tokens, int &$pos): void {
-    $map = self::SKIP_MAP[$tokens[$pos]] ?? NULL;
+    /** @var (1|0|-1)[]|null $map */
+    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? NULL;
     if ($map === NULL) {
       throw new \RuntimeException(
         'skipSubtree() was called on an invalid position.');
@@ -235,18 +249,19 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string|null $docComment
    *
-   * @return mixed|void
+   * @return int|string
    */
   public static function skipHeaderWs(array $tokens, int &$pos, string &$docComment = NULL) {
-    for ($i = $pos;; ++$i) {
+    $i = $pos;
+    while (true) {
       $id = $tokens[$i][0];
       if ($id === T_COMMENT) {
         if (PHP_VERSION_ID < 80000 && substr($tokens[$i][1], 0, 2) === '#[') {
-          // Found a
+          // Found an attribute-like comment.
           $pos = $i;
           return $id;
         }
@@ -255,14 +270,16 @@ class ParserUtil {
         $docComment = $tokens[$i][1];
       }
       elseif ($id !== T_WHITESPACE) {
+        // Found a non-whitespace, non-comment token.
         $pos = $i;
         return $id;
       }
+      ++$i;
     }
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param int $expected
    *
@@ -278,7 +295,7 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *
    * @return string
@@ -293,7 +310,7 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string $expected
    *
@@ -307,14 +324,15 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *
    * @return string|int
    *   Token id at the new position.
    */
   public static function skipFillerWs(array $tokens, int &$pos) {
-    for ($i = $pos;; ++$i) {
+    $i = $pos;
+    while (TRUE) {
       $id = $tokens[$i][0];
       if ($id === T_COMMENT) {
         if (PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
@@ -327,11 +345,12 @@ class ParserUtil {
         $pos = $i;
         return $id;
       }
+      ++$i;
     }
   }
 
   /**
-   * @param string|array $token
+   * @param string|array{int, string, int} $token
    *
    * @return string
    */
@@ -346,7 +365,7 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: First non-whitespace, non-comment token in the value expression.
    *   After: Position of closing symbol.
@@ -357,7 +376,8 @@ class ParserUtil {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public static function skipValueExpression(array $tokens, int &$pos): string {
-    for ($i = $pos;; ++$i) {
+    $i = $pos;
+    while (TRUE) {
       $token = $tokens[$i];
       if (is_string($token)) {
         switch ($token) {
@@ -365,7 +385,7 @@ class ParserUtil {
           case '{':
           case '[':
             self::skipSubtree($tokens, $i);
-            break;
+            continue 2;
 
           case ',':
           case ')':
@@ -388,11 +408,12 @@ class ParserUtil {
         }
       }
       // Ignore any non-char tokens.
+      ++$i;
     }
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $begin
    * @param int $end
    *
@@ -412,7 +433,7 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param int|string $expected
    *
@@ -431,9 +452,9 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   * @param array $allowed
+   * @param array-key[] $allowed
    *
    * @return bool
    *
@@ -444,7 +465,7 @@ class ParserUtil {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param array $map
    *

@@ -1,0 +1,15 @@
+comment: '#[A(5)] #[B(x: 7), C()]'
+imports:
+    A: N\M\A
+attributes:
+    -
+        name: N\M\A
+        arguments:
+            - 5
+    -
+        name: B
+        arguments:
+            x: 7
+    -
+        name: C
+        arguments: {  }

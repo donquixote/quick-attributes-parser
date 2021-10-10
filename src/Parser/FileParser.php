@@ -21,38 +21,15 @@ class FileParser {
   /**
    * @param string $file
    *
-   * @return \Iterator<SymbolHandle, RawSymbolInfo>
+   * @return iterable<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseFile(string $file): \Iterator {
+  public function parseFile(string $file): iterable {
     $php = file_get_contents($file);
     $tokens = token_get_all($php);
     $tokens[] = '#';
-    return $this->parseFileTokens($tokens);
-  }
-
-  /**
-   * @param array $tokens
-   *
-   * @return \Iterator<SymbolHandle, RawSymbolInfo>
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function parseFileTokens(array $tokens): \Iterator {
     $pos = 0;
-    return $this->parseFileScope($tokens, $pos);
-  }
-
-  /**
-   * @param array $tokens
-   * @param int $pos
-   *
-   * @return \Iterator<SymbolHandle, RawSymbolInfo>
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function parseFileScope(array $tokens, int &$pos): \Iterator {
     $namespace = NULL;
     $terminatedNamespace = '';
     $imports = [];
@@ -77,7 +54,7 @@ class FileParser {
             throw new SyntaxException("Unexpected '$token' in file scope.");
 
           case '#':
-            $pos = $i;
+            // End of file.
             return;
 
           default:
@@ -167,14 +144,14 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *
    * @return string
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseNamespace(array $tokens, int &$pos): string {
+  private function parseNamespace(array $tokens, int &$pos): string {
     assert(ParserUtil::expect($tokens, $pos, T_NAMESPACE));
     $i = $pos + 1;
     $namespace = ParserUtil::skipFillerWsExpectTString($tokens, $i);
@@ -201,14 +178,14 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of class name (T_STRING).
    *   After: Position at closing '}' of class body.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function skipClassLikeExtendsImplements(array $tokens, int &$pos): void {
+  private function skipClassLikeExtendsImplements(array $tokens, int &$pos): void {
     assert(ParserUtil::expect($tokens, $pos, T_STRING));
 
     // Skip all extends and implements.
@@ -246,15 +223,15 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string $class
    *
-   * @return \Iterator<SymbolHandle, RawSymbolInfo>
+   * @return iterable<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseClassLikeBody(array $tokens, int &$pos, string $class): \Iterator {
+  private function parseClassLikeBody(array $tokens, int &$pos, string $class): iterable {
     assert(ParserUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
@@ -374,7 +351,7 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of T_FUNCTION.
    *   After: Position of '('.
@@ -384,7 +361,7 @@ class FileParser {
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  public function parseFunctionHead(array $tokens, int &$pos): ?string {
+  private function parseFunctionHead(array $tokens, int &$pos): ?string {
     assert(ParserUtil::expect($tokens, $pos, T_FUNCTION));
 
     $i = $pos + 1;
@@ -412,7 +389,7 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position at '(' before the parameters.
    *   After: Position at ')' after the parameters.
@@ -421,7 +398,7 @@ class FileParser {
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseParams(array $tokens, int &$pos): iterable {
+  private function parseParams(array $tokens, int &$pos): iterable {
     assert(ParserUtil::expect($tokens, $pos, '('));
     /** @var string[] $attributeComments */
     $attributeComments = [];
@@ -490,7 +467,7 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *
    * @return string[]
@@ -526,7 +503,7 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *
    * @return string[]
@@ -565,7 +542,7 @@ class FileParser {
   }
 
   /**
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param bool $isParam
    *
@@ -574,48 +551,53 @@ class FileParser {
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  public function skipVarDefault(array $tokens, int &$pos, bool $isParam): string {
+  private function skipVarDefault(array $tokens, int &$pos, bool $isParam): string {
     assert(ParserUtil::expect($tokens, $pos, '='));
-    for ($i = $pos + 1;; ++$i) {
+    $i = $pos + 1;
+    while (true) {
       $token = $tokens[$i];
-      if (is_string($token)) {
-        switch ($token) {
-          case '(':
-          case '{':
-          case '[':
-            ParserUtil::skipSubtree($tokens, $i);
-            break;
-
-          case ',':
-            $pos = $i;
-            return $token;
-
-          case ')':
-            if (!$isParam) {
-              throw SyntaxException::unexpected($tokens, $i, 'after property or const default value');
-            }
-            $pos = $i;
-            return $token;
-
-          case ';':
-            if ($isParam) {
-              throw SyntaxException::unexpected($tokens, $i, 'after parameter default value');
-            }
-            $pos = $i;
-            return $token;
-
-          case '}':
-          case ']':
-            throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected '$token' in parameters.");
-
-          case '#':
-            throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
-
-          default:
-            break;
-        }
+      if (!is_string($token)) {
+        // Ignore any non-char tokens.
+        ++$i;
+        continue;
       }
-      // Ignore any non-char tokens.
+
+      switch ($token) {
+        case '(':
+        case '{':
+        case '[':
+          ParserUtil::skipSubtree($tokens, $i);
+          continue 2;
+
+        case ',':
+          $pos = $i;
+          return $token;
+
+        case ')':
+          if (!$isParam) {
+            throw SyntaxException::unexpected($tokens, $i, 'after property or const default value');
+          }
+          $pos = $i;
+          return $token;
+
+        case ';':
+          if ($isParam) {
+            throw SyntaxException::unexpected($tokens, $i, 'after parameter default value');
+          }
+          $pos = $i;
+          return $token;
+
+        case '}':
+        case ']':
+          throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected '$token' in parameters.");
+
+        case '#':
+          throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
+
+        default:
+          ++$i;
+          continue 2;
+      }
     }
     // Silence Psalm.
     /** @noinspection PhpUnreachableStatementInspection */
@@ -623,12 +605,12 @@ class FileParser {
   }
 
   /**
-   * @param mixed[] $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of 'use' statement.
    *   After (success): Directly on ';'.
    *   After (failure): Original position.
-   * @param array $imports
+   * @param array<string, string> $imports
    *   Format: $[$alias] = $qcn.
    *
    * @return void

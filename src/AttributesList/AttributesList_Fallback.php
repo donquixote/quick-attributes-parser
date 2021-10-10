@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\AttributesList;
 
-use Donquixote\QuickAttributes\Util\ArgumentsUtil;
+use Donquixote\QuickAttributes\RawAttribute\RawAttribute;
 
 class AttributesList_Fallback implements AttributesListInterface {
 
   /**
-   * @var \Donquixote\QuickAttributes\Value\RawAttribute[]
+   * @var \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface<object>[]
    */
   private array $rawAttributes;
 
   /**
    * Constructor.
    *
-   * @param \Donquixote\QuickAttributes\Value\RawAttribute[] $rawAttributes
+   * @param \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface[] $rawAttributes
    */
   public function __construct(array $rawAttributes) {
     $this->rawAttributes = $rawAttributes;
@@ -27,7 +27,7 @@ class AttributesList_Fallback implements AttributesListInterface {
       return $this->rawAttributes !== [];
     }
     foreach ($this->rawAttributes as $rawAttribute) {
-      if ($rawAttribute->isA($type)) {
+      if (is_a($rawAttribute->getName(), $type, TRUE)) {
         return TRUE;
       }
     }
@@ -40,7 +40,7 @@ class AttributesList_Fallback implements AttributesListInterface {
     }
     $n = 0;
     foreach ($this->rawAttributes as $rawAttribute) {
-      if ($rawAttribute->isA($type)) {
+      if (is_a($rawAttribute->getName(), $type, TRUE)) {
         ++$n;
       }
     }
@@ -48,24 +48,16 @@ class AttributesList_Fallback implements AttributesListInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @template T as object
+   *
+   * @param class-string<T>|null $type
+   *
+   * @return T[]
+   *
+   * @throws \ReflectionException
    */
   public function createInstances(string $type = NULL): array {
-    $instances = [];
-    foreach ($this->rawAttributes as $i => $rawAttribute) {
-      $class = $rawAttribute->getName();
-      if ($type === NULL
-        || is_a($class, $type, TRUE)
-      ) {
-        $args = $rawAttribute->getArgs();
-        $mappedArgs = ArgumentsUtil::classMapArgs(
-          $class = $rawAttribute->getName(),
-          $args);
-        assert(count($args) === count($mappedArgs));
-        $instances[$i] = new $class(...$mappedArgs);
-      }
-    }
-    return $instances;
+    return RawAttribute::createInstances($this->rawAttributes, $type);
   }
 
 }

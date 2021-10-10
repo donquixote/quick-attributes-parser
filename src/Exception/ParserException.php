@@ -6,8 +6,22 @@ namespace Donquixote\QuickAttributes\Exception;
 
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\TokenPositionUtil;
+use Throwable;
 
+/**
+ * @psalm-consistent-constructor
+ */
 class ParserException extends \Exception {
+
+  /**
+   * Constructor.
+   *
+   * This explicit override is needed for psalm.
+   * See https://github.com/vimeo/psalm/issues/6627
+   */
+  public function __construct(string $message = "", int $code = 0, Throwable $previous = NULL) {
+    parent::__construct($message, $code, $previous);
+  }
 
   /**
    * Prepends source file name to the message.
@@ -34,7 +48,7 @@ class ParserException extends \Exception {
   /**
    * Static factory.
    *
-   * @param array $tokens
+   * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string $message
    * @param bool $append_found

@@ -1,0 +1,58 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * @template-covariant TKey
+ * @template-covariant TValue
+ * @template TSend
+ * @template-covariant TReturn
+ *
+ * @template-implements Traversable<TKey, TValue>
+ * @template-implements Iterator<TKey, TValue>
+ */
+class Generator implements Traversable, Iterator {
+    /**
+     * @psalm-ignore-nullable-return
+     * @return ?TValue Can return any type.
+     */
+    public function current() {}
+
+    /**
+     * @return void Any returned value is ignored.
+     */
+    public function next() {}
+
+    /**
+     * @return TKey scalar on success, or null on failure.
+     */
+    public function key() {}
+
+    /**
+     * @return bool The return value will be casted to boolean and then evaluated.
+     */
+    public function valid() {}
+
+    /**
+     * @return void Any returned value is ignored.
+     */
+    public function rewind() {}
+
+    /**
+     * @return TReturn Can return any type.
+     */
+    public function getReturn() {}
+
+    /**
+     * @param TSend $value
+     * @psalm-ignore-nullable-return
+     * @return ?TValue Can return any type.
+     */
+    public function send($value) {}
+
+    /**
+     * @psalm-ignore-nullable-return
+     * @return ?TValue Can return any type.
+     */
+    public function throw(Throwable $exception) {}
+}

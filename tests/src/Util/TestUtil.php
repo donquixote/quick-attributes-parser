@@ -23,11 +23,18 @@ class TestUtil {
   /**
    * @param string $file
    * @param mixed $data
+   * @param bool $writeIfEnabled
+   * @param int $inline
    */
-  public static function assertFileContentsYml(string $file, $data): void {
+  public static function assertFileContentsYml(string $file, $data, bool $writeIfEnabled = TRUE, int $inline = 99): void {
     self::assertFileContents(
       $file,
-      Yaml::dump($data));
+      Yaml::dump(
+        $data,
+        $inline,
+        4,
+        Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK | Yaml::DUMP_OBJECT_AS_MAP | Yaml::DUMP_OBJECT),
+      $writeIfEnabled);
   }
 
   /**
@@ -35,8 +42,9 @@ class TestUtil {
    *   File with expected content.
    * @param string $content_actual
    *   Actual content.
+   * @param bool $writeIfEnabled
    */
-  public static function assertFileContents(string $file, string $content_actual): void {
+  public static function assertFileContents(string $file, string $content_actual, bool $writeIfEnabled = TRUE): void {
     try {
       if (!is_file($file)) {
         Assert::fail("File '$file' is missing.");
@@ -45,7 +53,7 @@ class TestUtil {
       Assert::assertSame($content_expected, $content_actual);
     }
     catch (AssertionFailedError $e) {
-      if (self::updateTestsEnabled()) {
+      if ($writeIfEnabled && self::updateTestsEnabled()) {
         file_put_contents($file, $content_actual);
       }
       throw $e;
@@ -56,7 +64,7 @@ class TestUtil {
    * @param string $file
    * @param string $message
    */
-  public static function foundOrphanFile(string $file, string $message) {
+  public static function foundOrphanFile(string $file, string $message): void {
     if (self::updateTestsEnabled()) {
       # unlink($file);
     }

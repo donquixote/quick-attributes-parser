@@ -22,7 +22,7 @@ class SymbolInfoRegistry {
   private array $info = [];
 
   /**
-   * @var \Iterator|iterable<string, SymbolHandle>
+   * @var \Iterator<int, true>[]
    */
   private array $runningIterators = [];
 
@@ -48,7 +48,7 @@ class SymbolInfoRegistry {
   /**
    * @param \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
    *
-   * @return string[]
+   * @return array<string, string>
    *   Format (class, namespace): $[$alias] = $qcn.
    *   Format (function): $["function $alias"] = $qcn.
    *   Format (constant): $["const $alias"] = $qcn.
@@ -91,18 +91,21 @@ class SymbolInfoRegistry {
     $file = $symbol->getFileName();
     $it = $this->runningIterators[$file] ??= $this->itFile($file);
     while ($it->valid()) {
-      $it->next();
       if (isset($this->info[$key])) {
         return $this->info[$key];
       }
+      $it->next();
     }
-    throw new \ReflectionException('Failed to load info for symbol.');
+    throw new \ReflectionException(
+      vsprintf('Failed to load info for %s.', [
+        (string) $symbol,
+      ]));
   }
 
   /**
    * @param string $file
    *
-   * @return \Iterator<string, SymbolHandle>
+   * @return \Iterator<int, true>
    *
    * @throws \ReflectionException
    */
@@ -115,6 +118,7 @@ class SymbolInfoRegistry {
       }
     }
     catch (ParserException $e) {
+      $e->setSourceFile($file);
       throw new \ReflectionException($e->getMessage(), 0, $e);
     }
   }
