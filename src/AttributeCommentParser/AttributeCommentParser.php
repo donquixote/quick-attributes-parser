@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\AttributeCommentParser;
 
+use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
-use Donquixote\QuickAttributes\RawAttribute\RawAttribute_Eval;
+use Donquixote\QuickAttributes\RawAttribute\RawAttribute_Fixed;
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute_NoArgs;
 use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
 use Donquixote\QuickAttributes\Util\ParserUtil;
@@ -65,7 +66,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    *
    * @return iterable<int, RawAttributeInterface>
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function doParse(string $comment, ?string &$next): iterable {
     if (\substr($comment, 0, 2) !== '#[') {
@@ -102,7 +103,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    *
    * @return iterable<int, RawAttributeInterface>
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseAttributes(array $tokens, int &$pos): iterable {
     assert(ParserUtil::expect($tokens, $pos, '['));
@@ -146,7 +147,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @return \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface
    *   Raw attribute.
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseArgsGetRawAttribute(array $tokens, int &$pos, string $qcn): RawAttributeInterface {
     assert(ParserUtil::expect($tokens, $pos, '('));
@@ -169,11 +170,11 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         }
       }
       if ($id !== ')' && $id !== ',') {
-        $iValueBegin = $i;
-        $id = ParserUtil::skipValueExpression($tokens, $i);
-        $valuePhp = ParserUtil::concatTokens($tokens, $iValueBegin, $i);
+        $valuePhp = $this->parseValueExpression($tokens, $i);
+        \assert($valuePhp !== '');
+        $id = $tokens[$i][0];
         if ($key !== NULL) {
-          $php .= '  ' . \var_export($key, TRUE) . ' => ' . $valuePhp . ",\n";
+          $php .= '  ' . \var_export($key, TRUE) . ' => ' . $valuePhp . ",  // value\n";
           $namedPart = TRUE;
         }
         elseif ($namedPart) {
@@ -181,7 +182,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         }
         else {
           assert(!preg_match('@^\w+\:[^\:]@', $valuePhp));
-          $php .= '  ' . $valuePhp . ",\n";
+          $php .= '  ' . $valuePhp . ",  // key => value\n";
         }
       }
       elseif ($key !== NULL) {
@@ -191,20 +192,40 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         $pos = $i;
         break;
       }
-      assert($id === ',');
+      \assert(ParserUtil::expect($tokens, $i, ','));
     }
 
+    assert($tokens[$pos] === ')');
+
     if ($php === '') {
-      assert($tokens[$pos] === ')');
       return new RawAttribute_NoArgs($qcn);
     }
 
     $php = "[\n" . $php . ']';
 
-    $php = $this->buildEval($php);
+    try {
+      /** @var array $args */
+      $args = self::doEval($php);
+    }
+    catch (ParserException $e) {
+      throw $e;
+    }
+    catch (\Throwable $e) {
+      throw new SyntaxException($e->getMessage(), 0, $e);
+    }
 
-    assert($tokens[$pos] === ')');
-    return new RawAttribute_Eval($qcn, $php);
+    return new RawAttribute_Fixed($qcn, $args);
+  }
+
+  /**
+   * @param string $php
+   *
+   * @return mixed
+   *
+   * @throws \Throwable
+   */
+  private static function doEval(string $php) {
+    return eval("return $php;");
   }
 
   /**
@@ -262,48 +283,235 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   }
 
   /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *
    * @return string
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function buildFileHead(): string {
+  private function parseValueExpression(array $tokens, int &$pos): string {
+    $i = $pos;
     $php = '';
-    if ($this->terminatedNamespace !== '') {
-      $namespace = \substr($this->terminatedNamespace, 0, -1);
-      $php .= "namespace $namespace;\n";
-    }
-    foreach ($this->imports as $alias => $qcn) {
-      // Optimize for the more common case where the alias has no space.
-      if (FALSE !== $spacepos = \strpos($alias, ' ')) {
-        $type = \substr($alias, 0, $spacepos);
-        $alias = \substr($alias, $spacepos + 1);
-        $php .= "use $type $qcn as $alias;\n";
+    while (TRUE) {
+      $token = $tokens[$i];
+      if (\is_string($token)) {
+        switch ($token) {
+          case '-':
+          case '+':
+          case '*':
+          case '/':
+            $php .= $token;
+            break;
+
+          case '(':
+          case '{':
+          case '[':
+            $php .= $this->parseArray($tokens, $i, ']');
+            \assert($tokens[$i] === ']');
+            break;
+
+          case ')':
+          case '}':
+          case ']':
+          case ',':
+          case ';':
+            // End of value expression.
+            break 2;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in const value expression');
+        }
       }
       else {
-        $php .= "use $qcn as $alias;\n";
+        switch ($token[0]) {
+          case \T_ARRAY:
+            ++$i;
+            ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
+            $php .= $this->parseArray($tokens, $i, ')');
+            break;
+
+          case \T_LNUMBER:
+          case \T_CONSTANT_ENCAPSED_STRING:
+            $php .= $token[1];
+            break;
+
+          case \T_COMMENT:
+            if (PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
+              // Found an attribute.
+              throw SyntaxException::unexpected($tokens, $i, 'in value expression');
+            }
+            $php .= ' ';
+            break;
+
+          case \T_NS_SEPARATOR:
+          case \T_STRING:
+            $php .= $this->parseConstRef($tokens, $i);
+            // Continue, but don't increment $i.
+            continue 2;
+
+          case \T_DOC_COMMENT:
+          case \T_WHITESPACE:
+            $php .= ' ';
+            break;
+
+          case \T_DOUBLE_ARROW:
+            // End of value expression.
+            break 2;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in const value expression');
+        }
       }
+      ++$i;
     }
+
+    \assert($php !== '');
+    \assert(ParserUtil::expectOneOf($tokens, $i, [',', ';', ')', '}', ']', \T_DOUBLE_ARROW]));
+    $pos = $i;
     return $php;
   }
 
   /**
-   * @param string $phpExpression
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of '(' or '['.
+   *   After: Position of ')' or ']'.
+   * @param string $endchar
+   *   Expected end character. One of ')' or ']'.
    *
    * @return string
+   *   New PHP expression.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function buildEval(string $phpExpression): string {
-
-    $returnStmt = "return $phpExpression;";
-
-    if ($this->class !== NULL) {
-      $returnStmt = \str_replace("\n", "\n  ", $returnStmt);
-      $returnStmt = <<<EOT
-return call_user_func((function() {
-  $returnStmt
-})->bindTo(null, \\$this->class::class));
-EOT;
+  private function parseArray(array $tokens, int &$pos, string $endchar): string {
+    \assert(ParserUtil::expectOneOf($tokens, $pos, ['(', '[']));
+    $i = $pos;
+    $php = '';
+    while (TRUE) {
+      \assert(ParserUtil::expectOneOf($tokens, $i, ['(', '[', ',']));
+      ++$i;
+      ParserUtil::skipFillerWs($tokens, $i);
+      $php .= '  ' . $this->parseValueExpression($tokens, $i);
+      $id = $tokens[$i][0];
+      if ($id === \T_DOUBLE_ARROW) {
+        ++$i;
+        ParserUtil::skipFillerWs($tokens, $i);
+        $php .= ' => ' . $this->parseValueExpression($tokens, $i);
+        $id = $tokens[$i][0];
+      }
+      $php .= ",\n";
+      if ($id === $endchar) {
+        $pos = $i;
+        break;
+      }
+      if ($id !== ',') {
+        throw SyntaxException::expectedButFound($tokens, $i, "$endchar or ,");
+      }
     }
 
-    $head = $this->buildFileHead();
-    return "$head\n$returnStmt";
+    \assert($tokens[$pos] === $endchar);
+
+    if ($php === '') {
+      return '[]';
+    }
+
+    return "[\n" . $php . ']';
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of first T_STRING.
+   *   After: Position after last T_STRING.
+   *
+   * @return string
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseConstRef(array $tokens, int &$pos): string {
+    if ($tokens[$pos][0] === T_NS_SEPARATOR) {
+      $i = $pos + 1;
+      if ($tokens[$i][0] !== T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+      $first = NULL;
+      $fqn = $tokens[$i][1];
+      ++$i;
+    }
+    elseif ($tokens[$pos][0] === T_STRING) {
+      $first = $tokens[$pos][1];
+      $fqn = '';
+      $i = $pos + 1;
+    }
+    else {
+      throw SyntaxException::expectedButFound($tokens, $pos, 'QCN or FQCN');
+    }
+    while ($tokens[$i][0] === T_NS_SEPARATOR) {
+      ++$i;
+      if ($tokens[$i][0] !== T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
+      }
+      $fqn .= '\\' . $tokens[$i][1];
+      ++$i;
+    }
+    $iAfterName = $i;
+    $id = ParserUtil::skipFillerWs($tokens, $i);
+    if ($id === '(') {
+      throw SyntaxException::fromTokenPos($tokens, $i, 'Function call not allowed in constant expression.');
+    }
+    if ($id !== T_DOUBLE_COLON) {
+      // Fqn refers to a global constant.
+      if ($first !== NULL) {
+        // Allow PHP to do a fallback lookup for the constant, if not imported.
+        // A namespace declaration must be prepended to eval'd code.
+        $qn = $this->imports["const $first"] ?? null;
+        if ($qn !== NULL) {
+          $fqn = '\\' . $qn . $fqn;
+        }
+        else {
+          $fqn = \vsprintf('(defined(%s) ? %s : %s)', [
+            \var_export($this->terminatedNamespace . $first . $fqn, TRUE),
+            '\\' . $this->terminatedNamespace . $first . $fqn,
+            '\\' . $first . $fqn,
+          ]);
+        }
+      }
+      $pos = $iAfterName;
+      return $fqn;
+    }
+    // Fqn refers to a class.
+    if ($first !== NULL) {
+      if ($fqn === '' && \strtolower($first) === 'self') {
+        if ($this->class === NULL) {
+          throw SyntaxException::unexpected($tokens, $i, 'outside of class context');
+        }
+        $fqn = '\\' . $this->class;
+      }
+      else {
+        $fqn = '\\' . ($this->imports[$first] ?? $this->terminatedNamespace . $first) . $fqn;
+      }
+    }
+    ++$i;
+    $id = ParserUtil::skipFillerWs($tokens, $i);
+    if ($id === T_CLASS) {
+      $fqn .= '::class';
+      $pos = $i + 1;
+      return $fqn;
+    }
+    if ($id !== T_STRING) {
+      throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING or T_CLASS');
+    }
+    $fqn .= '::' . $tokens[$i][1];
+    ++$i;
+    $pos = $i;
+    $id = ParserUtil::skipFillerWs($tokens, $i);
+    if ($id === '(') {
+      throw SyntaxException::fromTokenPos($tokens, $i, 'Method call not allowed in constant expression.');
+    }
+    // Fqn refers to a class constant.
+    return $fqn;
   }
 
 }
