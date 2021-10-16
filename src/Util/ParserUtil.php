@@ -29,6 +29,11 @@ class ParserUtil {
     ? \T_NAME_FULLY_QUALIFIED
     : -97;
 
+  const SPECIAL_TOKEN_NAMES = [
+    self::T_ATTRIBUTE => 'T_ATTRIBUTE',
+    self::T_NAME_QUALIFIED => 'T_NAME_QUALIFIED',
+    self::T_NAME_FULLY_QUALIFIED => 'T_NAME_FULLY_QUALIFIED',
+  ];
 
   const ACCESS_MODIFIERS = [
     T_PUBLIC => 'public',
@@ -362,7 +367,10 @@ class ParserUtil {
    */
   public static function formatToken($token): string {
     if (is_array($token)) {
-      return token_name($token[0]) . ' / ' . var_export($token[1], TRUE);
+      $name = token_name($token[0]) . ' / ' . var_export($token[1], TRUE);
+      if ($name === 'UNKNOWN') {
+        return self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
+      }
     }
     if ($token === '#') {
       return 'EOF';
