@@ -47,6 +47,9 @@ class ClassesBench {
    * @Groups("init")
    */
   public function benchInitParser(): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     new FileParser();
   }
 
@@ -100,6 +103,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchParseClassFileStart(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $rc = new \ReflectionClass($class);
     $file = $rc->getFileName();
@@ -137,6 +143,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchParseClassHead(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $rc = new \ReflectionClass($class);
     $file = $rc->getFileName();
@@ -164,6 +173,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRegistryClass(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $symbol = SymbolHandle::fromClass($class);
     $registry = SymbolInfoRegistry::create();
@@ -182,6 +194,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRawReaderClass(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $reader = RawAttributesReader::create();
     $symbol = SymbolHandle::fromClass($class);
@@ -200,6 +215,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchParseClassFull(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $rc = new \ReflectionClass($class);
     $file = $rc->getFileName();
@@ -220,6 +238,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRegistryMember(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $rc = new \ReflectionClass($class);
     $registry = SymbolInfoRegistry::create();
@@ -246,6 +267,9 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRawReaderMember(array $args): void {
+    if (PHP_VERSION_ID > 80000) {
+      return;
+    }
     $class = $args[0];
     $rc = new \ReflectionClass($class);
     $reader = RawAttributesReader::create();
