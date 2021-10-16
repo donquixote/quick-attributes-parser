@@ -314,13 +314,6 @@ class ClassesBench {
   }
 
   /**
-   * @return \Iterator<int, array{FileParser}>
-   */
-  public function provideFileParser(): \Iterator {
-    yield [new FileParser()];
-  }
-
-  /**
    * @return \Iterator<int, class-string>
    */
   protected function itClasses(): \Iterator {
