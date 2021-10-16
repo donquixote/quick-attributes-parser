@@ -8,21 +8,27 @@ use Donquixote\QuickAttributes\Exception\SyntaxException;
 
 class ParserUtil {
 
-  const T_ATTRIBUTE = PHP_VERSION_ID >= 80000
+  /**
+   * @const int T_ATTRIBUTE
+   */
+  const T_ATTRIBUTE = (\PHP_VERSION_ID >= 80000)
     ? \T_ATTRIBUTE
     : -99;
 
+  /**
+   * @const int T_NAME_QUALIFIED
+   */
   const T_NAME_QUALIFIED = (PHP_VERSION_ID >= 80000)
     ? \T_NAME_QUALIFIED
     : -97;
 
-  const T_NAME_QUALIFIED_ = \T_NAME_QUALIFIED;
-
+  /**
+   * @const int T_NAME_FULLY_QUALIFIED
+   */
   const T_NAME_FULLY_QUALIFIED = (PHP_VERSION_ID >= 80000)
     ? \T_NAME_FULLY_QUALIFIED
     : -97;
 
-  const T_NAME_FULLY_QUALIFIED_ = \T_NAME_FULLY_QUALIFIED;
 
   const ACCESS_MODIFIERS = [
     T_PUBLIC => 'public',
