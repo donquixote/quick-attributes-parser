@@ -12,7 +12,10 @@ use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 use PhpBench\Benchmark\Metadata\Annotations\Groups;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
+use PhpBench\Benchmark\Metadata\Annotations\OutputMode;
+use PhpBench\Benchmark\Metadata\Annotations\OutputTimeUnit;
 use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
+use PhpBench\Benchmark\Metadata\Annotations\RetryThreshold;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 use PhpParser\ParserFactory;
@@ -23,11 +26,14 @@ use PHPUnit\Framework\TestCase;
  * Use warmup to preload all the parser classes.
  * This simulates a real-world scenario where many files are parsed, and the
  * parser classes only need to be loaded once at the beginning.
+ * @OutputMode("throughput")
+ * @OutputTimeUnit("seconds")
+ * @RetryThreshold(7.5)
  */
 class ClassesBench {
 
   /**
-   * @Revs(10)
+   * @Revs(1000)
    * @Iterations(5)
    * @Groups("init")
    * @ParamProviders("provideClasses")
@@ -42,9 +48,10 @@ class ClassesBench {
   }
 
   /**
-   * @Revs(10)
-   * @Iterations(5)
+   * @Revs(1000)
+   * @Iterations(20)
    * @Groups("init")
+   * @Warmup(1)
    */
   public function benchInitParser(): void {
     if (PHP_VERSION_ID > 80000) {
@@ -72,9 +79,9 @@ class ClassesBench {
   }
 
   /**
-   * @Revs(10)
+   * @Revs(200)
    * @Iterations(5)
-   * @Groups("init")
+   * @Groups("full")
    * @ParamProviders("provideClasses")
    *
    * @param array{class-string} $args
@@ -92,8 +99,8 @@ class ClassesBench {
   }
 
   /**
-   * @Revs(10)
-   * @Iterations(5)
+   * @Revs(500)
+   * @Iterations(10)
    * @Groups("init")
    * @ParamProviders("provideClasses")
    *
@@ -115,7 +122,7 @@ class ClassesBench {
 
   /**
    * @Revs(10)
-   * @Iterations(5)
+   * @Iterations(10)
    * @Groups("head")
    * @ParamProviders("provideClasses")
    *
@@ -133,7 +140,7 @@ class ClassesBench {
 
   /**
    * @Revs(10)
-   * @Iterations(5)
+   * @Iterations(10)
    * @Groups("head")
    * @ParamProviders("provideClasses")
    *
@@ -163,7 +170,7 @@ class ClassesBench {
   }
 
   /**
-   * @Revs(3)
+   * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
    * @Groups("head")
@@ -184,7 +191,7 @@ class ClassesBench {
   }
 
   /**
-   * @Revs(3)
+   * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
    * @Groups("head")
