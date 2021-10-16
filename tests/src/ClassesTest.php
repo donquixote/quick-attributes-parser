@@ -11,6 +11,7 @@ use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
+use Donquixote\QuickAttributes\Util\TokenizerUtil;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -20,6 +21,27 @@ use Symfony\Component\Yaml\Yaml;
  *   See https://github.com/sebastianbergmann/phpunit/pull/4795
  */
 class ClassesTest extends TestCase {
+
+  /**
+   * @dataProvider providerTestClasses()
+   */
+  public function testTokenizer(string $shortname): void {
+    $file = $this->getClassesDir() . '/' . $shortname . '.php';
+    $php = \file_get_contents($file);
+    $tokenss = TokenizerUtil::tokenizeClassFileContents($php);
+    $tokens = $tokenss->current();
+    $n = count($tokens);
+    self::assertSame(T_WHITESPACE, $tokens[$n - 3][0]);
+    self::assertSame(T_STRING, $tokens[$n - 2][0]);
+    self::assertSame('#', $tokens[$n - 1][0]);
+    $tokenss->next();
+    self::assertTrue($tokenss->valid());
+    $tokens = $tokenss->current();
+    $n = count($tokens);
+    self::assertSame('#', $tokens[$n - 1]);
+    $tokenss->next();
+    self::assertFalse($tokenss->valid());
+  }
 
   /**
    * @dataProvider providerTestClasses()

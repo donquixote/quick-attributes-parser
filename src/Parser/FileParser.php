@@ -7,6 +7,7 @@ namespace Donquixote\QuickAttributes\Parser;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Util\ParserUtil;
+use Donquixote\QuickAttributes\Util\TokenizerUtil;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
@@ -26,9 +27,17 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseFile(string $file): iterable {
+
     $php = file_get_contents($file);
-    $tokens = token_get_all($php);
-    $tokens[] = '#';
+
+    $tokenss = TokenizerUtil::tokenizeClassFileContents($php);
+
+    // Forget the file contents to save memory.
+    // This allows more iterators to stay in memory at the same time.
+    unset($php);
+
+    $tokens = $tokenss->current();
+
     $pos = 0;
     $namespace = NULL;
     $terminatedNamespace = '';
@@ -124,6 +133,13 @@ class FileParser {
             $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
             $class = $terminatedNamespace . $shortname;
             yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+
+            // Get the full version of the tokens now.
+            $tokenss->next();
+            if ($tokenss->valid()) {
+              $tokens = $tokenss->current();
+            }
+
             $this->skipClassLikeExtendsImplements($tokens, $i);
             assert(ParserUtil::expect($tokens, $i, '{'));
             yield from $this->parseClassLikeBody($tokens, $i, $class);
