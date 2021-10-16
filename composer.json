@@ -3,6 +3,9 @@
     "description": "Quick Attributes Parser",
     "license": "GPL-2.0-or-later",
     "require-dev": {
+        "doctrine/annotations": "^1.13",
+        "nikic/php-parser": "^4.13",
+        "phpbench/phpbench": "^1.1",
         "phpunit/phpunit": "^9.5",
         "symfony/yaml": "^5.3",
         "vimeo/psalm": "^4.10"
