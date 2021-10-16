@@ -42,7 +42,7 @@ class AttributesBench {
       '#[A()]',
       '#[A(self::V, CMinimal::U, \Donquixote\QuickAttributes\Tests\Fixture\CMinimal::U, CMinimal::class)]',
     ] as $comment) {
-      foreach ($attrCommentParser->parse($comment) as $rawAttr) {
+      foreach ($attrCommentParser->parse($comment . "\n") as $rawAttr) {
         $rawAttr->getArguments();
       }
     }

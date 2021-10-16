@@ -46,59 +46,83 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * {@inheritdoc}
    */
   public function parse(string $comment): array {
+    $tokens = $this->tokenize($comment);
+    \assert(end($tokens) === '#');
+    /** @psalm-suppress MixedArgument */
+    assert(ParserUtil::expect($tokens, 0, ParserUtil::T_ATTRIBUTE));
     $rawAttributes = [];
+    $i = 0;
     while (TRUE) {
-      foreach ($this->doParse($comment, $next) as $rawAttribute) {
+      /** @psalm-suppress MixedArgument */
+      assert(ParserUtil::expect($tokens, $i, ParserUtil::T_ATTRIBUTE));
+      foreach ($this->parseAttributes($tokens, $i) as $rawAttribute) {
         $rawAttributes[] = $rawAttribute;
       }
-      if ($next === NULL) {
-        break;
+      assert(ParserUtil::expect($tokens, $i, ']'));
+      ++$i;
+      $id = ParserUtil::skipFillerWs($tokens, $i);
+      if ($id === '#') {
+        // EOF reached.
+        return $rawAttributes;
       }
-      assert($comment !== $next);
-      $comment = $next;
+      if ($id !== ParserUtil::T_ATTRIBUTE) {
+        throw new SyntaxException('');
+      }
     }
-    return $rawAttributes;
   }
 
   /**
    * @param string $comment
-   * @param string|null $next
+   *   Single-line comment starting with '#[', ending with newline.
    *
-   * @return iterable<int, RawAttributeInterface>
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   * @return list<string|array{int, string, int}>
+   *   Tokens starting with T_ATTRIBUTE, terminated with `#`.
    */
-  private function doParse(string $comment, ?string &$next): iterable {
+  private function tokenize(string $comment): array {
     if (\substr($comment, 0, 2) !== '#[') {
       throw new \InvalidArgumentException('Comment must begin with #[.');
     }
-    $php = '<?php [' . \substr($comment, 2);
+    if (\strpos($comment, "\n") !== \strlen($comment) - 1) {
+      throw new \InvalidArgumentException('Comment must be single-line and end with line break.' . \var_export($comment, TRUE));
+    }
+    $php = '<?php ' . \substr($comment, 2);
+    /** @var list<string|array{int, string, int}> $tokens */
     $tokens = token_get_all($php);
-    // Add an EOF marker.
+    $tokens[0] = [ParserUtil::T_ATTRIBUTE, '#[', 0];
+
+    /** @var list<string|array{int, string, int}> $tokens */
+    while (TRUE) {
+      /** @var string|array{int, string, int} $tkLast */
+      $tkLast = \end($tokens);
+      if ($tkLast[0] !== T_COMMENT) {
+        break;
+      }
+      /** @var array{int, string, int} $tkLast */
+      $comment = $tkLast[1];
+      if ($comment[1] !== '[') {
+        // That's a regular comment, not an attribute comment.
+        break;
+      }
+      $php = '<?php ' . \substr($comment, 2);
+      /** @var list<string|array{int, string, int}> $moreTokens */
+      $moreTokens = token_get_all($php);
+      $moreTokens[0] = [ParserUtil::T_ATTRIBUTE, '#[', 0];
+      \array_pop($tokens);
+      /** @var list<string|array{int, string, int}> $tokens */
+      $tokens = [
+        ...$tokens,
+        ...$moreTokens,
+      ];
+    }
+
     $tokens[] = '#';
-    assert($tokens[0][0] === T_OPEN_TAG);
-    assert($tokens[1] === '[');
-    $i = 1;
-    yield from $this->parseAttributes($tokens, $i);
-    assert(ParserUtil::expect($tokens, $i, ']'));
-    ++$i;
-    $id = ParserUtil::skipFillerWs($tokens, $i);
-    if ($id === '#') {
-      // EOF reached.
-      $next = NULL;
-      return;
-    }
-    if ($id !== T_COMMENT) {
-      throw SyntaxException::expectedButFound($tokens, $i, 'T_COMMENT or EOF');
-    }
-    assert(count($tokens) === $i + 2);
-    $next = $tokens[$i][1];
+    return $tokens;
   }
 
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   *   Before: Position of '['.
+   *   Before: Position of '#[' / T_ATTRIBUTE.
    *   After: Position of ']'.
    *
    * @return iterable<int, RawAttributeInterface>
@@ -106,10 +130,12 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseAttributes(array $tokens, int &$pos): iterable {
-    assert(ParserUtil::expect($tokens, $pos, '['));
+    /** @psalm-suppress MixedArgument */
+    assert(ParserUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
     $i = $pos;
     while (TRUE) {
-      assert(ParserUtil::expectOneOf($tokens, $i, ['[', ',']));
+      /** @psalm-suppress MixedArgument, MixedArgumentTypeCoercion */
+      assert(ParserUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
       $iBkp0 = $i;

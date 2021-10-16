@@ -51,7 +51,7 @@ class AttrCommentParserTest extends TestCase {
 
     try {
       /** @psalm-suppress MixedArgument, PossiblyUndefinedStringArrayOffset */
-      $attributes = $parser->parse($data['comment']);
+      $attributes = $parser->parse($data['comment'] . "\n");
     }
     catch (ParserException $e) {
       $data['exception'] = TestExportUtil::exportException($e);
