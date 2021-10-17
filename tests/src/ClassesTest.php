@@ -22,8 +22,6 @@ use Symfony\Component\Yaml\Yaml;
  */
 class ClassesTest extends TestCase {
 
-  const IS_WINDOWS = (\DIRECTORY_SEPARATOR === '\\');
-
   /**
    * @dataProvider providerTestClasses()
    */
@@ -211,8 +209,8 @@ class ClassesTest extends TestCase {
     foreach ($commentss as &$comments) {
       foreach ($comments as &$comment) {
         // Trim the line break on the right.
-        self::assertStringEndsWith(self::IS_WINDOWS ? "\r\n" : "\n", $comment);
-        $comment = substr($comment, 0, self::IS_WINDOWS ? -2 : -1);
+        self::assertStringEndsWith("\n", $comment);
+        $comment = substr($comment, 0, -1);
       }
     }
     TestUtil::assertFileContentsYml(
