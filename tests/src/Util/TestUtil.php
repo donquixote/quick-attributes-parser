@@ -50,6 +50,8 @@ class TestUtil {
         Assert::fail("File '$file' is missing.");
       }
       $content_expected = file_get_contents($file);
+      // Deal with windows line endings.
+      $content_expected = \str_replace("\r\n", "\n", $content_expected);
       Assert::assertSame($content_expected, $content_actual);
     }
     catch (AssertionFailedError $e) {
