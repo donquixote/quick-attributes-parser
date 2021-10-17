@@ -206,11 +206,12 @@ class ClassesTest extends TestCase {
    * @param array<string, string[]> $commentss
    */
   protected function shortnameAssertCommentsFile(string $shortname, array $commentss): void {
+    $isWindows = \DIRECTORY_SEPARATOR === '\\';
     foreach ($commentss as &$comments) {
       foreach ($comments as &$comment) {
         // Trim the line break on the right.
-        self::assertStringEndsWith("\n", $comment);
-        $comment = substr($comment, 0, -1);
+        self::assertStringEndsWith($isWindows ? "\r\n" : "\n", $comment);
+        $comment = substr($comment, 0, $isWindows ? -2 : -1);
       }
     }
     TestUtil::assertFileContentsYml(
