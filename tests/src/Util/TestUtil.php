@@ -17,7 +17,14 @@ class TestUtil {
    *   If TRUE, fixture files will be overwritten.
    */
   public static function updateTestsEnabled(): bool {
-    return (bool) getenv('UPDATE_TESTS');
+    if (!(bool) getenv('UPDATE_TESTS')) {
+      return FALSE;
+    }
+    if (\DIRECTORY_SEPARATOR === '\\') {
+      throw new \RuntimeException(
+        'Cannot update tests in Windows OS, because file would be written with wrong line endings and directory separator.');
+    }
+    return TRUE;
   }
 
   /**
@@ -52,6 +59,18 @@ class TestUtil {
       $content_expected = file_get_contents($file);
       // Deal with windows line endings.
       $content_expected = \str_replace("\r\n", "\n", $content_expected);
+      // Deal with windows directory separators.
+      if (\DIRECTORY_SEPARATOR === '\\') {
+        $content_actual = \preg_replace_callback(
+          '@\[\.\.\]((?:/\w+)+)@',
+          static function (array $match) {
+            /** @var array{string} $match */
+            return '[..]' . \str_replace('/', '\\', $match[0]);
+          },
+          $content_actual);
+        $content_actual = \str_replace('/', "\\", $content_actual);
+        $content_expected = \str_replace('/', "\\", $content_expected);
+      }
       Assert::assertSame($content_expected, $content_actual);
     }
     catch (AssertionFailedError $e) {
