@@ -64,7 +64,7 @@ class TestUtil {
           '@\[\.\.\]((?:\\\\\w+)+)@',
           static function (array $match) {
             /** @var array{string} $match */
-            return '[..]' . \str_replace('\\', '/', $match[0]);
+            return \str_replace('\\', '/', $match[0]);
           },
           $content_actual);
         // Deal with Windows line endings.
