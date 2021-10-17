@@ -67,9 +67,6 @@ class TestUtil {
             return \str_replace('\\', '/', $match[0]);
           },
           $content_actual);
-        // Deal with Windows line endings.
-        $content_actual = \str_replace("\r\n", "\n", $content_actual);
-        $content_expected = \str_replace("\r\n", "\n", $content_expected);
       }
       Assert::assertSame($content_expected, $content_actual);
     }
