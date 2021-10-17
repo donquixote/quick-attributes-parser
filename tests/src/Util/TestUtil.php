@@ -57,10 +57,9 @@ class TestUtil {
         Assert::fail("File '$file' is missing.");
       }
       $content_expected = file_get_contents($file);
-      // Deal with windows line endings.
-      $content_expected = \str_replace("\r\n", "\n", $content_expected);
-      // Deal with windows directory separators.
+      // Detect Windows.
       if (\DIRECTORY_SEPARATOR === '\\') {
+        // Deal with Windows directory separators.
         $content_actual = \preg_replace_callback(
           '@\[\.\.\]((?:/\w+)+)@',
           static function (array $match) {
@@ -68,8 +67,9 @@ class TestUtil {
             return '[..]' . \str_replace('/', '\\', $match[0]);
           },
           $content_actual);
-        $content_actual = \str_replace('/', "\\", $content_actual);
-        $content_expected = \str_replace('/', "\\", $content_expected);
+        // Deal with Windows line endings.
+        $content_actual = \str_replace("\r\n", "\n", $content_actual);
+        $content_expected = \str_replace("\r\n", "\n", $content_expected);
       }
       Assert::assertSame($content_expected, $content_actual);
     }
