@@ -61,10 +61,10 @@ class TestUtil {
       if (\DIRECTORY_SEPARATOR === '\\') {
         // Deal with Windows directory separators.
         $content_actual = \preg_replace_callback(
-          '@\[\.\.\]((?:/\w+)+)@',
+          '@\[\.\.\]((?:\\\w+)+)@',
           static function (array $match) {
             /** @var array{string} $match */
-            return '[..]' . \str_replace('/', '\\', $match[0]);
+            return '[..]' . \str_replace('\\', '/', $match[0]);
           },
           $content_actual);
         // Deal with Windows line endings.
