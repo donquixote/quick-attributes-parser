@@ -22,6 +22,9 @@ class AttributesList_Fallback implements AttributesListInterface {
     $this->rawAttributes = $rawAttributes;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function has(string $type = NULL): bool {
     if ($type === NULL) {
       return $this->rawAttributes !== [];
@@ -34,6 +37,9 @@ class AttributesList_Fallback implements AttributesListInterface {
     return FALSE;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function count(string $type = NULL): int {
     if ($type === NULL) {
       return count($this->rawAttributes);
@@ -48,13 +54,7 @@ class AttributesList_Fallback implements AttributesListInterface {
   }
 
   /**
-   * @template T as object
-   *
-   * @param class-string<T>|null $type
-   *
-   * @return T[]
-   *
-   * @throws \ReflectionException
+   * {@inheritdoc}
    */
   public function createInstances(string $type = NULL): array {
     return RawAttribute::createInstances($this->rawAttributes, $type);
