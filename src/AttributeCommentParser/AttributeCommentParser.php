@@ -134,7 +134,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     assert(ParserUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
     $i = $pos;
     while (TRUE) {
-      /** @psalm-suppress MixedArgument, MixedArgumentTypeCoercion */
+      /** @psalm-suppress MixedArgumentTypeCoercion */
       assert(ParserUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
