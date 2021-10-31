@@ -17,6 +17,9 @@ interface SymbolReflectionInterface extends \Reflector{
    *   Сriteria by which the attribute is searched.
    *
    * @return list<\ReflectionAttribute<T>>
+   * @psalm-return list<\ReflectionAttribute<($name is null ? object : T)>>
+   *
+   * @noinspection PhpUndefinedClassInspection
    */
   public function getAttributes(string $name = null, int $flags = 0): array;
 
