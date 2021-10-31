@@ -15,7 +15,7 @@ class RawAttribute {
    * @param array<TKey, \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $rawAttributes
    * @param class-string<T>|null $type
    *
-   * @return array<TKey, T>
+   * @return array<TKey, $type is null ? object : T>
    * @throws \ReflectionException
    */
   public static function createInstances(array $rawAttributes, string $type = NULL): array {

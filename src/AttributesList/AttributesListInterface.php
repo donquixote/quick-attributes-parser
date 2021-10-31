@@ -29,7 +29,8 @@ interface AttributesListInterface {
    *
    * @param class-string<T>|null $type
    *
-   * @return T[]
+   * @return T[]|object[]
+   * @psalm-return ($type is null ? object : T)[]
    *
    * @throws \ReflectionException
    */
