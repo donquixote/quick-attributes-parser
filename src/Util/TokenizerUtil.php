@@ -93,7 +93,6 @@ class TokenizerUtil {
 
     // Yield the final tokens array.
     yield $tokens;
-    return;
   }
 
 }
