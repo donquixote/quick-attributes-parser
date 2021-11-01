@@ -41,7 +41,7 @@ class TestExportUtil {
   public static function exportRawAttributes(array $attributes, array $orig = []): array {
     $export = [];
     foreach ($attributes as $delta => $attribute) {
-      $export[$delta] = self::exportRawAttribute($attribute, $orig[$delta] ?? []);
+      $export[] = self::exportRawAttribute($attribute, $orig[$delta] ?? []);
     }
     return $export;
   }
