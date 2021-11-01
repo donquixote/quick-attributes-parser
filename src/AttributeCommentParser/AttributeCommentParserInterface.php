@@ -22,7 +22,7 @@ interface AttributeCommentParserInterface {
   /**
    * @param string $comment
    *
-   * @return \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface[]
+   * @return list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */

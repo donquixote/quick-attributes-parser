@@ -8,26 +8,11 @@ use Donquixote\QuickAttributes\Exception\SyntaxException;
 
 class ParserUtil {
 
-  /**
-   * @const int T_ATTRIBUTE
-   */
-  const T_ATTRIBUTE = (\PHP_VERSION_ID >= 80000)
-    ? \T_ATTRIBUTE
-    : -99;
+  const T_ATTRIBUTE = VersionDependentTokens::T_ATTRIBUTE;
 
-  /**
-   * @const int T_NAME_QUALIFIED
-   */
-  const T_NAME_QUALIFIED = (PHP_VERSION_ID >= 80000)
-    ? \T_NAME_QUALIFIED
-    : -97;
+  const T_NAME_QUALIFIED = VersionDependentTokens::T_NAME_QUALIFIED;
 
-  /**
-   * @const int T_NAME_FULLY_QUALIFIED
-   */
-  const T_NAME_FULLY_QUALIFIED = (PHP_VERSION_ID >= 80000)
-    ? \T_NAME_FULLY_QUALIFIED
-    : -97;
+  const T_NAME_FULLY_QUALIFIED = VersionDependentTokens::T_NAME_FULLY_QUALIFIED;
 
   const SPECIAL_TOKEN_NAMES = [
     self::T_ATTRIBUTE => 'T_ATTRIBUTE',
@@ -41,8 +26,6 @@ class ParserUtil {
     T_PRIVATE => 'private',
   ];
 
-  /** @var true[] */
-  /** @psalm-suppress MixedArrayOffset */
   const IDENTIFIER_START_TOKENS = (PHP_VERSION_ID < 80000)
     ? [
       T_STRING => TRUE,
@@ -100,7 +83,6 @@ class ParserUtil {
   ];
 
   /** @var (-1|0|1)[] */
-  /** @psalm-suppress MixedArrayOffset */
   private const SKIP_SQUARE_MAP = [
     '[' => 1,
     self::T_ATTRIBUTE => 1,

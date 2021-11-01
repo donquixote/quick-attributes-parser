@@ -48,12 +48,10 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   public function parse(string $comment): array {
     $tokens = $this->tokenize($comment);
     \assert(end($tokens) === '#');
-    /** @psalm-suppress MixedArgument */
     assert(ParserUtil::expect($tokens, 0, ParserUtil::T_ATTRIBUTE));
     $rawAttributes = [];
     $i = 0;
     while (TRUE) {
-      /** @psalm-suppress MixedArgument */
       assert(ParserUtil::expect($tokens, $i, ParserUtil::T_ATTRIBUTE));
       foreach ($this->parseAttributes($tokens, $i) as $rawAttribute) {
         $rawAttributes[] = $rawAttribute;
@@ -130,11 +128,9 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseAttributes(array $tokens, int &$pos): iterable {
-    /** @psalm-suppress MixedArgument */
     assert(ParserUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
     $i = $pos;
     while (TRUE) {
-      /** @psalm-suppress MixedArgumentTypeCoercion */
       assert(ParserUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
