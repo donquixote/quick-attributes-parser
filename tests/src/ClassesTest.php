@@ -155,7 +155,6 @@ class ClassesTest extends TestCase {
       $list = $reader->read($symbol);
 
       if ($list) {
-        /** @var object[] $instances */
         $instances = $list->createInstances();
         foreach ($instances as $instance) {
           $data[$id][] = TestExportUtil::exportObject($instance);

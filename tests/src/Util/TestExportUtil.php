@@ -9,21 +9,35 @@ use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
 
 class TestExportUtil {
 
+  /**
+   * @param object $object
+   *
+   * @return array<string, mixed>
+   */
   public static function exportObject(object $object): array {
+    /** @var array<string, mixed> $export */
     $export = [];
     $export['class'] = get_class($object);
-    /** @psalm-suppress MixedAssignment */
+    /** @var mixed $v */
     foreach ((array) $object as $k => $v) {
+      /** @psalm-suppress MixedAssignment */
       $export['$' . $k] = $v;
     }
     return $export;
   }
 
   /**
-   * @param \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface[] $attributes
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    * @param array[] $orig
    *
    * @return array
+   * @psalm-return list<array{
+   *   name: class-string,
+   *   arguments?: array,
+   *   exception?: array,
+   * }>
+   *
+   * @noinspection PhpUndefinedClassInspection
    */
   public static function exportRawAttributes(array $attributes, array $orig = []): array {
     $export = [];
@@ -37,7 +51,11 @@ class TestExportUtil {
    * @param \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface $attribute
    * @param array $orig
    *
-   * @return array
+   * @return array{
+   *   name: class-string,
+   *   arguments?: array,
+   *   exception?: array,
+   * }
    */
   public static function exportRawAttribute(RawAttributeInterface $attribute, array $orig = []): array {
     $record = [

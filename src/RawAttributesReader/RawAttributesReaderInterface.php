@@ -11,7 +11,7 @@ interface RawAttributesReaderInterface {
   /**
    * @param \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
    *
-   * @return \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface[]
+   * @return list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
    *
    * @throws \ReflectionException
    */
