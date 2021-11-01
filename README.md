@@ -1,6 +1,6 @@
 # Quick Attributes Parser
 
-
+[![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fdonquixote%2Fquick-attributes-parser%2Fmaster)](https://dashboard.stryker-mutator.io/reports/github.com/donquixote/quick-attributes-parser/master)
 [![Type Coverage](https://shepherd.dev/github/donquixote/quick-attributes-parser/coverage.svg)](https://shepherd.dev/github/donquixote/quick-attributes-parser)
 
 Userland PHP parser specialized on attributes and use statements.
