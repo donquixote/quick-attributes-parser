@@ -1,114 +1,114 @@
 parameters:
-    - $a
-    - $b
-    - ...$more
+  - $a
+  - $b
+  - ...$more
 php: |-
-    return static function($a, $b, ...$more) {
-      return func_get_args();
-    };
+  return static function($a, $b, ...$more) {
+    return func_get_args();
+  };
 calls:
-    serial.1:
-        arguments:
-            - A
-        exception:
-            class: ReflectionException
-            message: 'Missing argument 1 for Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}().'
-        error.php8:
-            class: ArgumentCountError
-            message: 'Too few arguments to function Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(), 1 passed in [..]/tests/src/RewriteArgumentsTest.php on line ** and exactly 2 expected'
-    serial.2:
-        arguments:
-            - A
-            - B
-        rewritten:
-            - A
-            - B
-    serial.4:
-        arguments:
-            - A
-            - B
-            - C
-            - D
-        rewritten:
-            - A
-            - B
-            - C
-            - D
-    named:
-        arguments:
-            a: A
-            b: B
-        rewritten:
-            - A
-            - B
-    named.a:
-        arguments:
-            -
-                a: A
-        exception:
-            class: ReflectionException
-            message: 'Missing argument 1 for Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}().'
-        error.php8:
-            class: ArgumentCountError
-            message: 'Too few arguments to function Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(), 1 passed in [..]/tests/src/RewriteArgumentsTest.php on line ** and exactly 2 expected'
-    named.b:
-        arguments:
-            -
-                b: B
-        exception:
-            class: ReflectionException
-            message: 'Missing argument 1 for Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}().'
-        error.php8:
-            class: ArgumentCountError
-            message: 'Too few arguments to function Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(), 1 passed in [..]/tests/src/RewriteArgumentsTest.php on line ** and exactly 2 expected'
-    named.flipped:
-        arguments:
-            b: B
-            a: A
-        rewritten:
-            - A
-            - B
-    named.unknown:
-        arguments:
-            b: B
-            z: Z
-        exception:
-            class: ReflectionException
-            message: 'Unknown argument name ''z''.'
-        error.php8:
-            class: ArgumentCountError
-            message: 'Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(): Argument #1 ($a) not passed'
-    mixed:
-        arguments:
-            0: zero
-            b: B
-        rewritten:
-            - zero
-            - B
-    mixed.wrongIndex:
-        arguments:
-            5: five
-            b: B
-        rewritten:
-            - five
-            - B
-    mixed.numericAfterNamed:
-        arguments:
-            a: A
-            5: five
-        exception:
-            class: ReflectionException
-            message: 'Cannot have positional arguments after named arguments.'
-        error.php8:
-            class: Error
-            message: 'Cannot use positional argument after named argument during unpacking'
-    mixed.namedOverwritingNumeric:
-        arguments:
-            5: five
-            a: A
-        exception:
-            class: ReflectionException
-            message: 'Cannot overwrite argument.'
-        error.php8:
-            class: Error
-            message: 'Named parameter $a overwrites previous argument'
+  serial.1:
+    arguments:
+      - A
+    exception:
+      class: ReflectionException
+      message: 'Missing argument 1 for Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}().'
+    error.php8:
+      class: ArgumentCountError
+      message: 'Too few arguments to function Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(), 1 passed in [..]/tests/src/RewriteArgumentsTest.php on line ** and exactly 2 expected'
+  serial.2:
+    arguments:
+      - A
+      - B
+    rewritten:
+      - A
+      - B
+  serial.4:
+    arguments:
+      - A
+      - B
+      - C
+      - D
+    rewritten:
+      - A
+      - B
+      - C
+      - D
+  named:
+    arguments:
+      a: A
+      b: B
+    rewritten:
+      - A
+      - B
+  named.a:
+    arguments:
+      -
+        a: A
+    exception:
+      class: ReflectionException
+      message: 'Missing argument 1 for Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}().'
+    error.php8:
+      class: ArgumentCountError
+      message: 'Too few arguments to function Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(), 1 passed in [..]/tests/src/RewriteArgumentsTest.php on line ** and exactly 2 expected'
+  named.b:
+    arguments:
+      -
+        b: B
+    exception:
+      class: ReflectionException
+      message: 'Missing argument 1 for Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}().'
+    error.php8:
+      class: ArgumentCountError
+      message: 'Too few arguments to function Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(), 1 passed in [..]/tests/src/RewriteArgumentsTest.php on line ** and exactly 2 expected'
+  named.flipped:
+    arguments:
+      b: B
+      a: A
+    rewritten:
+      - A
+      - B
+  named.unknown:
+    arguments:
+      b: B
+      z: Z
+    exception:
+      class: ReflectionException
+      message: 'Unknown argument name ''z''.'
+    error.php8:
+      class: ArgumentCountError
+      message: 'Donquixote\QuickAttributes\Tests\RewriteArgumentsTest::{closure}(): Argument #1 ($a) not passed'
+  mixed:
+    arguments:
+      0: zero
+      b: B
+    rewritten:
+      - zero
+      - B
+  mixed.wrongIndex:
+    arguments:
+      5: five
+      b: B
+    rewritten:
+      - five
+      - B
+  mixed.numericAfterNamed:
+    arguments:
+      a: A
+      5: five
+    exception:
+      class: ReflectionException
+      message: 'Cannot have positional arguments after named arguments.'
+    error.php8:
+      class: Error
+      message: 'Cannot use positional argument after named argument during unpacking'
+  mixed.namedOverwritingNumeric:
+    arguments:
+      5: five
+      a: A
+    exception:
+      class: ReflectionException
+      message: 'Cannot overwrite argument.'
+    error.php8:
+      class: Error
+      message: 'Named parameter $a overwrites previous argument'

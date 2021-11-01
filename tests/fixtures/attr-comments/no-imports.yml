@@ -1,6 +1,6 @@
 comment: '#[A(5)]'
 attributes:
-    -
-        name: A
-        arguments:
-            - 5
+  -
+    name: A
+    arguments:
+      - 5
