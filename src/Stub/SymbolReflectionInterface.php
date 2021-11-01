@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Stub;
 
-interface SymbolReflectionInterface extends \Reflector{
+interface SymbolReflectionInterface extends \Reflector {
 
   /**
    * Returns an array of constant attributes.

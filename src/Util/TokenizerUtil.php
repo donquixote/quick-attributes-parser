@@ -19,9 +19,19 @@ class TokenizerUtil {
 @sx';
 
   /**
+   * Tokenizes php from a file in two versions.
+   *
+   * This is useful for applications that only need the class header,
+   *
    * @param string $php
+   *   PHP read from a file.
    *
    * @return \Iterator<list<string|array{int, string, int}>>
+   *   For a class file:
+   *     1. All tokens until (including) the class header.
+   *     2. All tokens in the file.
+   *   For any other file:
+   *     1. All tokens in the file.
    */
   public static function tokenizeClassFileContents(string $php): \Iterator {
     $offset = 0;

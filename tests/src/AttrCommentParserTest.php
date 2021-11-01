@@ -44,12 +44,14 @@ class AttrCommentParserTest extends TestCase {
     $file = $this->getYmlDir() . '/' . $name . '.yml';
     /** @var _AttrCommentsYaml $data */
     $data = Yaml::parseFile($file);
+
     if (PHP_VERSION_ID < 80000) {
       $this->processData($data);
     }
     else {
       $this->processPhp8($data);
     }
+
     TestUtil::assertFileContentsYml($file, $data);
   }
 
