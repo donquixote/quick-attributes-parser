@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests\Util;
 
-use Donquixote\QuickAttributes\RawAttribute\RawAttribute_Eval;
 use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
 
 class TestExportUtil {
