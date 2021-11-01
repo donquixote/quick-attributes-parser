@@ -1,5 +1,8 @@
 # Quick Attributes Parser
 
+
+[![Type Coverage](https://shepherd.dev/github/donquixote/quick-attributes-parser/coverage.svg)](https://shepherd.dev/github/donquixote/quick-attributes-parser)
+
 Userland PHP parser specialized on attributes and use statements.
 
 This package is meant for projects and packages that want to support PHP < 8 and still want attributes support.
