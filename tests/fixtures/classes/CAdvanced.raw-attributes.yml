@@ -1,46 +1,46 @@
 Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A0
-        arguments:
-            - class
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A1
-        arguments: {  }
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\Sub\A0
-        arguments: {  }
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A0
+    arguments:
+      - class
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A1
+    arguments: {  }
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\Sub\A0
+    arguments: {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::U':
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A0
-        arguments:
-            - 'const U'
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A1
-        arguments: {  }
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A0
+    arguments:
+      - 'const U'
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A1
+    arguments: {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::V': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$x': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$y':
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A0
-        arguments:
-            - 'property $y'
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A0
+    arguments:
+      - 'property $y'
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct()':
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A0
-        arguments:
-            - constructor
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A1
-        arguments: {  }
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A0
+    arguments:
+      - constructor
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A1
+    arguments: {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($x)': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($y)':
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A0
-        arguments:
-            - 'param y'
-    -
-        name: Donquixote\QuickAttributes\Tests\Attribute\A1
-        arguments: {  }
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A0
+    arguments:
+      - 'param y'
+  -
+    name: Donquixote\QuickAttributes\Tests\Attribute\A1
+    arguments: {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($args)': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::f()': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::abs()': {  }

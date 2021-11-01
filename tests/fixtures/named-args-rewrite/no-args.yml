@@ -1,66 +1,66 @@
 parameters: {  }
 php: |-
-    return static function() {
-      return func_get_args();
-    };
+  return static function() {
+    return func_get_args();
+  };
 calls:
-    empty:
-        arguments: {  }
-        rewritten: {  }
-    serial:
-        arguments:
-            - A
-            - B
-        rewritten:
-            - A
-            - B
-    named:
-        arguments:
-            a: A
-            b: B
-        exception:
-            class: ReflectionException
-            message: 'Unknown argument name ''a''.'
-        error.php8:
-            class: Error
-            message: 'Unknown named parameter $a'
-    mixed:
-        arguments:
-            0: zero
-            b: B
-        exception:
-            class: ReflectionException
-            message: 'Unknown argument name ''b''.'
-        error.php8:
-            class: Error
-            message: 'Unknown named parameter $b'
-    mixed.wrongIndex:
-        arguments:
-            5: five
-            b: B
-        exception:
-            class: ReflectionException
-            message: 'Unknown argument name ''b''.'
-        error.php8:
-            class: Error
-            message: 'Unknown named parameter $b'
-    mixed.numericAfterNamed:
-        arguments:
-            a: A
-            5: five
-        exception:
-            class: ReflectionException
-            message: 'Unknown argument name ''a''.'
-        error.php8:
-            class: Error
-            message: 'Unknown named parameter $a'
-    mixed.namedOverwritingNumeric:
-        arguments:
-            5: five
-            a: A
-        exception:
-            class: ReflectionException
-            message: 'Unknown argument name ''a''.'
-        error.php8:
-            class: Error
-            message: 'Unknown named parameter $a'
+  empty:
+    arguments: {  }
+    rewritten: {  }
+  serial:
+    arguments:
+      - A
+      - B
+    rewritten:
+      - A
+      - B
+  named:
+    arguments:
+      a: A
+      b: B
+    exception:
+      class: ReflectionException
+      message: 'Unknown argument name ''a''.'
+    error.php8:
+      class: Error
+      message: 'Unknown named parameter $a'
+  mixed:
+    arguments:
+      0: zero
+      b: B
+    exception:
+      class: ReflectionException
+      message: 'Unknown argument name ''b''.'
+    error.php8:
+      class: Error
+      message: 'Unknown named parameter $b'
+  mixed.wrongIndex:
+    arguments:
+      5: five
+      b: B
+    exception:
+      class: ReflectionException
+      message: 'Unknown argument name ''b''.'
+    error.php8:
+      class: Error
+      message: 'Unknown named parameter $b'
+  mixed.numericAfterNamed:
+    arguments:
+      a: A
+      5: five
+    exception:
+      class: ReflectionException
+      message: 'Unknown argument name ''a''.'
+    error.php8:
+      class: Error
+      message: 'Unknown named parameter $a'
+  mixed.namedOverwritingNumeric:
+    arguments:
+      5: five
+      a: A
+    exception:
+      class: ReflectionException
+      message: 'Unknown argument name ''a''.'
+    error.php8:
+      class: Error
+      message: 'Unknown named parameter $a'

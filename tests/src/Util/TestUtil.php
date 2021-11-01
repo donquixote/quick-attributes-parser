@@ -39,7 +39,7 @@ class TestUtil {
       Yaml::dump(
         $data,
         $inline,
-        4,
+        2,
         Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK | Yaml::DUMP_OBJECT_AS_MAP | Yaml::DUMP_OBJECT),
       $writeIfEnabled);
   }

@@ -1,13 +1,13 @@
 comment: '#[A(self::V, CMinimal::U, \Donquixote\QuickAttributes\Tests\Fixture\CMinimal::U, CMinimal::class)]'
 namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
-    A: N\M\A
+  A: N\M\A
 class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
 attributes:
-    -
-        name: N\M\A
-        arguments:
-            - v
-            - u
-            - u
-            - Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+  -
+    name: N\M\A
+    arguments:
+      - v
+      - u
+      - u
+      - Donquixote\QuickAttributes\Tests\Fixture\CMinimal
