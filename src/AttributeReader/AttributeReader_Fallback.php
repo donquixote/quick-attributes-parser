@@ -8,7 +8,7 @@ use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface;
 use Donquixote\QuickAttributes\AttributesList\AttributesList_Fallback;
 use Donquixote\QuickAttributes\AttributesList\AttributesListInterface;
-use Donquixote\QuickAttributes\Exception\SyntaxException;
+use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
@@ -64,7 +64,7 @@ class AttributeReader_Fallback implements AttributeReaderInterface {
           $rawAttributes[] = $rawAttribute;
         }
       }
-      catch (SyntaxException $e) {
+      catch (ParserException $e) {
         throw new \ReflectionException($e->getMessage(), 0, $e);
       }
     }
