@@ -30,6 +30,19 @@ class FileParser {
 
     $php = file_get_contents($file);
 
+    return $this->parseFilePhp($php);
+  }
+
+  /**
+   * @param string $php
+   *   PHP from a file.
+   *
+   * @return iterable<SymbolHandle, RawSymbolInfo>
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function parseFilePhp(string $php): iterable {
+
     $tokenss = TokenizerUtil::tokenizeClassFileContents($php);
 
     // Forget the file contents to save memory.
