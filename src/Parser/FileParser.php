@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
+use Donquixote\QuickAttributes\RawSymbolInfo\RawSymbolInfo_Fallback;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\TokenizerUtil;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
@@ -13,16 +15,22 @@ use Donquixote\QuickAttributes\Value\SymbolHandle;
 
 class FileParser {
 
+  /**
+   * @var \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser
+   */
+  private AttributeCommentParser $attrCommentParser;
+
   public function __construct() {
     if (PHP_VERSION_ID >= 80000) {
       throw new \RuntimeException('This class should only be used in PHP < 8.');
     }
+    $this->attrCommentParser = new AttributeCommentParser();
   }
 
   /**
    * @param string $file
    *
-   * @return iterable<SymbolHandle, RawSymbolInfo>
+   * @return iterable<SymbolHandle, \Donquixote\QuickAttributes\RawSymbolInfo\RawSymbolInfoInterface>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -37,7 +45,7 @@ class FileParser {
    * @param string $php
    *   PHP from a file.
    *
-   * @return iterable<SymbolHandle, RawSymbolInfo>
+   * @return iterable<SymbolHandle, \Donquixote\QuickAttributes\RawSymbolInfo\RawSymbolInfoInterface>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -130,12 +138,22 @@ class FileParser {
             }
             $functionQcn = $terminatedNamespace . $shortname;
             $symbol = SymbolHandle::fromFunction($functionQcn);
-            yield $symbol => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+            $attrCommentParser = $this->attrCommentParser->withContext(
+              $namespace,
+              $imports,
+              null);
+            yield $symbol => new RawSymbolInfo_Fallback(
+              $attrCommentParser,
+              $attrComments);
+            # yield $symbol => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $symbol = SymbolHandle::fromFunctionParameter(
                 $functionQcn,
                 substr($paramDollarName, 1));
-              yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
+              yield $symbol => new RawSymbolInfo_Fallback(
+                $attrCommentParser,
+                $paramAttrComments);
+              # yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
             }
             break;
 
@@ -145,7 +163,14 @@ class FileParser {
             ++$i;
             $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
             $class = $terminatedNamespace . $shortname;
-            yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+            $attrCommentParser = $this->attrCommentParser->withContext(
+              $namespace,
+              $imports,
+              null);
+            # yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+            yield SymbolHandle::fromClass($class) => new RawSymbolInfo_Fallback(
+              $attrCommentParser,
+              $attrComments);
 
             // Get the full version of the tokens now.
             $tokenss->next();
@@ -155,7 +180,11 @@ class FileParser {
 
             $this->skipClassLikeExtendsImplements($tokens, $i);
             assert(ParserUtil::expect($tokens, $i, '{'));
-            yield from $this->parseClassLikeBody($tokens, $i, $class);
+            foreach ($this->parseClassLikeBody($tokens, $i, $class) as $symbol => $attrComments) {
+              yield $symbol => new RawSymbolInfo_Fallback(
+                $attrCommentParser,
+                $attrComments);
+            }
             assert(ParserUtil::expect($tokens, $i, '}'));
             break;
 
@@ -256,7 +285,8 @@ class FileParser {
    * @param int $pos
    * @param string $class
    *
-   * @return iterable<SymbolHandle, RawSymbolInfo>
+   * @return iterable<SymbolHandle, list<string>>
+   *   Attribute-like comments by symbol.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -335,13 +365,13 @@ class FileParser {
               throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function is not allowed here.');
             }
             $symbol = SymbolHandle::fromMethod($class, $method);
-            yield $symbol => RawSymbolInfo::forInnerSymbol($attributeComments);
+            yield $symbol => $attributeComments;
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $symbol = SymbolHandle::fromMethodParameter(
                 $class,
                 $method,
                 substr($paramDollarName, 1));
-              yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
+              yield $symbol => $paramAttrComments;
             }
             break;
 
@@ -351,7 +381,7 @@ class FileParser {
               yield SymbolHandle::fromClassProperty(
                 $class,
                 $name
-              ) => RawSymbolInfo::forInnerSymbol($attributeComments);
+              ) => $attributeComments;
             }
             break;
 
@@ -361,7 +391,7 @@ class FileParser {
               yield SymbolHandle::fromClassConstant(
                 $class,
                 $name
-              ) => RawSymbolInfo::forInnerSymbol($attributeComments);
+              ) => $attributeComments;
             }
             break;
 
@@ -423,13 +453,12 @@ class FileParser {
    *   Before: Position at '(' before the parameters.
    *   After: Position at ')' after the parameters.
    *
-   * @return iterable<string, string[]>
+   * @return iterable<string, list<string>>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseParams(array $tokens, int &$pos): iterable {
     assert(ParserUtil::expect($tokens, $pos, '('));
-    /** @var string[] $attributeComments */
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
