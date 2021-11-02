@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  " class C {} "
+  class C {}
+importss:
+  C: {  }
+attributess:
+  C: {  }
