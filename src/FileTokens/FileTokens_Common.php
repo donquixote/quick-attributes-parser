@@ -84,9 +84,16 @@ class FileTokens_Common implements FileTokensInterface {
       \assert($this->php[$openCurlyPos] === '{');
       // Include the open curly bracket in the file head, to act as a marker.
       $phpHead = \substr($this->php, 0, $openCurlyPos + 1);
+      // Append a comment to prevent un-catchable E_COMPILE_WARNING.
+      $phpHead .= '/* */';
       $tokensHead = TokenizerUtil::tokenGetAll($phpHead);
+      $nTokensHead = count($tokensHead);
       // Verify the regex was not tricked by a comment or string literal.
-      if (\end($tokensHead)[0] === '{') {
+      if ($tokensHead[$nTokensHead - 2] === '{') {
+        \assert($tokensHead[$nTokensHead - 1][0] === T_COMMENT);
+        \assert($tokensHead[$nTokensHead - 1][1] === '/* */');
+        // Remove the '/* */' comment.
+        \array_pop($tokensHead);
         break;
       }
       // The regex must have found a comment or string literal.
