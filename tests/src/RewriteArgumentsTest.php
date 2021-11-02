@@ -4,46 +4,57 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
+use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
-use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use Donquixote\QuickAttributes\Util\ArgumentsUtil;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  *   See https://github.com/sebastianbergmann/phpunit/pull/4795
+ *
+ * @psalm-type _RewriteArgsCall=array{
+ *   arguments: array,
+ *   rewritten?: list<mixed>,
+ *   'rewritten.php8'?: list<mixed>,
+ *   exception?: array,
+ *   'error.php8'?: array,
+ *   mismatch?: true,
+ * }
+ *
+ * @psalm-type _RewriteArgsYamlContent=array{
+ *   parameters: list<string>,
+ *   php?: string,
+ *   exception?: array,
+ *   'error.php8'?: array,
+ *   calls: array<string, _RewriteArgsCall>,
+ * }
+ *
+ * @template-extends YmlTestBase<_RewriteArgsYamlContent>
  */
-class RewriteArgumentsTest extends TestCase {
+class RewriteArgumentsTest extends YmlTestBase {
 
   /**
-   * @param string $name
-   *
-   * @dataProvider providerTestAttrCommentParser()
+   * {@inheritdoc}
    */
-  public function testRewriteArgs(string $name): void {
-    $file = $this->getYmlDir() . '/' . $name . '.yml';
-    /** @var array{parameters: list<string>, calls: array} $data */
-    $data = Yaml::parseFile($file);
-    $this->processData($data);
+  protected function processData(array &$data): void {
+    $this->processCommon($data);
     $this->processPhp8($data);
-    self::normalizeArrayKeys(
+    TestArrayUtil::normalizeKeys(
       $data,
       ['parameters', 'php', 'exception', 'error.php8', 'calls']);
     /** @psalm-suppress PossiblyUndefinedStringArrayOffset, MixedAssignment */
     foreach ($data['calls'] as &$call) {
       /** @var array $call */
-      self::normalizeArrayKeys(
+      TestArrayUtil::normalizeKeys(
         $call,
         ['arguments', 'rewritten', 'rewritten.php8', 'exception', 'error.php8', 'mismatch']);
     }
-    TestUtil::assertFileContentsYml($file, $data);
   }
 
   /**
-   * @param array $data
+   * @param _RewriteArgsYamlContent $data
    */
-  private function processData(array &$data): void {
+  private function processCommon(array &$data): void {
 
     try {
       $parameters = self::buildParams($data);
@@ -54,13 +65,6 @@ class RewriteArgumentsTest extends TestCase {
       return;
     }
 
-    /**
-     * @psalm-suppress PossiblyUndefinedStringArrayOffset
-     * @psalm-suppress MixedAssignment
-     * @psalm-suppress MixedArrayAssignment
-     * @psalm-suppress MixedArgument
-     * @psalm-suppress MixedArrayAccess
-     */
     foreach ($data['calls'] as &$call) {
       try {
         $call['rewritten'] = ArgumentsUtil::mapNamedArgs(
@@ -75,6 +79,9 @@ class RewriteArgumentsTest extends TestCase {
     }
   }
 
+  /**
+   * @param _RewriteArgsYamlContent $data
+   */
   private function processPhp8(array &$data): void {
 
     if (PHP_VERSION_ID <= 80000) {
@@ -93,12 +100,6 @@ class RewriteArgumentsTest extends TestCase {
       return;
     }
 
-    /**
-     * @psalm-suppress PossiblyUndefinedStringArrayOffset
-     * @psalm-suppress MixedAssignment
-     * @psalm-suppress MixedArrayAssignment
-     * @psalm-suppress MixedArrayAccess
-     */
     foreach ($data['calls'] as &$call) {
       unset($call['error.php8']);
       unset($call['mismatch']);
@@ -120,24 +121,12 @@ class RewriteArgumentsTest extends TestCase {
     }
   }
 
-  /**
-   * @return iterable<int, array{string}>
-   */
-  public function providerTestAttrCommentParser(): iterable {
-    $ymlDir = $this->getYmlDir();
-    foreach (scandir($ymlDir) as $candidate) {
-      if (preg_match('@^(\w+(?:[\.\-]\w+)*)\.yml$@', $candidate, $m)) {
-        yield [$m[1]];
-      }
-    }
-  }
-
-  private function getYmlDir(): string {
-    return dirname(__DIR__) . '/fixtures/named-args-rewrite';
+  protected function getYmlSubdir(): string {
+    return 'named-args-rewrite';
   }
 
   /**
-   * @param array $data
+   * @param _RewriteArgsYamlContent $data
    *
    * @return \ReflectionParameter[]
    *
@@ -150,14 +139,13 @@ class RewriteArgumentsTest extends TestCase {
   }
 
   /**
-   * @param array $data
+   * @param _RewriteArgsYamlContent $data
    *
    * @return \Closure
    *
    * @psalm-suppress MixedReturnStatement, MixedInferredReturnType
    */
   private static function createClosure(array &$data): \Closure {
-    /** @psalm-suppress MixedArgument */
     $php = 'return static function('
       . implode(', ', $data['parameters'] ?? [])
       . ') {'
@@ -165,22 +153,6 @@ class RewriteArgumentsTest extends TestCase {
       . "\n};";
     $data['php'] = $php;
     return eval($php);
-  }
-
-  /**
-   * @param array $data
-   * @param string[] $keys
-   */
-  private static function normalizeArrayKeys(array &$data, array $keys): void {
-    $normalized = [];
-    foreach ($keys as $key) {
-      if (isset($data[$key])) {
-        /** @psalm-suppress MixedAssignment */
-        $normalized[$key] = $data[$key];
-      }
-    }
-    $normalized += $data;
-    $data = $normalized;
   }
 
 }

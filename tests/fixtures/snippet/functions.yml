@@ -1,0 +1,29 @@
+php: |
+  <?php
+
+  #[A(x: 5)]
+  function foo(): void {}
+
+  function bar(
+    #[B(x: 7)]
+    $x
+  ): void {}
+importss:
+  foo(): {  }
+  bar(): {  }
+attributess:
+  foo():
+    -
+      name: A
+      arguments:
+        x: 5
+  bar():
+    -
+      name: A
+      arguments:
+        x: 5
+  bar($x):
+    -
+      name: B
+      arguments:
+        x: 7

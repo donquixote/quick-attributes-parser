@@ -1,0 +1,69 @@
+php: |
+  <?php
+
+  namespace N;
+
+  use Acme\Plant;
+  use const PHP_VERSION_ID;
+
+  if (PHP_VERSION_ID < 80000) {
+    require_once __DIR__ . '/other_file.php';
+  }
+
+  $hello = "hello";
+  $world = 'world';
+  $helloworld = "$hello $world";
+
+  $f = static function ($x, $y) use ($helloworld) {return $x;};
+  $f = function () {};
+
+  /**
+   * Function with doc comment.
+   */
+  function foo(
+    int $x = 5,
+    # A non-attribute comment.
+    #[A]
+    bool $negative,
+  ): int {
+    if ($negative) {
+      return -$x;
+    }
+    else {
+      return $x;
+    }
+  }
+
+  function f(array &$x, \Acme\Animal ...$args) {}
+
+  class C extends B implements I, J {
+    protected $m = 5;
+    private $a = 7, $b = 8 + (9 / 3);
+    public function __construct(private int $x) {}
+  }
+importss:
+  N\foo():
+    Plant: Acme\Plant
+    'const PHP_VERSION_ID': PHP_VERSION_ID
+  N\f():
+    Plant: Acme\Plant
+    'const PHP_VERSION_ID': PHP_VERSION_ID
+  N\C:
+    Plant: Acme\Plant
+    'const PHP_VERSION_ID': PHP_VERSION_ID
+attributess:
+  N\foo(): {  }
+  N\foo($x): {  }
+  N\foo($negative):
+    -
+      name: A
+      arguments: {  }
+  N\f(): {  }
+  N\f($x): {  }
+  N\f($args): {  }
+  N\C: {  }
+  'N\C::$m': {  }
+  'N\C::$a': {  }
+  'N\C::$b': {  }
+  'N\C::__construct()': {  }
+  'N\C::__construct($x)': {  }

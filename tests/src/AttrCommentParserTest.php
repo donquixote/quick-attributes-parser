@@ -7,9 +7,6 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
-use Donquixote\QuickAttributes\Tests\Util\TestUtil;
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Yaml\Yaml;
 
 /**
  * @psalm-suppress PropertyNotSetInConstructor
@@ -32,33 +29,27 @@ use Symfony\Component\Yaml\Yaml;
  *   }>,
  *   exception?: array
  * }
+ *
+ * @template-extends YmlTestBase<_AttrCommentsYaml>
  */
-class AttrCommentParserTest extends TestCase {
+class AttrCommentParserTest extends YmlTestBase {
 
   /**
-   * @param string $name
-   *
-   * @dataProvider providerTestAttrCommentParser()
+   * {@inheritdoc}
    */
-  public function testAttrCommentParser(string $name): void {
-    $file = $this->getYmlDir() . '/' . $name . '.yml';
-    /** @var _AttrCommentsYaml $data */
-    $data = Yaml::parseFile($file);
-
+  protected function processData(array &$data): void {
     if (PHP_VERSION_ID < 80000) {
-      $this->processData($data);
+      $this->processPhp7($data);
     }
     else {
       $this->processPhp8($data);
     }
-
-    TestUtil::assertFileContentsYml($file, $data);
   }
 
   /**
    * @psalm-param _AttrCommentsYaml $data
    */
-  private function processData(array &$data): void {
+  private function processPhp7(array &$data): void {
 
     // Normalize and filter array keys.
     $map = array_fill_keys(['comment', 'namespace', 'imports', 'class'], NULL);
@@ -157,20 +148,8 @@ class AttrCommentParserTest extends TestCase {
     return eval($php);
   }
 
-  /**
-   * @return iterable<int, array{string}>
-   */
-  public function providerTestAttrCommentParser(): iterable {
-    $ymlDir = $this->getYmlDir();
-    foreach (scandir($ymlDir) as $candidate) {
-      if (preg_match('@^(\w+(?:[\.\-]\w+)*)\.yml$@', $candidate, $m)) {
-        yield [$m[1]];
-      }
-    }
-  }
-
-  private function getYmlDir(): string {
-    return dirname(__DIR__) . '/fixtures/attr-comments';
+  protected function getYmlSubdir(): string {
+    return 'attr-comments';
   }
 
 }

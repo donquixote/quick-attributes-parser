@@ -1,0 +1,16 @@
+php: |
+  <?php
+
+  class C extends function {}
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: |-
+    Line 3:17: Unexpected array (
+      0 => 342,
+      1 => 'function',
+      2 => 3,
+    ) before class body.
