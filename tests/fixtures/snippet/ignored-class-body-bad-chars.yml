@@ -1,0 +1,21 @@
+php: |
+  <?php
+
+  class C {
+    // The parser does not care about these rogue symbols.
+    "hello";
+    // Bracket expressions need to be closed, then it is fine.
+    {} () []
+    // Enclosed non-matching brackets of different type don't matter.
+    {[}
+    +
+    -
+    int
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:3: Unexpected T_CONSTANT_ENCAPSED_STRING / ''"hello"'' in class body.'

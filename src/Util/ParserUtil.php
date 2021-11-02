@@ -130,7 +130,7 @@ class ParserUtil {
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '(', '[' or '{'.
-   *   After (success): Position after the closing ')', ']' or '}'.
+   *   After (success): Position of the closing ')', ']' or '}'.
    *   After (failure): Original position.
    *
    * @return void
@@ -160,7 +160,7 @@ class ParserUtil {
       $level += $map[$tokens[$i][0]];
       if ($level < 0) {
         // Set new position.
-        $pos = $i + 1;
+        $pos = $i;
         return;
       }
     }
@@ -175,7 +175,7 @@ class ParserUtil {
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '"'.
-   *   After (success): Position after the closing ')', ']' or '}'.
+   *   After (success): Position of the closing '"'.
    *   After (failure): Original position.
    *
    * @return void
@@ -305,6 +305,26 @@ class ParserUtil {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
+   *
+   * @return string
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  public static function skipFillerWsExpectMemberName(array $tokens, int &$pos): string {
+    $id = self::skipFillerWs($tokens, $pos);
+    if ($id !== T_STRING) {
+      $token = $tokens[$pos];
+      if (!\is_array($token)
+        || !ReservedWordUtil::validMemberName($tokens[$pos][1])
+      ) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+    }
+    return $tokens[$pos][1];
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
    * @param string $expected
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
@@ -349,10 +369,11 @@ class ParserUtil {
    */
   public static function formatToken($token): string {
     if (is_array($token)) {
-      $name = token_name($token[0]) . ' / ' . var_export($token[1], TRUE);
+      $name = token_name($token[0]);
       if ($name === 'UNKNOWN') {
-        return self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
+        $name = self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
       }
+      return $name . ' / ' . var_export($token[1], TRUE);
     }
     if ($token === '#') {
       return 'EOF';
@@ -381,7 +402,8 @@ class ParserUtil {
           case '{':
           case '[':
             self::skipSubtree($tokens, $i);
-            continue 2;
+            assert(self::expectOneOf($tokens, $i, [')', '}', ']']));
+            break;
 
           case ',':
           case ')':

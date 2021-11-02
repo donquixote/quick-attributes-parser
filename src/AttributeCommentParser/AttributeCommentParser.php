@@ -87,14 +87,17 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     /** @var list<string|array{int, string, int}> $tokens */
     $tokens = token_get_all($php);
     $tokens[0] = [ParserUtil::T_ATTRIBUTE, '#[', 0];
-
-    /** @var list<string|array{int, string, int}> $tokens */
+    /**
+     * Tell psalm that $tokens is still a list, after setting $tokens[0].
+     *
+     * @var list<string|array{int, string, int}> $tokens
+     */
     while (TRUE) {
-      /** @var string|array{int, string, int} $tkLast */
       $tkLast = \end($tokens);
       if ($tkLast[0] !== T_COMMENT) {
         break;
       }
+      // At this point it is known that $tkLast is an array, not a string.
       /** @var array{int, string, int} $tkLast */
       $comment = $tkLast[1];
       if ($comment[1] !== '[') {
@@ -106,7 +109,6 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       $moreTokens = token_get_all($php);
       $moreTokens[0] = [ParserUtil::T_ATTRIBUTE, '#[', 0];
       \array_pop($tokens);
-      /** @var list<string|array{int, string, int}> $tokens */
       $tokens = [
         ...$tokens,
         ...$moreTokens,

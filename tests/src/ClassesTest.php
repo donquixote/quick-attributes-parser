@@ -6,12 +6,12 @@ namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\AttributeReader\AttributeReader;
 use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
-use Donquixote\QuickAttributes\Util\TokenizerUtil;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -24,16 +24,16 @@ class ClassesTest extends TestCase {
 
   /**
    * @dataProvider providerTestClasses()
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testTokenizer(string $shortname): void {
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
-    $php = \file_get_contents($file);
-    $tokenss = TokenizerUtil::tokenizeClassFileContents($php);
+    $tokenss = FileTokens_Common::fromFile($file)->getTokenss();
     $tokens = $tokenss->current();
     $n = count($tokens);
-    self::assertSame(T_WHITESPACE, $tokens[$n - 3][0]);
-    self::assertSame(T_STRING, $tokens[$n - 2][0]);
-    self::assertSame('#', $tokens[$n - 1][0]);
+    self::assertSame('{', $tokens[$n - 2]);
+    self::assertSame('#', $tokens[$n - 1]);
     $tokenss->next();
     self::assertTrue($tokenss->valid());
     $tokens = $tokenss->current();
@@ -59,7 +59,10 @@ class ClassesTest extends TestCase {
     $importss = [];
     $commentss = [];
     try {
-      /** @var \Donquixote\QuickAttributes\Value\SymbolHandle $symbol */
+      /**
+       * @psalm-ignore-var
+       * @var \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
+       */
       foreach ($parser->parseFile($file) as $symbol => $info) {
         $toplevel = $symbol->getTopLevel();
         if ($toplevel === $symbol) {

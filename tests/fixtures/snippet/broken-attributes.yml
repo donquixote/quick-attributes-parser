@@ -1,0 +1,38 @@
+php: |
+  <?php
+
+  namespace N;
+
+  use Acme\Plant;
+  use const PHP_VERSION_ID;
+
+  if (PHP_VERSION_ID < 80000) {
+    require_once __DIR__ . '/other_file.php';
+  }
+
+  /**
+   * Function with doc comment.
+   */
+  function foo(
+    int $x,
+    #[A]
+    bool $negative,
+  ): int {
+    if ($negative) {
+      return -$x;
+    }
+    else {
+      return $x;
+    }
+  }
+importss:
+  N\foo():
+    Plant: Acme\Plant
+    'const PHP_VERSION_ID': PHP_VERSION_ID
+attributess:
+  N\foo(): {  }
+  N\foo($x): {  }
+  N\foo($negative):
+    -
+      name: A
+      arguments: {  }

@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  class C extends function {}
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:17: Unexpected T_FUNCTION / ''function'' before class body.'

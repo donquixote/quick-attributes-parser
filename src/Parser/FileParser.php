@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
+use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
+use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
 use Donquixote\QuickAttributes\Util\ParserUtil;
-use Donquixote\QuickAttributes\Util\TokenizerUtil;
+use Donquixote\QuickAttributes\Util\ReservedWordUtil;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
@@ -27,27 +31,27 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseFile(string $file): iterable {
-
-    $php = file_get_contents($file);
-
-    return $this->parseFilePhp($php);
+    try {
+      $fileTokens = FileTokens_Common::fromFile($file);
+      yield from $this->parseFileTokens($fileTokens);
+    }
+    catch (ParserException $e) {
+      $e->setSourceFile($file);
+      throw $e;
+    }
   }
 
   /**
-   * @param string $php
-   *   PHP from a file.
+   * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
    *
    * @return iterable<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseFilePhp(string $php): iterable {
+  public function parseFileTokens(FileTokensInterface $fileTokens): iterable {
 
-    $tokenss = TokenizerUtil::tokenizeClassFileContents($php);
-
-    // Forget the file contents to save memory.
-    // This allows more iterators to stay in memory at the same time.
-    unset($php);
+    $tokenss = $fileTokens->getTokenss();
+    unset($fileTokens);
 
     $tokens = $tokenss->current();
 
@@ -61,19 +65,43 @@ class FileParser {
       if (is_string($token)) {
         switch ($token) {
           case '(':
-          case '{':
           case '[':
             ParserUtil::skipSubtree($tokens, $i);
+            assert(ParserUtil::expectOneOf($tokens, $i, [')', ']']));
+            break;
+
+          case '{':
+            // Subtrees with '{' are special, they can contain a class, trait or
+            // interface declaration.
+            // This also means that the tokens could be cut off within that
+            // subtree.
+            try {
+              ParserUtil::skipSubtree($tokens, $i);
+            }
+            catch (SyntaxException $e) {
+              // This could be unexpected end of file, if $tokens only contains
+              // the head of a supposed class file.
+              // This can be the case if the class is declared within an if ().
+              // Load the complete token list, and try again.
+              $tokenss->next();
+              if ($tokenss->valid()) {
+                $tokens = $tokenss->current();
+              }
+              \assert(ParserUtil::expect($tokens, $i, '{'));
+              ParserUtil::skipSubtree($tokens, $i);
+            }
+            assert(ParserUtil::expect($tokens, $i, '}'));
             break;
 
           case '"':
             ParserUtil::skipDoubleQuotedString($tokens, $i);
+            assert(ParserUtil::expect($tokens, $i, '"'));
             break;
 
           case ')':
           case '}':
           case ']':
-            throw new SyntaxException("Unexpected '$token' in file scope.");
+            throw SyntaxException::unexpected($tokens, $i, 'in file scope');
 
           case '#':
             // End of file.
@@ -124,8 +152,23 @@ class FileParser {
 
           case T_FUNCTION:
             $shortname = $this->parseFunctionHead($tokens, $i);
+            \assert(ParserUtil::expect($tokens, $i, '('));
             if ($shortname === NULL) {
-              // Anonymous function. Ignore whatever comes next.
+              // Anonymous function. Ignore.
+              // Skip the parameter list first.
+              ParserUtil::skipSubtree($tokens, $i);
+              ++$i;
+              $id = ParserUtil::skipFillerWs($tokens, $i);
+              if ($id === T_USE) {
+                ++$i;
+                ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
+                ParserUtil::skipSubtree($tokens, $i);
+                \assert(ParserUtil::expect($tokens, $i, ')'));
+              }
+              elseif ($id === '{') {
+                --$i;
+              }
+              // Ignore the rest.
               break;
             }
             $functionQcn = $terminatedNamespace . $shortname;
@@ -137,6 +180,8 @@ class FileParser {
                 substr($paramDollarName, 1));
               yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
             }
+            \assert(ParserUtil::expect($tokens, $i, ')'));
+            // Ignore the rest.
             break;
 
           case T_CLASS:
@@ -150,6 +195,7 @@ class FileParser {
             // Get the full version of the tokens now.
             $tokenss->next();
             if ($tokenss->valid()) {
+              // If not valid, $tokens already contains the complete file.
               $tokens = $tokenss->current();
             }
 
@@ -267,28 +313,17 @@ class FileParser {
       $token = $tokens[$i];
       if (is_string($token)) {
         switch ($token) {
-          case '(':
-          case '{':
-          case '[':
-            ParserUtil::skipSubtree($tokens, $i);
-            break;
-
-          case '"':
-            ParserUtil::skipDoubleQuotedString($tokens, $i);
-            break;
-
-          case ')':
-          case ']':
-          case '#':
-            throw SyntaxException::unexpected($tokens, $i, 'in class body');
 
           case '}':
             $pos = $i;
             return;
 
+          case '?':
+            // This is part of a type of a property or constant. Ignore.
+            break;
+
           default:
-            # $scope->clear($token);
-            # break;
+            throw SyntaxException::unexpected($tokens, $i, 'in class body');
         }
       }
       else {
@@ -327,10 +362,12 @@ class FileParser {
           case T_USE:
             // Ignore use traits. Do clear attributes.
             // Traits are already available via native reflection.
+            $this->skipUseTraits($tokens, $i);
+            \assert(ParserUtil::expect($tokens, $i, ';'));
             break;
 
           case T_FUNCTION:
-            $method = $this->parseFunctionHead($tokens, $i);
+            $method = $this->parseFunctionHead($tokens, $i, TRUE);
             if ($method === NULL) {
               throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function is not allowed here.');
             }
@@ -342,6 +379,18 @@ class FileParser {
                 $method,
                 substr($paramDollarName, 1));
               yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
+            }
+            \assert(ParserUtil::expect($tokens, $i, ')'));
+            ++$i;
+            $id = ParserUtil::skipFillerWs($tokens, $i);
+            if ($id === ':') {
+              $id = $this->skipReturnType($tokens, $i);
+            }
+            if ($id === '{') {
+              ParserUtil::skipSubtree($tokens, $i);
+            }
+            elseif ($id !== ';') {
+              throw SyntaxException::expectedButFound($tokens, $i, '{ or ;');
             }
             break;
 
@@ -365,14 +414,15 @@ class FileParser {
             }
             break;
 
-          case T_STRING:
-          case T_NS_SEPARATOR:
-            // Ignore.
+          case \T_STRING:
+          case \T_NS_SEPARATOR:
+          case \T_ARRAY:
+          case \T_CALLABLE:
+            // This is part of a type of a property or constant. Ignore.
             continue 2;
 
           default:
-            // Ignore.
-            continue 2;
+            throw SyntaxException::unexpected($tokens, $i, 'in class body');
         }
       }
       $attributeComments = [];
@@ -384,13 +434,15 @@ class FileParser {
    * @param int $pos
    *   Before: Position of T_FUNCTION.
    *   After: Position of '('.
+   * @param bool $isClassMember
+   *   TRUE if this is a class member.
    *
    * @return string
    *   Function shortname, or NULL if anonymous.
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseFunctionHead(array $tokens, int &$pos): ?string {
+  private function parseFunctionHead(array $tokens, int &$pos, bool $isClassMember = FALSE): ?string {
     assert(ParserUtil::expect($tokens, $pos, T_FUNCTION));
 
     $i = $pos + 1;
@@ -400,21 +452,31 @@ class FileParser {
       $id = ParserUtil::skipFillerWs($tokens, $i);
     }
 
-    if ($id === T_STRING) {
-      $shortName = $tokens[$i][1];
-      ++$i;
-      ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
-      $pos = $i;
-      return $shortName;
-    }
-
     if ($id === '(') {
       // Anonymous function.
+      if ($isClassMember) {
+        throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function in class not allowed.');
+      }
       $pos = $i;
       return NULL;
     }
 
-    throw SyntaxException::expectedButFound($tokens, $i, '(');
+    if ($id !== T_STRING) {
+      if (!$isClassMember) {
+        throw SyntaxException::expectedButFound($tokens, $i, 'method name');
+      }
+      if (!\is_array($tokens[$i])
+        || !ReservedWordUtil::validMemberName($tokens[$i][1])
+      ) {
+        throw SyntaxException::expectedButFound($tokens, $i, 'method name');
+      }
+    }
+
+    $shortName = $tokens[$i][1];
+    ++$i;
+    ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
+    $pos = $i;
+    return $shortName;
   }
 
   /**
@@ -434,32 +496,28 @@ class FileParser {
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
       if (is_string($token)) {
-        // Clear attribute comments whenever we hit a plain char symbol.
-        $attributeComments = [];
         switch ($token) {
-          case '(':
-          case '{':
-          case '[':
-            ParserUtil::skipSubtree($tokens, $i);
-            break;
-
-          case '"':
-            ParserUtil::skipDoubleQuotedString($tokens, $i);
-            break;
 
           case ')':
             $pos = $i;
             return;
 
-          case '}':
-          case ']':
-            throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected '$token' in parameters.");
-
           case '#':
             throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
 
-          default:
+          case '&':
+            // The parameter is by-reference. That's ok.
             break;
+
+          case '?':
+            // Found an optional type. Ignore.
+            break;
+
+          case '|':
+            throw PhpVersionException::fromTokenPos($tokens, $i, 'Union types are only available in PHP 8.');
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in parameters');
         }
       }
       else {
@@ -483,6 +541,9 @@ class FileParser {
             if ($id === ')') {
               $pos = $i;
               return;
+            }
+            if ($id !== ',') {
+              throw SyntaxException::unexpected($tokens, $i, 'in parameters');
             }
             // Must be ','.
             break;
@@ -521,6 +582,7 @@ class FileParser {
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in property declaration');
       }
+      ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== T_VARIABLE) {
         throw SyntaxException::expectedButFound($tokens, $i, 'T_VARIABLE');
@@ -545,7 +607,7 @@ class FileParser {
 
     $i = $pos + 1;
     $names = [];
-    $names[] = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
+    $names[] = ParserUtil::skipFillerWsExpectMemberName($tokens, $i);
 
     ++$i;
     $id = ParserUtil::skipFillerWs($tokens, $i);
@@ -582,12 +644,10 @@ class FileParser {
    */
   private function skipVarDefault(array $tokens, int &$pos, bool $isParam): string {
     assert(ParserUtil::expect($tokens, $pos, '='));
-    $i = $pos + 1;
-    while (true) {
+    for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
       if (!is_string($token)) {
-        // Ignore any non-char tokens.
-        ++$i;
+        // Ignore any non-char tokens.+
         continue;
       }
 
@@ -596,7 +656,8 @@ class FileParser {
         case '{':
         case '[':
           ParserUtil::skipSubtree($tokens, $i);
-          continue 2;
+          assert(ParserUtil::expectOneOf($tokens, $i, [')', '}', ']']));
+          break;
 
         case ',':
           $pos = $i;
@@ -624,8 +685,7 @@ class FileParser {
           throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
 
         default:
-          ++$i;
-          continue 2;
+          break;
       }
     }
     // Silence Psalm.
@@ -753,6 +813,100 @@ class FileParser {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
       $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
+    }
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of ':'.
+   *   After: Position of '{' or ';'.
+   *
+   * @return string
+   *   One of '{' or ';'.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  private function skipReturnType(array $tokens, int &$pos): string {
+    assert(ParserUtil::expect($tokens, $pos, ':'));
+    for ($i = $pos + 1;; ++$i) {
+      $token = $tokens[$i];
+      if (\is_string($token)) {
+        switch ($token) {
+          case '{':
+          case ';':
+            $pos = $i;
+            return $token;
+
+          case '?':
+            break;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+        }
+      }
+      else {
+        switch ($token[0]) {
+          case \T_NS_SEPARATOR:
+          case \T_STRING:
+          case \T_WHITESPACE:
+          case \T_COMMENT:
+          case \T_DOC_COMMENT:
+          case \T_ARRAY:
+          case \T_CALLABLE:
+
+            break;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+        }
+      }
+    }
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of T_USE.
+   *   After: Position of ';'.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  private function skipUseTraits(array $tokens, int &$pos): void {
+    assert(ParserUtil::expect($tokens, $pos, T_USE));
+    for ($i = $pos + 1;; ++$i) {
+      $token = $tokens[$i];
+      if (\is_string($token)) {
+        switch ($token) {
+          case '{':
+            ParserUtil::skipSubtree($tokens, $i);
+            break;
+
+          case ';':
+            $pos = $i;
+            return;
+
+          case ',':
+            break;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+        }
+      }
+      else {
+        switch ($token[0]) {
+          case \T_NS_SEPARATOR:
+          case \T_STRING:
+          case \T_WHITESPACE:
+          case \T_COMMENT:
+          case \T_DOC_COMMENT:
+          case \T_AS:
+            break;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+        }
+      }
     }
   }
 

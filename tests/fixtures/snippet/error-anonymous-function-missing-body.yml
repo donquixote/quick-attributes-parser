@@ -1,0 +1,5 @@
+php: |
+  <?php
+
+  // The parser does not care about missing function bodies.
+  function ($x = 5) use (5);

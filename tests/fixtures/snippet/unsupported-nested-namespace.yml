@@ -1,0 +1,7 @@
+php: |
+  <?php
+
+  namespace N {};
+exception:
+  class: Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException
+  message: 'Line 3:13: Nested namespace syntax is not supported.'

@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  namespace N;
+
+  ]
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:1: Unexpected '']'' in file scope.'

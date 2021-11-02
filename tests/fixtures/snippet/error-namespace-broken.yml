@@ -1,0 +1,7 @@
+php: |
+  <?php
+
+  namespace ;
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:11: Expected T_STRING, but found '';''.'

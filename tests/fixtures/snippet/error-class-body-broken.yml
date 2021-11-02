@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  class C {
+    ];
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:3: Unexpected '']'' in class body.'
