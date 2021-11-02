@@ -59,11 +59,7 @@ class ClassesTest extends TestCase {
     $importss = [];
     $commentss = [];
     try {
-      /**
-       * @psalm-ignore-var
-       * @var \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
-       * @var \Donquixote\QuickAttributes\RawSymbolInfo\RawSymbolInfoInterface $info
-       */
+      /** @var \Donquixote\QuickAttributes\Value\SymbolHandle $symbol */
       foreach ($parser->parseFile($file) as $symbol => $info) {
         $toplevel = $symbol->getTopLevel();
         if ($toplevel === $symbol) {
