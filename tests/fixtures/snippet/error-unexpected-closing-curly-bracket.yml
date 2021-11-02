@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  namespace N;
+
+  if (true) {}}
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:13: Unexpected ''}'' in file scope.'

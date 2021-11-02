@@ -1,0 +1,8 @@
+php: |
+  <?php
+
+  namespace N;
+  namespace M;
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Cannot redeclare namespace.'

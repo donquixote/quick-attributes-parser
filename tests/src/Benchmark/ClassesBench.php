@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests\Benchmark;
 
+use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
@@ -81,21 +82,32 @@ class ClassesBench {
   /**
    * @Revs(200)
    * @Iterations(5)
-   * @Groups("full")
-   * @ParamProviders("provideClasses")
+   * @Groups("full", "x")
+   * @ParamProviders("providerBenchTokenGetAll")
    *
-   * @param array{class-string} $args
+   * @param array{class-string, int} $args
    *
    * @throws \ReflectionException
    */
   public function benchTokenGetAll(array $args): void {
-    $class = $args[0];
+    [$class, $flags] = $args;
     $rc = new \ReflectionClass($class);
     $file = $rc->getFileName();
     $php = \file_get_contents($file);
-    $tokens = \token_get_all($php);
+    $tokens = \token_get_all($php, $flags);
     $tokens[] = '#';
     unset($tokens);
+  }
+
+  /**
+   * @return \Iterator<string, array{class-string, int}>
+   */
+  public function providerBenchTokenGetAll(): \Iterator {
+    foreach ($this->provideClasses() as [$class]) {
+      // Compare with and without TOKEN_PARSE.
+      yield "0:$class" => [$class, 0];
+      yield "1:$class" => [$class, \TOKEN_PARSE];
+    }
   }
 
   /**

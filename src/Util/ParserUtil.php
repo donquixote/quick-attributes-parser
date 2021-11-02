@@ -130,7 +130,7 @@ class ParserUtil {
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '(', '[' or '{'.
-   *   After (success): Position after the closing ')', ']' or '}'.
+   *   After (success): Position of the closing ')', ']' or '}'.
    *   After (failure): Original position.
    *
    * @return void
@@ -160,7 +160,7 @@ class ParserUtil {
       $level += $map[$tokens[$i][0]];
       if ($level < 0) {
         // Set new position.
-        $pos = $i + 1;
+        $pos = $i;
         return;
       }
     }
@@ -175,7 +175,7 @@ class ParserUtil {
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '"'.
-   *   After (success): Position after the closing ')', ']' or '}'.
+   *   After (success): Position of the closing '"'.
    *   After (failure): Original position.
    *
    * @return void
@@ -381,7 +381,8 @@ class ParserUtil {
           case '{':
           case '[':
             self::skipSubtree($tokens, $i);
-            continue 2;
+            assert(self::expectOneOf($tokens, $i, [')', '}', ']']));
+            break;
 
           case ',':
           case ')':

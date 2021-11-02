@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  function f($x = 5, $y = 7
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+  f($x): {  }
+  f($y): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:1: Unexpected EOF in parameters.'

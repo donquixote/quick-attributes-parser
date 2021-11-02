@@ -1,0 +1,18 @@
+php: |
+  <?php
+
+  class C {
+    // The parser does not care about these rogue symbols.
+    "hello";
+    // Bracket expressions need to be closed, then it is fine.
+    {} () []
+    // Enclosed non-matching brackets of different type don't matter.
+    {[}
+    +
+    -
+    int
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }

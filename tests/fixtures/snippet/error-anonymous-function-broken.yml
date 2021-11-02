@@ -1,0 +1,7 @@
+php: |
+  <?php
+
+  function ($x = 5,
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:1: Unexpected end of file in nested structure.'

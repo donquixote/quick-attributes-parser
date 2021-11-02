@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
