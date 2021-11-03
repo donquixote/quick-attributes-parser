@@ -3,3 +3,4 @@
 /vendor/
 /.phpbench
 /.phpunit.result.cache
+/clover.xml
