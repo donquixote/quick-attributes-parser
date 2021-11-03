@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
-use Donquixote\QuickAttributes\Exception\ParserException;
-use Donquixote\QuickAttributes\Exception\TokenizerException;
+use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use PHPUnit\Framework\TestCase;
@@ -24,36 +23,24 @@ class VendorTest_ extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testClassFileParser(string $file): void {
+    if (PHP_VERSION_ID >= 80000) {
+      self::assertTrue(true);
+      return;
+    }
     $parser = new FileParser();
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
       foreach ($parser->parseFile($file) as $_) {}
     }
-    catch (TokenizerException $e) {
-      switch ($e->getMessage()) {
-        case 'syntax error, unexpected \'public\' (T_PUBLIC), expecting variable (T_VARIABLE)':
-        case 'syntax error, unexpected \'private\' (T_PRIVATE), expecting variable (T_VARIABLE)':
-        case 'syntax error, unexpected \'protected\' (T_PROTECED), expecting variable (T_VARIABLE)':
-        case 'syntax error, unexpected \'|\', expecting variable (T_VARIABLE)':
-        case 'syntax error, unexpected \'|\', expecting \'{\'':
-          // File requires PHP 8.
-          $this->assertTrue(true);
-          return;
-
-        default:
-          throw $e;
-      }
-    }
-    catch (UnsupportedSyntaxException $e) {
-      // Ignore unsupported syntax.
+    catch (PhpVersionException $e) {
+      // Ignore language features from PHP 8.
       $this->assertTrue(true);
       return;
     }
-    catch (ParserException $e) {
-      switch ($e->getMessage()) {
-
-      }
-      throw $e;
+    catch (UnsupportedSyntaxException $e) {
+      // Ignore unsupported syntax, e.g. nested namespaces.
+      $this->assertTrue(true);
+      return;
     }
     // All good.
     self::assertTrue(true);

@@ -20,14 +20,15 @@ abstract class YmlTestBase extends TestCase {
     $file = $this->getYmlDir() . '/' . $name . '.yml';
     /** @var T $data */
     $data = Yaml::parseFile($file);
-    $this->processData($data);
+    $this->processData($data, $name);
     TestUtil::assertFileContentsYml($file, $data);
   }
 
   /**
    * @param T $data
+   * @param string $name
    */
-  abstract protected function processData(array &$data): void;
+  abstract protected function processData(array &$data, string $name): void;
 
   /**
    * @return iterable<int, array{string}>

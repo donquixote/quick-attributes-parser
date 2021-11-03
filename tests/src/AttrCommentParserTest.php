@@ -36,8 +36,9 @@ class AttrCommentParserTest extends YmlTestBase {
 
   /**
    * {@inheritdoc}
+   * @param string $name
    */
-  protected function processData(array &$data): void {
+  protected function processData(array &$data, string $name): void {
     if (PHP_VERSION_ID < 80000) {
       $this->processPhp7($data);
     }

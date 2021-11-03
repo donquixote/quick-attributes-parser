@@ -8,9 +8,4 @@ attributess:
   C: {  }
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: |-
-    Line 3:17: Unexpected array (
-      0 => 342,
-      1 => 'function',
-      2 => 3,
-    ) before class body.
+  message: 'Line 3:17: Unexpected T_FUNCTION / ''function'' before class body.'

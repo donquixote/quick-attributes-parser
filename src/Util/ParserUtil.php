@@ -305,6 +305,26 @@ class ParserUtil {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
+   *
+   * @return string
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  public static function skipFillerWsExpectMemberName(array $tokens, int &$pos): string {
+    $id = self::skipFillerWs($tokens, $pos);
+    if ($id !== T_STRING) {
+      $token = $tokens[$pos];
+      if (!\is_array($token)
+        || !ReservedWordUtil::validMemberName($tokens[$pos][1])
+      ) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+    }
+    return $tokens[$pos][1];
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
    * @param string $expected
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
@@ -349,10 +369,11 @@ class ParserUtil {
    */
   public static function formatToken($token): string {
     if (is_array($token)) {
-      $name = token_name($token[0]) . ' / ' . var_export($token[1], TRUE);
+      $name = token_name($token[0]);
       if ($name === 'UNKNOWN') {
-        return self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
+        $name = self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
       }
+      return $name . ' / ' . var_export($token[1], TRUE);
     }
     if ($token === '#') {
       return 'EOF';

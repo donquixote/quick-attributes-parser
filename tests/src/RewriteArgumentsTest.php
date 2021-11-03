@@ -35,8 +35,9 @@ class RewriteArgumentsTest extends YmlTestBase {
 
   /**
    * {@inheritdoc}
+   * @param string $name
    */
-  protected function processData(array &$data): void {
+  protected function processData(array &$data, string $name): void {
     $this->processCommon($data);
     $this->processPhp8($data);
     TestArrayUtil::normalizeKeys(

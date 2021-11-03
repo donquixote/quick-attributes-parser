@@ -16,3 +16,6 @@ importss:
   C: {  }
 attributess:
   C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:3: Unexpected T_CONSTANT_ENCAPSED_STRING / ''"hello"'' in class body.'
