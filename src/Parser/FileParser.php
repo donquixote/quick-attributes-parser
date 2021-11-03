@@ -288,30 +288,13 @@ class FileParser {
       $token = $tokens[$i];
       if (is_string($token)) {
         switch ($token) {
-          case '(':
-          case '{':
-          case '[':
-            ParserUtil::skipSubtree($tokens, $i);
-            assert(ParserUtil::expectOneOf($tokens, $i, [')', '}', ']']));
-            break;
-
-          case '"':
-            ParserUtil::skipDoubleQuotedString($tokens, $i);
-            assert(ParserUtil::expect($tokens, $i, '"'));
-            break;
-
-          case ')':
-          case ']':
-          case '#':
-            throw SyntaxException::unexpected($tokens, $i, 'in class body');
 
           case '}':
             $pos = $i;
             return;
 
           default:
-            # $scope->clear($token);
-            # break;
+            throw SyntaxException::unexpected($tokens, $i, 'in class body');
         }
       }
       else {
