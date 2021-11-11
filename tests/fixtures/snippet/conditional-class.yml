@@ -1,0 +1,21 @@
+php: |
+  <?php
+
+  // Conditional classes are ignored.
+  if (PHP_VERSION_ID < 80000) {
+    class C {
+      function foo() {}
+    }
+  }
+  else {
+    class C {
+      function bar() {}
+    }
+  }
+
+  function other($x) {}
+importss:
+  other(): {  }
+attributess:
+  other(): {  }
+  other($x): {  }

@@ -1,0 +1,12 @@
+php: |
+  <?php
+
+  require_once __DIR__ . '/other_file.php';
+
+  f();
+
+  class C {}
+importss:
+  C: {  }
+attributess:
+  C: {  }

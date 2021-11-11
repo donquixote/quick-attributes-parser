@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  use const N\M\{const X};
+
+  function f() {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:16: Unexpected T_CONST / ''const'' in imports.'

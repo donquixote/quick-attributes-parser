@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  use A\{};
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:8: Import group cannot be empty.'

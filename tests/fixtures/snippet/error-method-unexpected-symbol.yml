@@ -1,0 +1,14 @@
+php: |
+  <?php
+
+  class C {
+    function f() +
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+  'C::f()': {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:16: Expected { or ;, but found ''+''.'

@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  use Foo {Bar, Baz};
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:9: Unexpected ''{'' in imports.'

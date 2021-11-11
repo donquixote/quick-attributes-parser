@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  class C {
+    const X = 5, ;
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:16: Expected T_STRING, but found '';''.'

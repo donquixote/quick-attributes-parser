@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  class C {
+    private $x = 5)
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:17: Unexpected '')'' after property or const default value.'

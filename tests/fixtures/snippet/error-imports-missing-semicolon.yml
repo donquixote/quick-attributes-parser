@@ -1,0 +1,10 @@
+php: |
+  <?php
+
+  use Foo\{Bar}
+  use Bar\{Foo};
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:1: Expected ;, but found T_USE / ''use''.'

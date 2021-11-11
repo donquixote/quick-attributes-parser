@@ -1,0 +1,15 @@
+php: |
+  <?php
+
+  namespace N;
+
+  class C {
+    function() {}
+  }
+importss:
+  N\C: {  }
+attributess:
+  N\C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 6:11: Anonymous function in class not allowed.'

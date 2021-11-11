@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  function f(): int|string {}
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:18: Unexpected ''|'' in return type.'

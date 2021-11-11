@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  namespace N;
+
+  use M\C\?
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:9: Expected {, but found ''?''.'

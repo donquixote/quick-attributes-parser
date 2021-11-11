@@ -1,0 +1,14 @@
+php: |
+  <?php
+
+  function f() {}
+
+  if () {
+  // Unexpected end of file.
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 7:1: Unexpected end of file in nested structure.'

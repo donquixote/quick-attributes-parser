@@ -1,0 +1,19 @@
+php: |
+  <?php
+
+  namespace N;
+
+  class C {
+    function elseif() {}
+    function ENDdeclare() {}
+    private const IF = 1;
+    private const finally = 5;
+  }
+importss:
+  N\C: {  }
+attributess:
+  N\C: {  }
+  'N\C::elseif()': {  }
+  'N\C::ENDdeclare()': {  }
+  'N\C::IF': {  }
+  'N\C::finally': {  }

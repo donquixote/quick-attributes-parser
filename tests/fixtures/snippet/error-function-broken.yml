@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  namespace N;
+
+  function ?
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:10: Expected method name, but found ''?''.'

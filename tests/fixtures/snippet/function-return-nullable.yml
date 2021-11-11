@@ -1,0 +1,8 @@
+php: |
+  <?php
+
+  function f(): ?int {}
+importss:
+  f(): {  }
+attributess:
+  f(): {  }

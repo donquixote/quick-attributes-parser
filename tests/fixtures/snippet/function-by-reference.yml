@@ -1,0 +1,19 @@
+php: |
+  <?php
+
+  namespace N;
+
+  function &foo(): int {}
+
+  // Space should be allowed.
+  function & bar(): string {}
+
+  function& baz(){}
+importss:
+  N\foo(): {  }
+  N\bar(): {  }
+  N\baz(): {  }
+attributess:
+  N\foo(): {  }
+  N\bar(): {  }
+  N\baz(): {  }

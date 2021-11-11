@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  function f(): int if {}
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:19: Unexpected T_IF / ''if'' in return type.'

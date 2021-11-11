@@ -1,0 +1,14 @@
+php: |
+  <?php
+
+  class C {
+    use T elseIF;
+  }
+  function f(): int if {}
+importss:
+  C: {  }
+attributess:
+  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:9: Unexpected T_ELSEIF / ''elseIF'' in use trait statement.'

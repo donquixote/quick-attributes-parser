@@ -1,0 +1,10 @@
+php: |
+  <?php
+
+  use N\M\O;
+  use NN\MM\{O};
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 4:13: Alias ''O'' already in use.'

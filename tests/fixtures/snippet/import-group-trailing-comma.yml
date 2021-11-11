@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  use A\{B,};
+  use function A\{b,};
+
+  class C {}
+importss:
+  C:
+    B: A\B
+    'function b': A\b
+attributess:
+  C: {  }

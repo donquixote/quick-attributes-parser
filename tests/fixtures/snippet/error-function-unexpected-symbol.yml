@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  function f() +
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:14: Expected { or ;, but found ''+''.'

@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  use Acme\Animal\Bear, Acme\Animal\{Cow};
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:35: Expected T_STRING, but found ''{''.'

@@ -1,0 +1,15 @@
+php: |
+  <?php
+
+  class C extends B {
+    int $x = 5;
+    namespace N;
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+  'C::$x': {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:3: Unexpected T_NAMESPACE / ''namespace'' in class scope..'

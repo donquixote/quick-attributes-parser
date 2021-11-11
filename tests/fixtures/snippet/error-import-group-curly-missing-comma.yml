@@ -1,0 +1,7 @@
+php: |
+  <?php
+
+  use Acme\Animal\{Bear Cat
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:23: Unexpected T_STRING / ''Cat'' in imports.'

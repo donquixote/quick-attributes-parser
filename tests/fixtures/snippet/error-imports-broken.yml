@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  namespace N;
+
+  use M\())
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:7: Expected {, but found ''(''.'

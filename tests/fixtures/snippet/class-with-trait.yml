@@ -1,0 +1,12 @@
+php: |
+  <?php
+
+  class C extends B {
+    use T;
+    function f() {}
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+  'C::f()': {  }

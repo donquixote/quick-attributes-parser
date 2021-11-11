@@ -1,0 +1,10 @@
+php: |
+  <?php
+
+  #[A, B+]
+  function f() {}
+importss:
+  f(): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:6: Expected '']'' or '','', but found ''+''.'

@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  class C extends B {
+    use T;
+    use T1, T2 {
+      f as public;
+    }
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }

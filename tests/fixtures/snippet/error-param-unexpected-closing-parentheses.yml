@@ -1,0 +1,12 @@
+php: |
+  <?php
+
+  function f($x = 5;) {}
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+  f($x): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:18: Unexpected '';'' after parameter default value.'

@@ -1,0 +1,11 @@
+php: |
+  <?php
+
+  function f(): ( {}
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:15: Unexpected ''('' in return type.'

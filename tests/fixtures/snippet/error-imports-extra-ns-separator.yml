@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  use Foo\ {\Bar};
+
+  class C {}
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:11: Unexpected T_NS_SEPARATOR / ''\\'' in imports.'
