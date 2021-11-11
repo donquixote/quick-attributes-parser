@@ -31,13 +31,13 @@ abstract class YmlTestBase extends TestCase {
   abstract protected function processData(array &$data, string $name): void;
 
   /**
-   * @return iterable<int, array{string}>
+   * @return iterable<string, array{string}>
    */
   public function provider(): iterable {
     $ymlDir = $this->getYmlDir();
     foreach (scandir($ymlDir) as $candidate) {
       if (preg_match('@^(\w+(?:[\.\-]\w+)*)\.yml$@', $candidate, $m)) {
-        yield [$m[1]];
+        yield $m[1] => [$m[1]];
       }
     }
   }
