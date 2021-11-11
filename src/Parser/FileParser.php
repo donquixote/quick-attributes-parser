@@ -217,7 +217,7 @@ class FileParser {
 
           case T_STRING:
           case T_NS_SEPARATOR:
-            // Ignore.
+            // This could be the start of a method call. Ignore.
             break;
 
           default:
@@ -373,14 +373,12 @@ class FileParser {
             // Ignore use traits. Do clear attributes.
             // Traits are already available via native reflection.
             $this->skipUseTraits($tokens, $i);
-            \assert(ParserUtil::expect($tokens, $i, ';'));
+            \assert(ParserUtil::expectOneOf($tokens, $i, [';', '}']));
             break;
 
           case T_FUNCTION:
             $method = $this->parseFunctionHead($tokens, $i, TRUE);
-            if ($method === NULL) {
-              throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function is not allowed here.');
-            }
+            \assert($method !== NULL);
             $symbol = SymbolHandle::fromMethod($class, $method);
             yield $symbol => RawSymbolInfo::forInnerSymbol($attributeComments);
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
@@ -395,6 +393,7 @@ class FileParser {
             $id = ParserUtil::skipFillerWs($tokens, $i);
             if ($id === ':') {
               $id = $this->skipReturnType($tokens, $i);
+              \assert(ParserUtil::expectOneOf($tokens, $i, ['{', ';']));
             }
             if ($id === '{') {
               ParserUtil::skipSubtree($tokens, $i);
@@ -589,9 +588,9 @@ class FileParser {
         $pos = $i;
         return $names;
       }
-      if ($id !== ',') {
-        throw SyntaxException::unexpected($tokens, $i, 'in property declaration');
-      }
+      // If it is not a ';', it must be a ',', according to the documented
+      // behavior of ->skipVarDefault().
+      \assert(ParserUtil::expect($tokens, $i, ','));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== T_VARIABLE) {
@@ -629,12 +628,13 @@ class FileParser {
         $pos = $i;
         return $names;
       }
-      if ($id !== ',') {
-        throw SyntaxException::unexpected($tokens, $i, 'in constant declaration');
-      }
+      // If it is not a ';', it must be a ',', according to the documented
+      // behavior of ->skipVarDefault().
+      \assert(ParserUtil::expect($tokens, $i, ','));
+      ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $i, 'T_VARIABLE');
+        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
       }
       $names[] = $tokens[$i][1];
       ++$i;
@@ -648,7 +648,9 @@ class FileParser {
    * @param bool $isParam
    *
    * @return string
-   *   Symbol that follows the default value. One of ')', ';', ','.
+   *   Symbol that follows the default value.
+   *   One of ')' or ',' if $isParam is TRUE.
+   *   One of ';' or ',' if $isParam is FALSE.
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
@@ -730,17 +732,19 @@ class FileParser {
       ++$i;
       $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
     }
-    elseif ($id !== T_STRING) {
-      throw SyntaxException::unexpected($tokens, $i, 'in imports');
-    }
-    else {
+    elseif ($id === T_STRING) {
       $type = '';
       $qcn = $tokens[$i][1];
     }
+    else {
+      throw SyntaxException::unexpected($tokens, $i, 'in imports');
+    }
     $first = TRUE;
+    // Iterate over imports separated by comma.
     while (TRUE) {
       assert(ParserUtil::expect($tokens, $i, T_STRING));
       assert(preg_match('@^\w+$@', $qcn));
+      // Iterate over QCN fragments separated by T_NS_SEPARATOR.
       while (TRUE) {
         assert(ParserUtil::expect($tokens, $i, T_STRING));
         assert(preg_match('@^\w+(?:\\\\\w+)*$@', $qcn));
@@ -750,25 +754,34 @@ class FileParser {
         }
         ++$i;
         if ($tokens[$i][0] !== T_STRING) {
+          // This must be a curly group like `N\{A, B}`.
           if (!$first) {
+            // A curly group can only exist within a single-element outer group.
             throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
           }
-          break 2;
+          // The rest of the import statement is a curly group like `N{A, B}`.
+          ParserUtil::skipFillerWsExpectChar($tokens, $i, '{');
+          $this->parseImportCurlyGroup($tokens, $i, $imports, $qcn, $type);
+          \assert(ParserUtil::expect($tokens, $i, '}'));
+          ++$i;
+          ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
+          $pos = $i;
+          return;
         }
         $qcn .= '\\' . $tokens[$i][1];
       }
-      $alias = $tokens[$i - 1][1];
+      $alias = $type . $tokens[$i - 1][1];
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === T_AS) {
         ++$i;
-        $alias = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
-        if (isset($imports[$alias])) {
-          throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
-        }
+        $alias = $type . ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
         ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
-      $imports[$type . $alias] = $qcn;
+      if (isset($imports[$alias])) {
+        throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
+      }
+      $imports[$alias] = $qcn;
       if ($id === ';') {
         $pos = $i;
         return;
@@ -776,20 +789,65 @@ class FileParser {
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
+      ++$i;
       $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
       $first = FALSE;
     }
+  }
 
-    assert(ParserUtil::expect($tokens, $i - 1, T_NS_SEPARATOR));
-    assert($tokens[$i][0] !== T_STRING);
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of '{'.
+   *   After: Position of closing '}'.
+   * @param array<string, string> $imports
+   *   Format: $[$alias] = $qcn.
+   * @param string $qcn
+   *   Qcn part from before the '{'.
+   * @param string $type
+   *   One of '', 'const ' or 'function ' (including the space).
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  private function parseImportCurlyGroup(array $tokens, int &$pos, array &$imports, string $qcn, string $type): void {
+    $i = $pos;
 
-    ParserUtil::skipFillerWsExpectChar($tokens, $i, '{');
-
-    $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
-
+    // Iterate over sub-imports within curly group.
     while (TRUE) {
+      assert(ParserUtil::expectOneOf($tokens, $i, [',', '{']));
+      ++$i;
+      $id = ParserUtil::skipFillerWs($tokens, $i);
+      if ($id === T_STRING) {
+        $localType = $type;
+        $subQcn = $tokens[$i][1];
+      }
+      elseif ($id === '}') {
+        if (!isset($subQcn)) {
+          throw SyntaxException::fromTokenPos($tokens, $i, 'Import group cannot be empty.');
+        }
+        $pos = $i;
+        return;
+      }
+      elseif ($type !== '') {
+        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+      }
+      elseif ($id === T_CONST) {
+        $localType = 'const ';
+        ++$i;
+        $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
+      }
+      elseif ($id === T_FUNCTION) {
+        $localType = 'function ';
+        ++$i;
+        $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
+      }
+      else {
+        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+      }
+      assert(preg_match('@^\w+$@', $subQcn));
       assert(ParserUtil::expect($tokens, $i, T_STRING));
       assert(preg_match('@^\w+$@', $subQcn));
+      // Iterate over fragments of QCN, separated by T_NS_SEPARATOR.
       while (TRUE) {
         assert(ParserUtil::expect($tokens, $i, T_STRING));
         assert(preg_match('@^\w+(?:\\\\\w+)*$@', $subQcn));
@@ -803,26 +861,25 @@ class FileParser {
         }
         $subQcn .= '\\' . $tokens[$i][1];
       }
-      $alias = $tokens[$i - 1][1];
+      $alias = $localType . $tokens[$i - 1][1];
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === T_AS) {
         ++$i;
-        $alias = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
-        if (isset($imports[$alias])) {
-          throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
-        }
+        $alias = $localType . ParserUtil::skipFillerWsExpectTString($tokens, $i);
+        ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
-      $imports[$type . $alias] = $qcn . '\\' . $subQcn;
+      if (isset($imports[$alias])) {
+        throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
+      }
+      $imports[$alias] = $qcn . '\\' . $subQcn;
       if ($id === '}') {
-        ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
         $pos = $i;
         return;
       }
       if ($id !== ',') {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
-      $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
     }
   }
 
@@ -864,7 +921,6 @@ class FileParser {
           case \T_DOC_COMMENT:
           case \T_ARRAY:
           case \T_CALLABLE:
-
             break;
 
           default:
@@ -878,7 +934,7 @@ class FileParser {
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of T_USE.
-   *   After: Position of ';'.
+   *   After: Position of ';' or '}'.
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
@@ -890,7 +946,9 @@ class FileParser {
         switch ($token) {
           case '{':
             ParserUtil::skipSubtree($tokens, $i);
-            break;
+            \assert(ParserUtil::expect($tokens, $i, '}'));
+            $pos = $i;
+            return;
 
           case ';':
             $pos = $i;
@@ -900,7 +958,7 @@ class FileParser {
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+            throw SyntaxException::unexpected($tokens, $i, 'in use trait statement');
         }
       }
       else {
@@ -914,7 +972,7 @@ class FileParser {
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+            throw SyntaxException::unexpected($tokens, $i, 'in use trait statement');
         }
       }
     }
