@@ -37,9 +37,15 @@ php: |
   function f(array &$x, \Acme\Animal ...$args) {}
 
   class C extends B implements I, J {
+    public const EXAMPLE = 5;
+    private const X = 'x', YY = 'y' . ('y' . '');
     protected $m = 5;
     private $a = 7, $b = 8 + (9 / 3);
+    public ?int $n;
     public function __construct(private int $x) {}
+    private function f(?int $x) {
+      return $x ?? 5;
+    }
   }
 importss:
   N\foo():
@@ -62,8 +68,14 @@ attributess:
   N\f($x): {  }
   N\f($args): {  }
   N\C: {  }
+  'N\C::EXAMPLE': {  }
+  'N\C::X': {  }
+  'N\C::YY': {  }
   'N\C::$m': {  }
   'N\C::$a': {  }
   'N\C::$b': {  }
+  'N\C::$n': {  }
   'N\C::__construct()': {  }
   'N\C::__construct($x)': {  }
+  'N\C::f()': {  }
+  'N\C::f($x)': {  }
