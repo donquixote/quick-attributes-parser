@@ -1,14 +1,14 @@
 php: |
   <?php
 
-  // The parser does not care about missing function bodies.
   function f($x = 5)
 
   class C {}
 importss:
   f(): {  }
-  C: {  }
 attributess:
   f(): {  }
   f($x): {  }
-  C: {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:1: Expected { or ;, but found T_CLASS / ''class''.'

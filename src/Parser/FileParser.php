@@ -181,7 +181,17 @@ class FileParser {
               yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
             }
             \assert(ParserUtil::expect($tokens, $i, ')'));
-            // Ignore the rest.
+            ++$i;
+            $id = ParserUtil::skipFillerWs($tokens, $i);
+            if ($id === ':') {
+              $id = $this->skipReturnType($tokens, $i);
+              \assert(ParserUtil::expectOneOf($tokens, $i, ['{', ';']));
+            }
+            if ($id !== '{') {
+              throw SyntaxException::expectedButFound($tokens, $i, '{ or ;');
+            }
+            ParserUtil::skipSubtree($tokens, $i);
+            \assert(ParserUtil::expect($tokens, $i, '}'));
             break;
 
           case T_CLASS:
