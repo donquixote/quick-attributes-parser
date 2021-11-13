@@ -19,7 +19,7 @@ class FileParser {
 
   public function __construct() {
     if (PHP_VERSION_ID >= 80000) {
-      throw new \RuntimeException('This class should only be used in PHP < 8.');
+      throw new \RuntimeException('This class should only be used in PHP < 8.');  // @codeCoverageIgnore
     }
   }
 
@@ -35,9 +35,9 @@ class FileParser {
       $fileTokens = FileTokens_Common::fromFile($file);
       yield from $this->parseFileTokens($fileTokens);
     }
-    catch (ParserException $e) {
-      $e->setSourceFile($file);
-      throw $e;
+    catch (ParserException $e) {  // @codeCoverageIgnore
+      $e->setSourceFile($file);  // @codeCoverageIgnore
+      throw $e;  // @codeCoverageIgnore
     }
   }
 
@@ -226,7 +226,7 @@ class FileParser {
         }
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -305,7 +305,7 @@ class FileParser {
         }
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -436,7 +436,7 @@ class FileParser {
       }
       $attributeComments = [];
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -563,7 +563,7 @@ class FileParser {
         }
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -600,7 +600,7 @@ class FileParser {
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -640,7 +640,7 @@ class FileParser {
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -702,7 +702,7 @@ class FileParser {
     }
     // Silence Psalm.
     /** @noinspection PhpUnreachableStatementInspection */
-    throw new \RuntimeException('Unreachable code.');
+    throw new \RuntimeException('Unreachable code.');  // @codeCoverageIgnore
   }
 
   /**
@@ -793,7 +793,7 @@ class FileParser {
       $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, T_STRING);
       $first = FALSE;
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -881,7 +881,7 @@ class FileParser {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -928,7 +928,7 @@ class FileParser {
         }
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
@@ -976,6 +976,6 @@ class FileParser {
         }
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
 }
