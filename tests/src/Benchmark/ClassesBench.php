@@ -54,7 +54,7 @@ class ClassesBench {
    * @Warmup(1)
    */
   public function benchInitParser(): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     new FileParser();
@@ -121,7 +121,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchParseClassFileStart(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];
@@ -161,7 +161,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchParseClassHead(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];
@@ -191,7 +191,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRegistryClass(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];
@@ -212,7 +212,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRawReaderClass(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];
@@ -233,7 +233,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchParseClassFull(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];
@@ -256,7 +256,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRegistryMember(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];
@@ -285,7 +285,7 @@ class ClassesBench {
    * @throws \ReflectionException
    */
   public function benchRawReaderMember(array $args): void {
-    if (PHP_VERSION_ID > 80000) {
+    if (\PHP_VERSION_ID > 80000) {
       return;
     }
     $class = $args[0];

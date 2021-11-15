@@ -27,7 +27,7 @@ class RawAttribute {
     }
     else {
       foreach ($rawAttributes as $i => $rawAttribute) {
-        if (is_a($rawAttribute->getName(), $type, TRUE)) {
+        if (\is_a($rawAttribute->getName(), $type, TRUE)) {
           $instances[$i] = self::createInstance($rawAttribute);
         }
       }
@@ -62,7 +62,7 @@ class RawAttribute {
    */
   private static function doCreateInstance(string $class, array $args): object {
     $mappedArgs = ArgumentsUtil::classMapArgs($class, $args);
-    assert(count($args) <= count($mappedArgs));
+    \assert(\count($args) <= \count($mappedArgs));
     try {
       /** @psalm-suppress MixedMethodCall */
       return new $class(...$mappedArgs);

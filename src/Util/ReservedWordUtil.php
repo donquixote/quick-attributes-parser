@@ -33,8 +33,8 @@ class ReservedWordUtil {
     try {
       $tokens = \token_get_all(
         "<?php class C {const $word = 5;}",
-        TOKEN_PARSE);
-      return $tokens[8][0] === T_STRING;
+        \TOKEN_PARSE);
+      return $tokens[8][0] === \T_STRING;
     }
     catch (\Throwable $e) {
       return false;

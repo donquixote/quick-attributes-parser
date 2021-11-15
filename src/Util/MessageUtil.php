@@ -16,7 +16,7 @@ class MessageUtil {
    *   Formatted message.
    */
   public static function expectedButFound(string $expected, $value): string {
-    return sprintf(
+    return \sprintf(
       'Expected %s, but found %s.',
       $expected,
       self::formatValue($value));
@@ -28,9 +28,9 @@ class MessageUtil {
    * @return string
    */
   public static function formatValue($value): string {
-    switch (gettype($value)) {
+    switch (\gettype($value)) {
       case 'object':
-        return get_class($value) . ' object';
+        return \get_class($value) . ' object';
 
       case 'array':
         return $value ? 'array(..)' : 'array()';
@@ -42,7 +42,7 @@ class MessageUtil {
         return '(int)' . $value;
 
       default:
-        return var_export($value, TRUE);
+        return \var_export($value, TRUE);
     }
   }
 

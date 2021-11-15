@@ -38,9 +38,9 @@ class ArgumentsUtil {
    */
   public static function mapNamedArgs(array $params, array $args): array {
     $map = [];
-    $lastParam = end($params);
+    $lastParam = \end($params);
     if ($lastParam && $lastParam->isVariadic()) {
-      array_pop($params);
+      \array_pop($params);
     }
     foreach ($params as $i => $param) {
       $map[$param->getName()] = $i;
@@ -50,7 +50,7 @@ class ArgumentsUtil {
     $named = FALSE;
     /** @var mixed $v */
     foreach ($args as $k => $v) {
-      if (!is_string($k)) {
+      if (!\is_string($k)) {
         if ($named) {
           throw new \ReflectionException('Cannot have positional arguments after named arguments.');
         }
@@ -71,7 +71,7 @@ class ArgumentsUtil {
       }
     }
     foreach ($params as $i => $param) {
-      if (!array_key_exists($i, $mappedArgs)) {
+      if (!\array_key_exists($i, $mappedArgs)) {
         if (!$param->isOptional()) {
           $f = (string) SymbolHandle::fromReflector($param->getDeclaringFunction());
           throw new \ReflectionException("Missing argument $i for $f.");
@@ -82,7 +82,7 @@ class ArgumentsUtil {
         }
         catch (\ReflectionException $e) {
           throw new \ReflectionException(
-            vsprintf('Problem getting default value for argument #%s $%s', [
+            \vsprintf('Problem getting default value for argument #%s $%s', [
               $i,
               $param->getName(),
             ]),
@@ -92,7 +92,7 @@ class ArgumentsUtil {
       }
     }
     /** @var list<mixed> $mappedArgs */
-    ksort($mappedArgs);
+    \ksort($mappedArgs);
     return $mappedArgs;
   }
 

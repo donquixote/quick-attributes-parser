@@ -35,15 +35,15 @@ abstract class YmlTestBase extends TestCase {
    */
   public function provider(): iterable {
     $ymlDir = $this->getYmlDir();
-    foreach (scandir($ymlDir) as $candidate) {
-      if (preg_match('@^(\w+(?:[\.\-]\w+)*)\.yml$@', $candidate, $m)) {
+    foreach (\scandir($ymlDir) as $candidate) {
+      if (\preg_match('@^(\w+(?:[\.\-]\w+)*)\.yml$@', $candidate, $m)) {
         yield $m[1] => [$m[1]];
       }
     }
   }
 
   protected function getYmlDir(): string {
-    return dirname(__DIR__) . '/fixtures/' . $this->getYmlSubdir();
+    return \dirname(__DIR__) . '/fixtures/' . $this->getYmlSubdir();
   }
 
   abstract protected function getYmlSubdir(): string;

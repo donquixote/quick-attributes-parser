@@ -39,15 +39,15 @@ class TokenPositionUtil {
   public static function findLineChrPos(array $tokens, int $pos): array {
     $chrpos = 0;
     for ($i = $pos - 1; $i >= 0; --$i) {
-      if (!is_array($tokens[$i])) {
+      if (!\is_array($tokens[$i])) {
         // Non-array tokens never have line breaks.
-        $chrpos += strlen($tokens[$i]);
+        $chrpos += \strlen($tokens[$i]);
       }
       else {
-        $chrpos += strlen($tokens[$i][1]);
-        if (FALSE !== $nlpos = strrpos($tokens[$i][1], "\n")) {
+        $chrpos += \strlen($tokens[$i][1]);
+        if (FALSE !== $nlpos = \strrpos($tokens[$i][1], "\n")) {
           return [
-            $tokens[$i][2] + substr_count($tokens[$i][1], "\n"),
+            $tokens[$i][2] + \substr_count($tokens[$i][1], "\n"),
             $chrpos - $nlpos,
           ];
         }
@@ -69,13 +69,13 @@ class TokenPositionUtil {
    */
   public static function findLineNumber(array $tokens, int $pos): int {
     for ($i = $pos; $tokens[$i] !== '#'; ++$i) {
-      if (is_array($tokens[$i])) {
+      if (\is_array($tokens[$i])) {
         return $tokens[$i][2];
       }
     }
     for ($i = $pos - 1; $i >= 0; --$i) {
-      if (is_array($tokens[$i])) {
-        return $tokens[$i][2] + substr_count($tokens[$i][1], "\n");
+      if (\is_array($tokens[$i])) {
+        return $tokens[$i][2] + \substr_count($tokens[$i][1], "\n");
       }
     }
     return 0;
@@ -95,12 +95,12 @@ class TokenPositionUtil {
   public static function findChrPos(array $tokens, int $pos): int {
     $chrpos = 0;
     for ($i = $pos - 1; $i >= 0; --$i) {
-      if (!is_array($tokens[$i])) {
-        $chrpos += strlen($tokens[$i]);
+      if (!\is_array($tokens[$i])) {
+        $chrpos += \strlen($tokens[$i]);
       }
       else {
-        $chrpos += strlen($tokens[$i][1]);
-        if (FALSE !== $nlpos = strrpos($tokens[$i][1], "\n")) {
+        $chrpos += \strlen($tokens[$i][1]);
+        if (FALSE !== $nlpos = \strrpos($tokens[$i][1], "\n")) {
           return $chrpos - $nlpos;
         }
       }

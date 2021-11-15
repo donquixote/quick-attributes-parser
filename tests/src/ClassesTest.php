@@ -31,13 +31,13 @@ class ClassesTest extends TestCase {
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
     $tokenss = FileTokens_Common::fromFile($file)->getTokenss();
     $tokens = $tokenss->current();
-    $n = count($tokens);
+    $n = \count($tokens);
     self::assertSame('{', $tokens[$n - 2]);
     self::assertSame('#', $tokens[$n - 1]);
     $tokenss->next();
     self::assertTrue($tokenss->valid());
     $tokens = $tokenss->current();
-    $n = count($tokens);
+    $n = \count($tokens);
     self::assertSame('#', $tokens[$n - 1]);
     $tokenss->next();
     self::assertFalse($tokenss->valid());
@@ -49,7 +49,7 @@ class ClassesTest extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testParser(string $shortname): void {
-    if (PHP_VERSION_ID >= 80000) {
+    if (\PHP_VERSION_ID >= 80000) {
       self::assertTrue(TRUE, 'Skip test in PHP 8+.');
       return;
     }
@@ -76,7 +76,7 @@ class ClassesTest extends TestCase {
       }
     }
     catch (ParserException $e) {
-      $e->setSourceFile($file, dirname(__DIR__, 2));
+      $e->setSourceFile($file, \dirname(__DIR__, 2));
       throw $e;
     }
     TestUtil::assertFileContentsYml("$ymlDir/$shortname.imports.yml", $importss);
@@ -89,7 +89,7 @@ class ClassesTest extends TestCase {
    * @throws \ReflectionException
    */
   public function testRegistry(string $shortname): void {
-    if (PHP_VERSION_ID >= 80000) {
+    if (\PHP_VERSION_ID >= 80000) {
       self::assertTrue(TRUE, 'Skip test in PHP 8+.');
       return;
     }
@@ -115,8 +115,8 @@ class ClassesTest extends TestCase {
       self::assertSame($comments, $registry->symbolGetAttributesComments($symbol));
     }
     self::assertSame(
-      array_keys($importss),
-      array_keys($toplevelNamesMap));
+      \array_keys($importss),
+      \array_keys($toplevelNamesMap));
   }
 
   /**
@@ -128,7 +128,7 @@ class ClassesTest extends TestCase {
     $reader = RawAttributesReader::create();
     /** @psalm-suppress MixedAssignment */
     /** @var array<string, array[]> $orig */
-    $orig = (PHP_VERSION_ID >= 80000)
+    $orig = (\PHP_VERSION_ID >= 80000)
       ? Yaml::parseFile($file)
       : [];
     $data = [];
@@ -174,12 +174,12 @@ class ClassesTest extends TestCase {
 
     // Verify that no orphan yml files exist.
     $actualFilesMap = [];
-    foreach (scandir($ymlDir) as $candidate) {
-      if (preg_match('@\.yml$@', $candidate, $m)) {
+    foreach (\scandir($ymlDir) as $candidate) {
+      if (\preg_match('@\.yml$@', $candidate, $m)) {
         $actualFilesMap["$ymlDir/$candidate"] = TRUE;
       }
     }
-    ksort($actualFilesMap);
+    \ksort($actualFilesMap);
 
     $expectedFilesMap = [];
     foreach ($this->getClassShortNames() as $shortname) {
@@ -192,7 +192,7 @@ class ClassesTest extends TestCase {
         $expectedFilesMap[$file] = TRUE;
       }
     }
-    ksort($expectedFilesMap);
+    \ksort($expectedFilesMap);
 
     self::assertSame($expectedFilesMap, $actualFilesMap);
   }
@@ -212,7 +212,7 @@ class ClassesTest extends TestCase {
       foreach ($comments as &$comment) {
         // Trim the line break on the right.
         self::assertStringEndsWith("\n", $comment);
-        $comment = substr($comment, 0, -1);
+        $comment = \substr($comment, 0, -1);
       }
     }
     TestUtil::assertFileContentsYml(
@@ -261,8 +261,8 @@ class ClassesTest extends TestCase {
   protected function getClassShortNames(): array {
     $names = [];
     $classesDir = $this->getClassesDir();
-    foreach (scandir($classesDir) as $candidate) {
-      if (preg_match('@^(\w+)\.php$@', $candidate, $m)) {
+    foreach (\scandir($classesDir) as $candidate) {
+      if (\preg_match('@^(\w+)\.php$@', $candidate, $m)) {
         $names[] = $m[1];
       }
     }
@@ -275,7 +275,7 @@ class ClassesTest extends TestCase {
   }
 
   private function getYmlDir(): string {
-    return dirname(__DIR__) . '/fixtures/classes';
+    return \dirname(__DIR__) . '/fixtures/classes';
   }
 
 }

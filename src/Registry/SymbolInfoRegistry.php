@@ -32,7 +32,7 @@ class SymbolInfoRegistry {
    * @param \Donquixote\QuickAttributes\Parser\FileParser $parser
    */
   public function __construct(FileParser $parser) {
-    if (PHP_VERSION_ID >= 80000) {
+    if (\PHP_VERSION_ID >= 80000) {
       throw new \RuntimeException('This class should only be used in PHP < 8.');
     }
     $this->parser = $parser;
@@ -97,7 +97,7 @@ class SymbolInfoRegistry {
       $it->next();
     }
     throw new \ReflectionException(
-      vsprintf('Failed to load info for %s.', [
+      \vsprintf('Failed to load info for %s.', [
         (string) $symbol,
       ]));
   }

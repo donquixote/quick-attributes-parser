@@ -18,7 +18,7 @@ class AttributesList_Native implements AttributesListInterface {
    */
   public function __construct(\Reflector $reflector) {
     /** @psalm-suppress RedundantConditionGivenDocblockType */
-    assert(method_exists($reflector, 'getAttributes'));
+    \assert(\method_exists($reflector, 'getAttributes'));
     $this->reflector = $reflector;
   }
 

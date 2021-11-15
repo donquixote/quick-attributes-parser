@@ -30,7 +30,7 @@ class AttributesList_Fallback implements AttributesListInterface {
       return $this->rawAttributes !== [];
     }
     foreach ($this->rawAttributes as $rawAttribute) {
-      if (is_a($rawAttribute->getName(), $type, TRUE)) {
+      if (\is_a($rawAttribute->getName(), $type, TRUE)) {
         return TRUE;
       }
     }
@@ -42,11 +42,11 @@ class AttributesList_Fallback implements AttributesListInterface {
    */
   public function count(string $type = NULL): int {
     if ($type === NULL) {
-      return count($this->rawAttributes);
+      return \count($this->rawAttributes);
     }
     $n = 0;
     foreach ($this->rawAttributes as $rawAttribute) {
-      if (is_a($rawAttribute->getName(), $type, TRUE)) {
+      if (\is_a($rawAttribute->getName(), $type, TRUE)) {
         ++$n;
       }
     }

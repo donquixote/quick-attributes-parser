@@ -52,7 +52,7 @@ final class SymbolHandle {
    * @param array{string}|array{string, string}|array{array{string, string}, string} $reflectorArgs
    */
   public function __construct(string $reflectorClass, array $reflectorArgs) {
-    assert(isset(self::ALLOWED_REFLECTOR_CLASSES_MAP[$reflectorClass]));
+    \assert(isset(self::ALLOWED_REFLECTOR_CLASSES_MAP[$reflectorClass]));
     $this->reflectorClass = $reflectorClass;
     $this->reflectorArgs = $reflectorArgs;
   }
@@ -151,7 +151,7 @@ final class SymbolHandle {
    * @see __toString()
    */
   public static function fromId(string $id): self {
-    if (!preg_match(self::REGEX, $id, $m)) {
+    if (!\preg_match(self::REGEX, $id, $m)) {
       throw new \InvalidArgumentException('Invalid id.');
     }
     [, $qcn, $is_property, $member_name, $is_function, $param_name] = $m;
@@ -199,15 +199,15 @@ final class SymbolHandle {
    * @throws \ReflectionException
    */
   public static function fromReflector(\Reflector $reflector): self {
-    $class = get_class($reflector);
+    $class = \get_class($reflector);
     while (!isset(self::ALLOWED_REFLECTOR_CLASSES_MAP[$class])) {
       // Convert reflector adapters back to the native class.
-      $class = get_parent_class($class);
+      $class = \get_parent_class($class);
       if ($class === FALSE) {
         throw new \ReflectionException(
-          sprintf("Unsupported reflector class '%s'.",
+          \sprintf("Unsupported reflector class '%s'.",
             // Get the original class name for the error message.
-            get_class($reflector)));
+            \get_class($reflector)));
       }
     }
     /** @var class-string<TF> $class */
@@ -311,7 +311,7 @@ final class SymbolHandle {
         return $args[0] . '::' . $args[1];
 
       case \ReflectionParameter::class:
-        if (is_array($args[0])) {
+        if (\is_array($args[0])) {
           /** @var array{array{string, string}, string} $args */
           return $args[0][0] . '::' . $args[0][1] . '($' . $args[1] . ')';
         }
@@ -337,7 +337,7 @@ final class SymbolHandle {
         return self::fromClass($this->reflectorArgs[0]);
 
       case \ReflectionParameter::class:
-        return is_array($this->reflectorArgs[0])
+        return \is_array($this->reflectorArgs[0])
           ? self::fromClass($this->reflectorArgs[0][0])
           : self::fromFunction($this->reflectorArgs[0]);
 
@@ -365,7 +365,7 @@ final class SymbolHandle {
 
       case \ReflectionParameter::class:
         /** @psalm-suppress ArgumentTypeCoercion */
-        return is_array($this->reflectorArgs[0])
+        return \is_array($this->reflectorArgs[0])
           ? (new \ReflectionMethod(...$this->reflectorArgs[0]))->getDeclaringClass()->getFileName()
           : (new \ReflectionFunction($this->reflectorArgs[0]))->getFileName();
 
@@ -390,8 +390,8 @@ final class SymbolHandle {
    */
   public function getNamespaceName(): ?string {
     $qcn = $this->getToplevelQcn();
-    if (FALSE !== $pos = strrpos($qcn, '\\')) {
-      return substr($qcn, 0, $pos);
+    if (FALSE !== $pos = \strrpos($qcn, '\\')) {
+      return \substr($qcn, 0, $pos);
     }
     return NULL;
   }
@@ -403,8 +403,8 @@ final class SymbolHandle {
    */
   public function getTerminatingNamespaceName(): string {
     $qcn = $this->getToplevelQcn();
-    if (FALSE !== $pos = strrpos($qcn, '\\')) {
-      return substr($qcn, $pos + 1);
+    if (FALSE !== $pos = \strrpos($qcn, '\\')) {
+      return \substr($qcn, $pos + 1);
     }
     return '';
   }
@@ -427,7 +427,7 @@ final class SymbolHandle {
         return $this->reflectorArgs[0];
 
       case \ReflectionParameter::class:
-        return is_array($this->reflectorArgs[0])
+        return \is_array($this->reflectorArgs[0])
           ? $this->reflectorArgs[0][0]
           : $this->reflectorArgs[0];
 
@@ -450,7 +450,7 @@ final class SymbolHandle {
 
       case \ReflectionParameter::class:
         /** @psalm-suppress LessSpecificReturnStatement */
-        return is_array($this->reflectorArgs[0])
+        return \is_array($this->reflectorArgs[0])
           ? $this->reflectorArgs[0][0]
           : NULL;
 

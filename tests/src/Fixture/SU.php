@@ -14,7 +14,7 @@ final class SU {
    * @return string
    */
   public static function regex(string $search, string $delim, array $replacements = []): string {
-    $regex = preg_quote($search, $delim);
+    $regex = \preg_quote($search, $delim);
     $regex = strtr($regex, $replacements);
     return $delim . $regex . $delim;
   }

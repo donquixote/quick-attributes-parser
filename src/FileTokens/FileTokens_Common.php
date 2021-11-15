@@ -86,10 +86,10 @@ class FileTokens_Common implements FileTokensInterface {
       // Append a comment to prevent un-catchable E_COMPILE_WARNING.
       $phpHead .= '/* */';
       $tokensHead = TokenizerUtil::tokenGetAll($phpHead);
-      $nTokensHead = count($tokensHead);
+      $nTokensHead = \count($tokensHead);
       // Verify the regex was not tricked by a comment or string literal.
       if ($tokensHead[$nTokensHead - 2] === '{') {
-        \assert($tokensHead[$nTokensHead - 1][0] === T_COMMENT);
+        \assert($tokensHead[$nTokensHead - 1][0] === \T_COMMENT);
         \assert($tokensHead[$nTokensHead - 1][1] === '/* */');
         // Remove the '/* */' comment.
         \array_pop($tokensHead);

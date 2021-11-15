@@ -16,7 +16,7 @@ use Symfony\Component\Yaml\Yaml;
 class ReservedWordTest extends TestCase {
 
   public function test(): void {
-    $file = dirname(__DIR__) . '/fixtures/misc/valid-member-name.yml';
+    $file = \dirname(__DIR__) . '/fixtures/misc/valid-member-name.yml';
     /**
      * @var array<string, bool|string> $data
      */
@@ -24,7 +24,7 @@ class ReservedWordTest extends TestCase {
     foreach ($data as $word => $_) {
       $data[$word] = ReservedWordUtil::validMemberName($word);
     }
-    ksort($data);
+    \ksort($data);
     TestUtil::assertFileContentsYml($file, $data);
   }
 

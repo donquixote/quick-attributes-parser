@@ -19,7 +19,7 @@ class SyntaxException extends ParserException {
     return static::fromTokenPos(
       $tokens,
       $pos,
-      sprintf(
+      \sprintf(
         'Unexpected %s %s.',
         ParserUtil::formatToken($tokens[$pos]),
         $where));
@@ -53,7 +53,7 @@ class SyntaxException extends ParserException {
     return static::fromTokenPos(
       $tokens,
       $pos,
-      sprintf(
+      \sprintf(
         'Expected %s, but found %s.',
         $expected,
         ParserUtil::formatToken($tokens[$pos])));

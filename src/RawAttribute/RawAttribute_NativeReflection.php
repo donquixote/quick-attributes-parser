@@ -22,7 +22,7 @@ class RawAttribute_NativeReflection implements RawAttributeInterface {
    * @param \ReflectionAttribute<T> $attribute
    */
   public function __construct(\ReflectionAttribute $attribute) {
-    if (PHP_VERSION_ID < 80000) {
+    if (\PHP_VERSION_ID < 80000) {
       throw new \RuntimeException('This class requires PHP 8+.');
     }
     $this->attribute = $attribute;

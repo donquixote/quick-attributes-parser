@@ -16,7 +16,7 @@ class TestExportUtil {
   public static function exportObject(object $object): array {
     /** @var array<string, mixed> $export */
     $export = [];
-    $export['class'] = get_class($object);
+    $export['class'] = \get_class($object);
     /** @var mixed $v */
     foreach ((array) $object as $k => $v) {
       /** @psalm-suppress MixedAssignment */
@@ -80,7 +80,7 @@ class TestExportUtil {
     $message = \str_replace($basedir, '[..]', $message);
     $message = \preg_replace('@line \d+@', 'line **', $message);
     $ret = [
-      'class' => get_class($e),
+      'class' => \get_class($e),
       'message' => $message,
     ];
     if ($ePrev = $e->getPrevious()) {

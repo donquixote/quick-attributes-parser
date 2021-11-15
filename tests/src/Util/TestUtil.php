@@ -17,7 +17,7 @@ class TestUtil {
    *   If TRUE, fixture files will be overwritten.
    */
   public static function updateTestsEnabled(): bool {
-    if (!(bool) getenv('UPDATE_TESTS')) {
+    if (!(bool) \getenv('UPDATE_TESTS')) {
       return FALSE;
     }
     if (\DIRECTORY_SEPARATOR === '\\') {
@@ -53,10 +53,10 @@ class TestUtil {
    */
   public static function assertFileContents(string $file, string $content_actual, bool $writeIfEnabled = TRUE): void {
     try {
-      if (!is_file($file)) {
+      if (!\is_file($file)) {
         Assert::fail("File '$file' is missing.");
       }
-      $content_expected = file_get_contents($file);
+      $content_expected = \file_get_contents($file);
       // Detect Windows.
       if (\DIRECTORY_SEPARATOR === '\\') {
         // Deal with Windows directory separators.
@@ -72,7 +72,7 @@ class TestUtil {
     }
     catch (AssertionFailedError $e) {
       if ($writeIfEnabled && self::updateTestsEnabled()) {
-        file_put_contents($file, $content_actual);
+        \file_put_contents($file, $content_actual);
       }
       throw $e;
     }

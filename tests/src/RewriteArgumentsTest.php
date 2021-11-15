@@ -84,7 +84,7 @@ class RewriteArgumentsTest extends YmlTestBase {
    */
   private function processPhp8(array &$data): void {
 
-    if (PHP_VERSION_ID <= 80000) {
+    if (\PHP_VERSION_ID <= 80000) {
       self::assertTrue(TRUE);
       return;
     }
@@ -147,7 +147,7 @@ class RewriteArgumentsTest extends YmlTestBase {
    */
   private static function createClosure(array &$data): \Closure {
     $php = 'return static function('
-      . implode(', ', $data['parameters'] ?? [])
+      . \implode(', ', $data['parameters'] ?? [])
       . ') {'
       . "\n  return func_get_args();"
       . "\n};";

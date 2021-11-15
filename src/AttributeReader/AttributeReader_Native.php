@@ -11,7 +11,7 @@ use Donquixote\QuickAttributes\Value\SymbolHandle;
 class AttributeReader_Native implements AttributeReaderInterface {
 
   public function __construct() {
-    if (PHP_VERSION_ID < 80000) {
+    if (\PHP_VERSION_ID < 80000) {
       throw new \RuntimeException('Can only use this class in PHP 8+.');
     }
   }

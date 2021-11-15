@@ -47,18 +47,19 @@ class RawAttribute_Eval implements RawAttributeInterface {
     }
     catch (\Throwable $e) {
       throw new \ReflectionException(
-        vsprintf("%s in eval():\n  Message %s\n  Eval'd code:\n    %s", [
-          get_class($e),
-          var_export($e->getMessage(), TRUE),
-          str_replace("\n", "\n    ", $this->argsPhp),
+        \vsprintf("%s in eval():\n  Message %s\n  Eval'd code:\n    %s", [
+          \get_class($e),
+          \var_export($e->getMessage(), TRUE),
+          \str_replace("\n", "\n    ", $this->argsPhp),
         ]),
         0,
         $e);
     }
-    if (!is_array($args)) {
-      throw new \ReflectionException(vsprintf("Expected an array, found %s, from eval(%s)", [
+    if (!\is_array($args)) {
+      throw new \ReflectionException(
+        \vsprintf("Expected an array, found %s, from eval(%s)", [
         MessageUtil::formatValue($args),
-        var_export($this->argsPhp, TRUE),
+        \var_export($this->argsPhp, TRUE),
       ]));
     }
     return $args;

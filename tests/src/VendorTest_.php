@@ -23,7 +23,7 @@ class VendorTest_ extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testClassFileParser(string $file): void {
-    if (PHP_VERSION_ID >= 80000) {
+    if (\PHP_VERSION_ID >= 80000) {
       self::assertTrue(true);
       return;
     }
@@ -53,8 +53,8 @@ class VendorTest_ extends TestCase {
     /**
      * @var array<string, list<string>> $nsdirs
      */
-    $nsdirs = require dirname(__DIR__, 2) . '/vendor/composer/autoload_psr4.php';
-    $troot = dirname(__DIR__, 2) . '/';
+    $nsdirs = require \dirname(__DIR__, 2) . '/vendor/composer/autoload_psr4.php';
+    $troot = \dirname(__DIR__, 2) . '/';
     $ltroot = \strlen($troot);
     foreach ($nsdirs as $dirs) {
       foreach ($dirs as $dir) {
@@ -67,7 +67,7 @@ class VendorTest_ extends TestCase {
         $reldir = \substr($dir, $ltroot);
         yield from $this->nsdirRecursive(
           $troot,
-          rtrim($reldir, '/'));
+          \rtrim($reldir, '/'));
       }
     }
   }

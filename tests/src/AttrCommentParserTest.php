@@ -38,7 +38,7 @@ class AttrCommentParserTest extends YmlTestBase {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
-    if (PHP_VERSION_ID < 80000) {
+    if (\PHP_VERSION_ID < 80000) {
       $this->processPhp7($data);
     }
     else {
@@ -52,13 +52,13 @@ class AttrCommentParserTest extends YmlTestBase {
   private function processPhp7(array &$data): void {
 
     // Normalize and filter array keys.
-    $map = array_fill_keys(['comment', 'namespace', 'imports', 'class'], NULL);
+    $map = \array_fill_keys(['comment', 'namespace', 'imports', 'class'], NULL);
 
     /** @var _AttrCommentsYaml $data */
-    $data = array_intersect_key($data, $map);
+    $data = \array_intersect_key($data, $map);
 
     /** @var _AttrCommentsYaml $data */
-    $data = array_filter(array_replace($map, $data));
+    $data = \array_filter(\array_replace($map, $data));
 
     $parser = new AttributeCommentParser();
     $parser = $parser->withContext(
@@ -81,7 +81,7 @@ class AttrCommentParserTest extends YmlTestBase {
    * @psalm-param _AttrCommentsYaml $data
    */
   private function processPhp8(array &$data): void {
-    if (PHP_VERSION_ID < 80000) {
+    if (\PHP_VERSION_ID < 80000) {
       return;
     }
     $php = '';
@@ -90,9 +90,9 @@ class AttrCommentParserTest extends YmlTestBase {
     }
     foreach ($data['imports'] ?? [] as $alias => $qcn) {
       // Optimize for the more common case where the alias has no space.
-      if (FALSE !== $spacepos = strpos($alias, ' ')) {
-        $type = substr($alias, 0, $spacepos);
-        $alias = substr($alias, $spacepos + 1);
+      if (FALSE !== $spacepos = \strpos($alias, ' ')) {
+        $type = \substr($alias, 0, $spacepos);
+        $alias = \substr($alias, $spacepos + 1);
         $php .= "use $type $qcn as $alias;\n";
       }
       else {

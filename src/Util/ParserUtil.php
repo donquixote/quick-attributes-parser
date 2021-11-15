@@ -21,62 +21,62 @@ class ParserUtil {
   ];
 
   const ACCESS_MODIFIERS = [
-    T_PUBLIC => 'public',
-    T_PROTECTED => 'protected',
-    T_PRIVATE => 'private',
+    \T_PUBLIC => 'public',
+    \T_PROTECTED => 'protected',
+    \T_PRIVATE => 'private',
   ];
 
-  const IDENTIFIER_START_TOKENS = (PHP_VERSION_ID < 80000)
+  const IDENTIFIER_START_TOKENS = (\PHP_VERSION_ID < 80000)
     ? [
-      T_STRING => TRUE,
-      T_NS_SEPARATOR => TRUE,
+      \T_STRING => TRUE,
+      \T_NS_SEPARATOR => TRUE,
     ]
     : [
-      T_STRING => TRUE,
+      \T_STRING => TRUE,
       self::T_NAME_FULLY_QUALIFIED => TRUE,
       self::T_NAME_QUALIFIED => TRUE,
     ];
 
   const WS_MAPS = [
-    T_WHITESPACE => [
-      T_WHITESPACE => TRUE,
+    \T_WHITESPACE => [
+      \T_WHITESPACE => TRUE,
     ],
-    T_COMMENT => [
-      T_WHITESPACE => TRUE,
-      T_COMMENT => TRUE,
+    \T_COMMENT => [
+      \T_WHITESPACE => TRUE,
+      \T_COMMENT => TRUE,
     ],
-    T_DOC_COMMENT => [
-      T_WHITESPACE => TRUE,
-      T_COMMENT => TRUE,
-      T_DOC_COMMENT => TRUE,
+    \T_DOC_COMMENT => [
+      \T_WHITESPACE => TRUE,
+      \T_COMMENT => TRUE,
+      \T_DOC_COMMENT => TRUE,
     ],
   ];
 
   const WS_MAP = [
-    T_WHITESPACE => TRUE,
+    \T_WHITESPACE => TRUE,
   ];
 
   const WS_OR_COMMENT = [
-    T_WHITESPACE => TRUE,
-    T_COMMENT => TRUE,
+    \T_WHITESPACE => TRUE,
+    \T_COMMENT => TRUE,
   ];
 
   const WS_OR_DOC = [
-    T_WHITESPACE => TRUE,
-    T_DOC_COMMENT => TRUE,
+    \T_WHITESPACE => TRUE,
+    \T_DOC_COMMENT => TRUE,
   ];
 
   const WS_OR_COMMENT_OR_DOC = [
-    T_WHITESPACE => TRUE,
-    T_COMMENT => TRUE,
-    T_DOC_COMMENT => TRUE,
+    \T_WHITESPACE => TRUE,
+    \T_COMMENT => TRUE,
+    \T_DOC_COMMENT => TRUE,
   ];
 
   /** @var (-1|0|1)[] */
   private const SKIP_CURLY_MAP = [
     '{' => 1,
-    T_CURLY_OPEN => 1,
-    T_DOLLAR_OPEN_CURLY_BRACES => 1,
+    \T_CURLY_OPEN => 1,
+    \T_DOLLAR_OPEN_CURLY_BRACES => 1,
     '}' => -1,
     // End of file marker.
     '#' => 0,
@@ -102,8 +102,8 @@ class ParserUtil {
   /** @var (-1|0|1)[][] */
   public const SKIP_MAP = [
     '{' => self::SKIP_CURLY_MAP,
-    T_CURLY_OPEN => self::SKIP_CURLY_MAP,
-    T_DOLLAR_OPEN_CURLY_BRACES => self::SKIP_CURLY_MAP,
+    \T_CURLY_OPEN => self::SKIP_CURLY_MAP,
+    \T_DOLLAR_OPEN_CURLY_BRACES => self::SKIP_CURLY_MAP,
     '(' => self::SKIP_PARENS_MAP,
     '[' => self::SKIP_SQUARE_MAP,
   ];
@@ -116,9 +116,9 @@ class ParserUtil {
   ];
 
   public const CLASS_LIKE_TOKENS = [
-    T_CLASS => 'class',
-    T_INTERFACE => 'interface',
-    T_TRAIT => 'trait',
+    \T_CLASS => 'class',
+    \T_INTERFACE => 'interface',
+    \T_TRAIT => 'trait',
   ];
 
   /**
@@ -252,17 +252,17 @@ class ParserUtil {
     $i = $pos;
     while (true) {
       $id = $tokens[$i][0];
-      if ($id === T_COMMENT) {
-        if (PHP_VERSION_ID < 80000 && substr($tokens[$i][1], 0, 2) === '#[') {
+      if ($id === \T_COMMENT) {
+        if (\PHP_VERSION_ID < 80000 && \substr($tokens[$i][1], 0, 2) === '#[') {
           // Found an attribute-like comment.
           $pos = $i;
           return $id;
         }
       }
-      elseif ($id === T_DOC_COMMENT) {
+      elseif ($id === \T_DOC_COMMENT) {
         $docComment = $tokens[$i][1];
       }
-      elseif ($id !== T_WHITESPACE) {
+      elseif ($id !== \T_WHITESPACE) {
         // Found a non-whitespace, non-comment token.
         $pos = $i;
         return $id;
@@ -282,7 +282,7 @@ class ParserUtil {
   public static function skipFillerWsExpectToken(array $tokens, int &$pos, int $expected): string {
     $id = self::skipFillerWs($tokens, $pos);
     if ($id !== $expected) {
-      throw SyntaxException::expectedButFound($tokens, $pos, token_name($expected));
+      throw SyntaxException::expectedButFound($tokens, $pos, \token_name($expected));
     }
     return $tokens[$pos][1];
   }
@@ -296,7 +296,7 @@ class ParserUtil {
    */
   public static function skipFillerWsExpectTString(array $tokens, int &$pos): string {
     $id = self::skipFillerWs($tokens, $pos);
-    if ($id !== T_STRING) {
+    if ($id !== \T_STRING) {
       throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
     }
     return $tokens[$pos][1];
@@ -311,7 +311,7 @@ class ParserUtil {
    */
   public static function skipFillerWsExpectMemberName(array $tokens, int &$pos): string {
     $id = self::skipFillerWs($tokens, $pos);
-    if ($id !== T_STRING) {
+    if ($id !== \T_STRING) {
       $token = $tokens[$pos];
       if (!\is_array($token)
         || !ReservedWordUtil::validMemberName($tokens[$pos][1])
@@ -347,14 +347,14 @@ class ParserUtil {
     $i = $pos;
     while (TRUE) {
       $id = $tokens[$i][0];
-      if ($id === T_COMMENT) {
-        if (PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
+      if ($id === \T_COMMENT) {
+        if (\PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
           // Found an attribute.
           $pos = $i;
           return $id;
         }
       }
-      elseif ($id !== T_DOC_COMMENT && $id !== T_WHITESPACE) {
+      elseif ($id !== \T_DOC_COMMENT && $id !== \T_WHITESPACE) {
         $pos = $i;
         return $id;
       }
@@ -368,17 +368,17 @@ class ParserUtil {
    * @return string
    */
   public static function formatToken($token): string {
-    if (is_array($token)) {
-      $name = token_name($token[0]);
+    if (\is_array($token)) {
+      $name = \token_name($token[0]);
       if ($name === 'UNKNOWN') {
         $name = self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
       }
-      return $name . ' / ' . var_export($token[1], TRUE);
+      return $name . ' / ' . \var_export($token[1], TRUE);
     }
     if ($token === '#') {
       return 'EOF';
     }
-    return var_export($token, TRUE);
+    return \var_export($token, TRUE);
   }
 
   /**
@@ -396,13 +396,13 @@ class ParserUtil {
     $i = $pos;
     while (TRUE) {
       $token = $tokens[$i];
-      if (is_string($token)) {
+      if (\is_string($token)) {
         switch ($token) {
           case '(':
           case '{':
           case '[':
             self::skipSubtree($tokens, $i);
-            assert(self::expectOneOf($tokens, $i, [')', '}', ']']));
+            \assert(self::expectOneOf($tokens, $i, [')', '}', ']']));
             break;
 
           case ',':
@@ -440,7 +440,7 @@ class ParserUtil {
   public static function concatTokens(array $tokens, int $begin, int $end): string {
     $code = '';
     for ($i = $begin; $i < $end; ++$i) {
-      if (is_string($tokens[$i])) {
+      if (\is_string($tokens[$i])) {
         $code .= $tokens[$i];
       }
       else {
@@ -463,9 +463,9 @@ class ParserUtil {
     if ($tokens[$pos][0] === $expected) {
       return TRUE;
     }
-    $export = is_int($expected)
-      ? token_name($expected)
-      : var_export($expected, TRUE);
+    $export = \is_int($expected)
+      ? \token_name($expected)
+      : \var_export($expected, TRUE);
     throw SyntaxException::expectedButFound($tokens, $pos, $export);
   }
 
@@ -479,7 +479,7 @@ class ParserUtil {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public static function expectOneOf(array $tokens, int $pos, array $allowed): bool {
-    return self::expectOneIn($tokens, $pos, array_fill_keys($allowed, TRUE));
+    return self::expectOneIn($tokens, $pos, \array_fill_keys($allowed, TRUE));
   }
 
   /**
@@ -497,11 +497,11 @@ class ParserUtil {
     }
     $parts = [];
     foreach ($map as $k => $_) {
-      $parts[] = is_int($k)
-        ? token_name($k)
-        : var_export($k, TRUE);
+      $parts[] = \is_int($k)
+        ? \token_name($k)
+        : \var_export($k, TRUE);
     }
-    $export = implode(' or ', $parts);
+    $export = \implode(' or ', $parts);
     throw SyntaxException::expectedButFound($tokens, $pos, $export);
   }
 
