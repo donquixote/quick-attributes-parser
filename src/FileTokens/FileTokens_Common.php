@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\FileTokens;
 
-use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Util\TokenizerUtil;
 
 class FileTokens_Common implements FileTokensInterface {
