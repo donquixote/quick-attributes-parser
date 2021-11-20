@@ -139,7 +139,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
       $iBkp0 = $i;
-      $qcn = $this->parseClassRef($tokens, $i);
+      $qcn = $this->parseAttributeName($tokens, $i);
       \assert($i > $iBkp0);
       $id = ParserUtil::skipFillerWs($tokens, $i);
       \assert(ParserUtil::expectOneOf($tokens, $i, ['(', ']', ',']));
@@ -185,34 +185,36 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       $key = NULL;
-      // Parse optional key for named parameter syntax.
+      if ($id === ')') {
+        // Empty arg list, or trailing comma after last arg.
+        $pos = $i;
+        break;
+      }
       if ($id === \T_STRING) {
+        // This could be a named arg, OR a part of a value expression.
         $iNamed = $i + 1;
         $idNamed = ParserUtil::skipFillerWs($tokens, $iNamed);
         if ($idNamed === ':') {
+          // This is indeed a named argument.
           $key = $tokens[$i][1];
           $i = $iNamed + 1;
-          $id = ParserUtil::skipFillerWs($tokens, $i);
+          ParserUtil::skipFillerWs($tokens, $i);
         }
       }
-      if ($id !== ')' && $id !== ',') {
-        $valuePhp = $this->parseValueExpression($tokens, $i);
-        \assert($valuePhp !== '');
-        $id = $tokens[$i][0];
-        if ($key !== NULL) {
-          $php .= '  ' . \var_export($key, TRUE) . ' => ' . $valuePhp . ",  // value\n";
-          $namedPart = TRUE;
-        }
-        elseif ($namedPart) {
-          throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot use positional argument after named argument');
-        }
-        else {
-          \assert(!\preg_match('@^\w+\:[^\:]@', $valuePhp));
-          $php .= '  ' . $valuePhp . ",  // key => value\n";
-        }
+      // Parse a value expression.
+      $valuePhp = $this->parseValueExpression($tokens, $i);
+      \assert($valuePhp !== '');
+      $id = $tokens[$i][0];
+      if ($key !== NULL) {
+        $php .= '  ' . \var_export($key, TRUE) . ' => ' . $valuePhp . ",  // value\n";
+        $namedPart = TRUE;
       }
-      elseif ($key !== NULL) {
-        throw SyntaxException::unexpected($tokens, $i, 'after argument name');
+      elseif ($namedPart) {
+        throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot use positional argument after named argument');
+      }
+      else {
+        \assert(!\preg_match('@^\w+\:[^\:]@', $valuePhp));
+        $php .= '  ' . $valuePhp . ",  // key => value\n";
       }
       if ($id === ')') {
         $pos = $i;
@@ -230,6 +232,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     $php = "[\n" . $php . ']';
 
     try {
+      \set_error_handler([self::class, 'error']);
       /** @var array $args */
       $args = self::doEval($php);
     }
@@ -239,8 +242,25 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     catch (\Throwable $e) {
       throw new SyntaxException($e->getMessage(), 0, $e);
     }
+    finally {
+      \restore_error_handler();
+    }
 
     return new RawAttribute_Fixed($qcn, $args);
+  }
+
+  /**
+   * @param int $code
+   * @param string $message
+   * @param string $file
+   * @param int $line
+   *
+   * @return bool
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  public static function error(int $code, string $message, string $file = 'unknown', int $line = -1): bool {
+    throw new SyntaxException('Eval: ' . $message);
   }
 
   /**
@@ -265,7 +285,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseClassRef(array $tokens, int &$pos): string {
+  private function parseAttributeName(array $tokens, int &$pos): string {
     if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
       $i = $pos + 1;
       if ($tokens[$i][0] !== \T_STRING) {
@@ -283,16 +303,11 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       throw SyntaxException::expectedButFound($tokens, $pos, 'QCN or FQCN');
     }
     if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
-      if (\strtolower($qcn) === 'self') {
-        if ($this->class === NULL) {
-          throw SyntaxException::fromTokenPos($tokens, $i, 'self outside of class');
-        }
-        return $this->class;
-      }
       $pos = $i;
       /** @var class-string $qcn */
       return $qcn;
     }
+    // Parse remaining part of the QCN.
     while (TRUE) {
       ++$i;
       if ($tokens[$i][0] !== \T_STRING) {
@@ -306,11 +321,13 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         return $qcn;
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
+   *   Before: First token of value expression.
+   *   After: Position of ')' or ',' or '}' or ']'.
    *
    * @return string
    *
@@ -331,17 +348,19 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
             break;
 
           case '(':
-          case '{':
+            ++$i;
+            $php .= '(' . $this->parseValueExpression($tokens, $i) . ')';
+            \assert(ParserUtil::expect($tokens, $i, ')'));
+            break;
+
           case '[':
             $php .= $this->parseArray($tokens, $i, ']');
             \assert($tokens[$i] === ']');
             break;
 
           case ')':
-          case '}':
           case ']':
           case ',':
-          case ';':
             // End of value expression.
             break 2;
 
@@ -363,10 +382,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
             break;
 
           case \T_COMMENT:
-            if (\PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
-              // Found an attribute.
-              throw SyntaxException::unexpected($tokens, $i, 'in value expression');
-            }
+            // Attribute-like comments are already cleared out by tokenizer.
             $php .= ' ';
             break;
 
@@ -392,6 +408,9 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       ++$i;
     }
 
+    if ($pos === $i) {
+      throw SyntaxException::expectedButFound($tokens, $i, 'value expression');
+    }
     \assert($php !== '');
     \assert(ParserUtil::expectOneOf($tokens, $i, [',', ';', ')', '}', ']', \T_DOUBLE_ARROW]));
     $pos = $i;
@@ -418,7 +437,11 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     while (TRUE) {
       \assert(ParserUtil::expectOneOf($tokens, $i, ['(', '[', ',']));
       ++$i;
-      ParserUtil::skipFillerWs($tokens, $i);
+      $id = ParserUtil::skipFillerWs($tokens, $i);
+      if ($id === $endchar) {
+        $pos = $i;
+        break;
+      }
       $php .= '  ' . $this->parseValueExpression($tokens, $i);
       $id = $tokens[$i][0];
       if ($id === \T_DOUBLE_ARROW) {
@@ -460,19 +483,17 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
       $i = $pos + 1;
       if ($tokens[$i][0] !== \T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
       }
       $first = NULL;
       $fqn = $tokens[$i][1];
       ++$i;
     }
-    elseif ($tokens[$pos][0] === \T_STRING) {
+    else {
+      \assert(ParserUtil::expect($tokens, $pos, \T_STRING));
       $first = $tokens[$pos][1];
       $fqn = '';
       $i = $pos + 1;
-    }
-    else {
-      throw SyntaxException::expectedButFound($tokens, $pos, 'QCN or FQCN');
     }
     while ($tokens[$i][0] === \T_NS_SEPARATOR) {
       ++$i;

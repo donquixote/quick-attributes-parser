@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
-use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -27,7 +27,8 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *     arguments?: array,
  *     exception?: array,
  *   }>,
- *   exception?: array
+ *   exception?: array,
+ *   'exception.php8'?: array,
  * }
  *
  * @template-extends YmlTestBase<_AttrCommentsYaml>
@@ -44,21 +45,25 @@ class AttrCommentParserTest extends YmlTestBase {
     else {
       $this->processPhp8($data);
     }
+    TestArrayUtil::normalizeKeys(
+      $data,
+      [
+        'comment',
+        'namespace',
+        'imports',
+        'class',
+        'fatal',
+        'attributes',
+        'attributes.php8',
+        'exception',
+        'exception.php8'
+      ]);
   }
 
   /**
    * @psalm-param _AttrCommentsYaml $data
    */
   private function processPhp7(array &$data): void {
-
-    // Normalize and filter array keys.
-    $map = \array_fill_keys(['comment', 'namespace', 'imports', 'class'], NULL);
-
-    /** @var _AttrCommentsYaml $data */
-    $data = \array_intersect_key($data, $map);
-
-    /** @var _AttrCommentsYaml $data */
-    $data = \array_filter(\array_replace($map, $data));
 
     $parser = new AttributeCommentParser();
     $parser = $parser->withContext(
@@ -70,10 +75,12 @@ class AttrCommentParserTest extends YmlTestBase {
       $attributes = $parser->parse($data['comment'] . "\n");
     }
     catch (\Throwable $e) {
+      unset($data['attributes']);
       $data['exception'] = TestExportUtil::exportException($e);
       return;
     }
 
+    unset($data['exception']);
     $data['attributes'] = TestExportUtil::exportRawAttributes($attributes);
   }
 
@@ -82,6 +89,10 @@ class AttrCommentParserTest extends YmlTestBase {
    */
   private function processPhp8(array &$data): void {
     if (\PHP_VERSION_ID < 80000) {
+      return;
+    }
+    if (!empty($data['fatal'])) {
+      // Evaluating the snippet would lead to fatal error.
       return;
     }
     $php = '';
@@ -110,27 +121,46 @@ class AttrCommentParserTest extends YmlTestBase {
       . "\n  $comment"
       . "\n  function () {};"
       . "\n";
-    /** @var \Closure $f */
-    $f = self::doEval($php);
     try {
+      \set_error_handler(static function (int $code, string $message): bool {
+        $core_constants = \get_defined_constants(true)['Core'] ?? [];
+        $error_const_names = \preg_grep('@^E_.*@', \array_keys($core_constants));
+        $error_constants = \array_intersect_key($core_constants, \array_fill_keys($error_const_names, true));
+        $error_const_names_map = \array_flip($error_constants);
+        $error_type = $error_const_names_map[$code] ?? $code;
+        $message = $error_type . ': '. $message;
+        throw new \Exception($message);
+      });
+      /** @var \Closure $f */
+      $f = self::doEval($php);
       $rf = new \ReflectionFunction($f);
+      /** @var list<array{name: class-string, arguments: array}> $attributes */
+      $attributes = [];
+      /**
+       * @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection
+       * @var \ReflectionAttribute $ra
+       */
+      foreach ($rf->getAttributes() as $ra) {
+        /** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
+        $attributes[] = [
+          'name' => $ra->getName(),
+          'arguments' => $ra->getArguments(),
+        ];
+      }
     }
-    catch (\ReflectionException $e) {
-      throw new \RuntimeException($e->getMessage(), 0, $e);
+    catch (\Throwable $e) {
+      $data['exception.php8'] = TestExportUtil::exportException($e);
+      unset($data['attributes.php8']);
+      return;
     }
-    /** @var list<array{name: class-string, arguments: array}> $attributes */
-    $attributes = [];
+    finally {
+      \restore_error_handler();
+    }
+    unset($data['exception.php8']);
     /**
-     * @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection
-     * @var \ReflectionAttribute $ra
+     * @noinspection PhpUndefinedVariableInspection
+     *   See https://youtrack.jetbrains.com/issue/WI-25588.
      */
-    foreach ($rf->getAttributes() as $ra) {
-      /** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
-      $attributes[] = [
-        'name' => $ra->getName(),
-        'arguments' => $ra->getArguments(),
-      ];
-    }
     if ($attributes !== ($data['attributes'] ?? [])) {
       $data['attributes.php8'] = $attributes;
     }
