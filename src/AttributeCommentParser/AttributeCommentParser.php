@@ -161,7 +161,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         throw SyntaxException::expectedButFound($tokens, $i, "']' or ','");
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param list<string|array{int, string, int}> $tokens
