@@ -1,0 +1,5 @@
+comment: '#[A] /* Hello */'
+attributes:
+  -
+    name: A
+    arguments: {  }

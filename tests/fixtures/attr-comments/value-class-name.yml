@@ -1,0 +1,6 @@
+comment: '#[A(C::class)]'
+attributes:
+  -
+    name: A
+    arguments:
+      - C

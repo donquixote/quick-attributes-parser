@@ -1,0 +1,5 @@
+comment: '#[self()]'
+attributes:
+  -
+    name: self
+    arguments: {  }

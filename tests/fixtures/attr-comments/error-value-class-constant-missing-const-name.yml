@@ -1,0 +1,7 @@
+comment: '#[A(N\M\C::)]'
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:11: Expected T_STRING or T_CLASS, but found '')''.'
+exception.php8:
+  class: ParseError
+  message: 'syntax error, unexpected token ")"'

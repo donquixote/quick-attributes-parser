@@ -1,0 +1,11 @@
+comment: '#[A] class C {}'
+namespace: Donquixote\QuickAttributes\Tests\Fixture
+imports:
+  A: N\M\A
+class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+exception:
+  class: Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException
+  message: 'Line 0:5: Cannot have regular code after an attribute in the same line.'
+exception.php8:
+  class: ParseError
+  message: 'syntax error, unexpected token "class", expecting "function" or "fn" or "static" or "#["'

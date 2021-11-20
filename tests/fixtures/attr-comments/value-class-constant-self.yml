@@ -1,0 +1,7 @@
+comment: '#[A(self::U)]'
+class: Donquixote\QuickAttributes\Tests\Fixture\CAdvanced
+attributes:
+  -
+    name: A
+    arguments:
+      - u

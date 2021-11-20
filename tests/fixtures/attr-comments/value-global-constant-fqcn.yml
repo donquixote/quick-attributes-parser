@@ -1,0 +1,6 @@
+comment: '#[A(\E_STRICT)]'
+attributes:
+  -
+    name: A
+    arguments:
+      - 2048

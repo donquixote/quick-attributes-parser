@@ -1,0 +1,8 @@
+comment: '#[A(x: [5, ''y'' => 7])]'
+attributes:
+  -
+    name: A
+    arguments:
+      x:
+        0: 5
+        'y': 7

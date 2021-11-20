@@ -1,0 +1,6 @@
+comment: '#[A(x: 5 + 7)]'
+attributes:
+  -
+    name: A
+    arguments:
+      x: 12

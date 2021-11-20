@@ -1,0 +1,6 @@
+comment: '#[self()]'
+class: N\M\C
+attributes:
+  -
+    name: self
+    arguments: {  }

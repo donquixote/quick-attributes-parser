@@ -1,0 +1,6 @@
+comment: '#[A(x: /* hello */ 5)]'
+attributes:
+  -
+    name: A
+    arguments:
+      x: 5

@@ -1,0 +1,8 @@
+comment: '#[A(x: C::class)]'
+imports:
+  C: N\M\C
+attributes:
+  -
+    name: A
+    arguments:
+      x: N\M\C

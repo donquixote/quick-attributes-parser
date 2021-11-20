@@ -1,0 +1,6 @@
+comment: '#[A(self::foo())]'
+class: Donquixote\QuickAttributes\Tests\Fixture\CAdvanced
+fatal: true
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:13: Method call not allowed in constant expression.'

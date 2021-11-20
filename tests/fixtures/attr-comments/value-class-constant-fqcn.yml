@@ -1,0 +1,6 @@
+comment: '#[A(\Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::U)]'
+attributes:
+  -
+    name: A
+    arguments:
+      - u

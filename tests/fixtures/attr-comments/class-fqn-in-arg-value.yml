@@ -1,0 +1,6 @@
+comment: '#[A(x: \N\M\C::class)]'
+attributes:
+  -
+    name: A
+    arguments:
+      x: N\M\C

@@ -1,0 +1,11 @@
+comment: '#[A([], a: [5, []], b: [5,])]'
+attributes:
+  -
+    name: A
+    arguments:
+      0: {  }
+      a:
+        - 5
+        - {  }
+      b:
+        - 5

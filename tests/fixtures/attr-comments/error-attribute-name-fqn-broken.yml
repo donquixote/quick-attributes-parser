@@ -1,0 +1,7 @@
+comment: '#[\ ()]'
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:2: Expected T_STRING, but found T_NS_SEPARATOR / ''\\''.'
+exception.php8:
+  class: ParseError
+  message: 'syntax error, unexpected token "\"'

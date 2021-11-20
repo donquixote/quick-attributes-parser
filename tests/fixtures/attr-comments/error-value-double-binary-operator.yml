@@ -1,0 +1,10 @@
+comment: '#[A(5 * * 1)]'
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'syntax error, unexpected ''*'''
+  previous:
+    class: ParseError
+    message: 'syntax error, unexpected ''*'''
+exception.php8:
+  class: ParseError
+  message: 'syntax error, unexpected token "*"'
