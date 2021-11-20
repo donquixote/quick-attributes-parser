@@ -6,6 +6,7 @@ namespace Donquixote\QuickAttributes\AttributeCommentParser;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
+use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute_Fixed;
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute_NoArgs;
 use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
@@ -63,9 +64,10 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         // EOF reached.
         return $rawAttributes;
       }
-      if ($id !== ParserUtil::T_ATTRIBUTE) {
-        throw new SyntaxException('');
+      if ($id === ParserUtil::T_ATTRIBUTE) {
+        continue;
       }
+      throw UnsupportedSyntaxException::fromTokenPos($tokens, $i, 'Cannot have regular code after an attribute in the same line.');
     }
   }  // @codeCoverageIgnore
 
