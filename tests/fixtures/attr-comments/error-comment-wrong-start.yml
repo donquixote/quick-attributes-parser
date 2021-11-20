@@ -1,0 +1,8 @@
+comment: '# Hello'
+namespace: Donquixote\QuickAttributes\Tests\Fixture
+imports:
+  A: N\M\A
+class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+exception:
+  class: InvalidArgumentException
+  message: 'Comment must begin with #[.'
