@@ -67,7 +67,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         throw new SyntaxException('');
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param string $comment
