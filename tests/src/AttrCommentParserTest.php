@@ -69,7 +69,7 @@ class AttrCommentParserTest extends YmlTestBase {
     try {
       $attributes = $parser->parse($data['comment'] . "\n");
     }
-    catch (ParserException $e) {
+    catch (\Throwable $e) {
       $data['exception'] = TestExportUtil::exportException($e);
       return;
     }
