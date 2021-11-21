@@ -29,6 +29,7 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *   }>,
  *   exception?: array,
  *   'exception.php8'?: array,
+ *   mismatch?: true,
  * }
  *
  * @template-extends YmlTestBase<_AttrCommentsYaml>
@@ -151,6 +152,12 @@ class AttrCommentParserTest extends YmlTestBase {
     catch (\Throwable $e) {
       $data['exception.php8'] = TestExportUtil::exportException($e);
       unset($data['attributes.php8']);
+      if (!isset($data['exception'])) {
+        $data['mismatch'] = TRUE;
+      }
+      else {
+        unset($data['mismatch']);
+      }
       return;
     }
     finally {
@@ -163,9 +170,11 @@ class AttrCommentParserTest extends YmlTestBase {
      */
     if ($attributes !== ($data['attributes'] ?? [])) {
       $data['attributes.php8'] = $attributes;
+      $data['mismatch'] = true;
     }
     else {
       unset($data['attributes.php8']);
+      unset($data['mismatch']);
     }
   }
 
