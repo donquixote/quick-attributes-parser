@@ -55,9 +55,10 @@ class AttrCommentParserTest extends YmlTestBase {
         'class',
         'fatal',
         'attributes',
-        'attributes.php8',
         'exception',
-        'exception.php8'
+        'attributes.php8',
+        'exception.php8',
+        'mismatch',
       ]);
   }
 

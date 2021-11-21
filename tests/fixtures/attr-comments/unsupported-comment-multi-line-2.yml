@@ -1,22 +1,22 @@
 comment: |
-  #[A]
-  #[B]
+  #[A(
+    x: 5,
+  )]
 namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
 class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
-attributes.php8:
-  -
-    name: N\M\A
-    arguments: {  }
-  -
-    name: Donquixote\QuickAttributes\Tests\Fixture\B
-    arguments: {  }
 exception:
   class: InvalidArgumentException
   message: |-
-    Comment must be single-line and end with line break.'#[A]
-    #[B]
+    Comment must be single-line and end with line break.'#[A(
+      x: 5,
+    )]
 
     '
+attributes.php8:
+  -
+    name: N\M\A
+    arguments:
+      x: 5
 mismatch: true
