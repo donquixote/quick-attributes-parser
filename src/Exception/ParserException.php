@@ -19,7 +19,7 @@ class ParserException extends \Exception {
    * This explicit override is needed for psalm.
    * See https://github.com/vimeo/psalm/issues/6627
    */
-  public function __construct(string $message = "", int $code = 0, Throwable $previous = NULL) {
+  public function __construct(string $template, int $code = 0, Throwable $previous = NULL) {
     parent::__construct($message, $code, $previous);
   }
 
@@ -69,6 +69,10 @@ class ParserException extends \Exception {
       $message .= ' Found ' . ParserUtil::formatToken($tokens[$pos]) . '.';
     }
     return new static($message);
+  }
+
+  protected function setTemplateMessage(string $template, string $file, int $line, int $offset): void {
+    $this->message = \sprintf()
   }
 
 }
