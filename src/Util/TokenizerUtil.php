@@ -21,7 +21,7 @@ class TokenizerUtil {
       // set_error_handler() cannot intercept warnings from token_get_all().
       // So we need to use something else.
       \error_clear_last();
-      $tokens = \token_get_all($php, $flags);
+      $tokens = @\token_get_all($php, $flags);
     }
     catch (\ParseError $e) {
       throw TokenizerException::fromParseError($e);
