@@ -17,6 +17,10 @@
     <exclude>
       <directory>src/Stub</directory>
     </exclude>
+    <report>
+      <clover outputFile="build/coverage/clover.xml"/>
+      <php outputFile="build/coverage/coverage.php"/>
+    </report>
   </coverage>
   <testsuites>
     <testsuite name="QuickAttributes (Object Composition UI) test suite">
@@ -27,4 +31,12 @@
     <ini name="error_reporting" value="-1"/>
     <ini name="memory_limit" value="-1"/>
   </php>
+  <!-- <logging>
+    <coverage-clover target="build/logs/clover.xml"/>
+    <junit target="build/logs/junit.xml"/>
+    <coverage-php target="build/cov/coverage.cov"/>
+  </logging> -->
+  <logging>
+    <junit outputFile="build/logs/junit.xml"/>
+  </logging>
 </phpunit>
