@@ -15,6 +15,8 @@ interface RawAttributeInterface {
   public function getName(): string;
 
   /**
+   * Gets argument values evaluated in current global scope.
+   *
    * @return array
    *
    * @throws \ReflectionException

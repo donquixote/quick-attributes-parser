@@ -472,8 +472,8 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   *   Before: Position of first T_STRING.
-   *   After: Position after last T_STRING.
+   *   Before: Position of first T_STRING or T_NS_SEPARATOR.
+   *   After: Position after last T_STRING or T_CLASS.
    *
    * @return string
    *
