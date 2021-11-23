@@ -4,3 +4,4 @@
 /.phpbench
 /.phpunit.result.cache
 /clover.xml
+/build/
