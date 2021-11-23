@@ -5,4 +5,4 @@ php: |
   namespace M;
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Cannot redeclare namespace.'
+  message: 'Line 4:1: Cannot redeclare namespace.'

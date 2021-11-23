@@ -2,3 +2,6 @@ php: |
   <?php
   use N\C;
   namespace M;
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:1: Unexpected T_NAMESPACE / ''namespace'' after non-declare statements.'

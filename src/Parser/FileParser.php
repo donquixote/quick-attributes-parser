@@ -55,12 +55,59 @@ class FileParser {
 
     $tokens = $tokenss->current();
 
-    $pos = 0;
     $namespace = NULL;
     $terminatedNamespace = '';
     $imports = [];
+    if ($tokens[0][0] !== \T_OPEN_TAG) {
+      throw UnsupportedSyntaxException::fromTokenPos($tokens, 0, 'Only files starting with T_OPEN_TAG are supported.');
+    }
+
+    for ($i = 1;; ++$i) {
+      $token = $tokens[$i];
+      if (\is_string($token)) {
+        // Character tokens indicate that file head ends here.
+        break;
+      }
+
+      switch ($token[0]) {
+        case \T_WHITESPACE:
+        case \T_DOC_COMMENT:
+          // Ignore.
+          break;
+
+        case \T_COMMENT:
+          if (\substr($token[1], 0, 2) === '#[') {
+            // This is an attribute!
+            // Continue with code below.
+            break 2;
+          }
+          // Ignore.
+          break;
+
+        case \T_DECLARE:
+          ++$i;
+          ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
+          // Ignore the declare, for now.
+          ParserUtil::skipSubtree($tokens, $i);
+          ++$i;
+          ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
+          break;
+
+        case \T_NAMESPACE:
+          $namespace = $this->parseNamespace($tokens, $i);
+          $terminatedNamespace = $namespace . '\\';
+          \assert(ParserUtil::expect($tokens, $i, ';'));
+          ++$i;
+          break 2;
+
+        default:
+          // Ignore.
+          break 2;
+      }
+    }
+
     $attrComments = [];
-    for ($i = $pos;; ++$i) {
+    for (;; ++$i) {
       $token = $tokens[$i];
       if (\is_string($token)) {
         switch ($token) {
@@ -140,11 +187,9 @@ class FileParser {
 
           case \T_NAMESPACE:
             if ($namespace !== NULL) {
-              throw new SyntaxException('Cannot redeclare namespace.');
+              throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot redeclare namespace.');
             }
-            $namespace = $this->parseNamespace($tokens, $i);
-            $terminatedNamespace = $namespace . '\\';
-            break;
+            throw SyntaxException::unexpected($tokens, $i, 'after non-declare statements');
 
           case \T_USE:
             $this->parseImportGroup($tokens, $i, $imports);
