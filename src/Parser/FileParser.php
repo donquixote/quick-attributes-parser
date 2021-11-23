@@ -231,6 +231,8 @@ class FileParser {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
+   *   Before: Position of T_NAMESPACE.
+   *   After: Position of ';'.
    *
    * @return string
    *

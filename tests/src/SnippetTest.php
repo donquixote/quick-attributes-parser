@@ -43,6 +43,10 @@ class SnippetTest extends YmlTestBase {
     try {
       unset($data['attributess']);
       unset($data['importss']);
+      /**
+       * @var \Donquixote\QuickAttributes\Value\SymbolHandle $h
+       * @psalm-ignore-var
+       */
       foreach ($parser->parseFileTokens($fileTokens) as $h => $info) {
         $imports = $info->getImports();
         if ($imports !== null) {
