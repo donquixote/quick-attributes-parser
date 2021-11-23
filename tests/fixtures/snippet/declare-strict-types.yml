@@ -1,0 +1,16 @@
+php: |
+  <?php
+
+  declare(strict_types=1);
+
+  namespace N;
+
+  class C {}
+
+  class D {}
+importss:
+  N\C: {  }
+  N\D: {  }
+attributess:
+  N\C: {  }
+  N\D: {  }

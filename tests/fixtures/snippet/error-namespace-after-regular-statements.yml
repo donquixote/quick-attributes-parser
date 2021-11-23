@@ -1,0 +1,4 @@
+php: |
+  <?php
+  use N\C;
+  namespace M;
