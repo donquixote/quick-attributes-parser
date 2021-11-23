@@ -17,18 +17,6 @@ use Donquixote\QuickAttributes\Value\SymbolHandle;
 
 class FileParser {
 
-  private ?string $namespace = NULL;
-
-  private string $terminatedNamespace = '';
-
-  /**
-   * @var array<string, string>
-   *   Format (class or namepace): $[$alias] = $qcn.
-   *   Format (constant): $["const $alias"] = $qcn.
-   *   Format (function): $["function $alias"] = $qcn.
-   */
-  private array $imports = [];
-
   public function __construct() {
     if (\PHP_VERSION_ID >= 80000) {
       throw new \RuntimeException('This class should only be used in PHP < 8.');  // @codeCoverageIgnore
@@ -61,24 +49,15 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function parseFileTokens(FileTokensInterface $fileTokens): iterable {
-    // Create a clone for mutable operations.
-    return (clone $this)->doParseFileTokens($fileTokens);
-  }
-
-  /**
-   * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
-   *
-   * @return iterable<SymbolHandle, RawSymbolInfo>
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  private function doParseFileTokens(FileTokensInterface $fileTokens): iterable {
 
     $tokenss = $fileTokens->getTokenss();
     unset($fileTokens);
 
     $tokens = $tokenss->current();
 
+    $namespace = NULL;
+    $terminatedNamespace = '';
+    $imports = [];
     if ($tokens[0][0] !== \T_OPEN_TAG) {
       throw UnsupportedSyntaxException::fromTokenPos($tokens, 0, 'Only files starting with T_OPEN_TAG are supported.');
     }
@@ -115,8 +94,8 @@ class FileParser {
           break;
 
         case \T_NAMESPACE:
-          $this->namespace = $this->parseNamespace($tokens, $i);
-          $this->terminatedNamespace = $this->namespace . '\\';
+          $namespace = $this->parseNamespace($tokens, $i);
+          $terminatedNamespace = $namespace . '\\';
           \assert(ParserUtil::expect($tokens, $i, ';'));
           ++$i;
           break 2;
@@ -207,13 +186,13 @@ class FileParser {
             continue 2;
 
           case \T_NAMESPACE:
-            if ($this->namespace !== NULL) {
+            if ($namespace !== NULL) {
               throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot redeclare namespace.');
             }
             throw SyntaxException::unexpected($tokens, $i, 'after non-declare statements');
 
           case \T_USE:
-            $this->parseImportGroup($tokens, $i);
+            $this->parseImportGroup($tokens, $i, $imports);
             break;
 
           case \T_FUNCTION:
@@ -237,9 +216,9 @@ class FileParser {
               // Ignore the rest.
               break;
             }
-            $functionQcn = $this->terminatedNamespace . $shortname;
+            $functionQcn = $terminatedNamespace . $shortname;
             $symbol = SymbolHandle::fromFunction($functionQcn);
-            yield $symbol => RawSymbolInfo::forTopLevelSymbol($attrComments, $this->imports);
+            yield $symbol => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $symbol = SymbolHandle::fromFunctionParameter(
                 $functionQcn,
@@ -265,8 +244,8 @@ class FileParser {
           case \T_TRAIT:
             ++$i;
             $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
-            $class = $this->terminatedNamespace . $shortname;
-            yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $this->imports);
+            $class = $terminatedNamespace . $shortname;
+            yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
 
             // Get the full version of the tokens now.
             $tokenss->next();
@@ -779,12 +758,14 @@ class FileParser {
    *   Before: Position of 'use' statement.
    *   After (success): Directly on ';'.
    *   After (failure): Original position.
+   * @param array<string, string> $imports
+   *   Format: $[$alias] = $qcn.
    *
    * @return void
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  protected function parseImportGroup(array $tokens, int &$pos): void {
+  protected function parseImportGroup(array $tokens, int &$pos, array &$imports): void {
     \assert(ParserUtil::expect($tokens, $pos, \T_USE));
     $i = $pos + 1;
     $id = ParserUtil::skipFillerWs($tokens, $i);
@@ -827,7 +808,7 @@ class FileParser {
           }
           // The rest of the import statement is a curly group like `N{A, B}`.
           ParserUtil::skipFillerWsExpectChar($tokens, $i, '{');
-          $this->parseImportCurlyGroup($tokens, $i, $qcn, $type);
+          $this->parseImportCurlyGroup($tokens, $i, $imports, $qcn, $type);
           \assert(ParserUtil::expect($tokens, $i, '}'));
           ++$i;
           ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
@@ -844,10 +825,10 @@ class FileParser {
         ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
-      if (isset($this->imports[$alias])) {
+      if (isset($imports[$alias])) {
         throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
       }
-      $this->imports[$alias] = $qcn;
+      $imports[$alias] = $qcn;
       if ($id === ';') {
         $pos = $i;
         return;
@@ -866,6 +847,8 @@ class FileParser {
    * @param int $pos
    *   Before: Position of '{'.
    *   After: Position of closing '}'.
+   * @param array<string, string> $imports
+   *   Format: $[$alias] = $qcn.
    * @param string $qcn
    *   Qcn part from before the '{'.
    * @param string $type
@@ -873,7 +856,7 @@ class FileParser {
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseImportCurlyGroup(array $tokens, int &$pos, string $qcn, string $type): void {
+  private function parseImportCurlyGroup(array $tokens, int &$pos, array &$imports, string $qcn, string $type): void {
     $i = $pos;
 
     // Iterate over sub-imports within curly group.
@@ -933,10 +916,10 @@ class FileParser {
         ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
-      if (isset($this->imports[$alias])) {
+      if (isset($imports[$alias])) {
         throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
       }
-      $this->imports[$alias] = $qcn . '\\' . $subQcn;
+      $imports[$alias] = $qcn . '\\' . $subQcn;
       if ($id === '}') {
         $pos = $i;
         return;
