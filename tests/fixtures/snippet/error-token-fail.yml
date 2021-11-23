@@ -1,0 +1,8 @@
+php: |
+  <?php
+
+  // This should trigger an error.
+  /**
+exception:
+  class: Donquixote\QuickAttributes\Exception\TokenizerException
+  message: 'Unterminated comment starting line **'
