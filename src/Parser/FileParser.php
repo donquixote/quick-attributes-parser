@@ -218,12 +218,12 @@ class FileParser {
             }
             $functionQcn = $terminatedNamespace . $shortname;
             $symbol = SymbolHandle::fromFunction($functionQcn);
-            yield $symbol => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+            yield $symbol => RawSymbolInfo::create($attrComments, $imports);
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $symbol = SymbolHandle::fromFunctionParameter(
                 $functionQcn,
                 \substr($paramDollarName, 1));
-              yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
+              yield $symbol => RawSymbolInfo::create($paramAttrComments, $imports);
             }
             \assert(ParserUtil::expect($tokens, $i, ')'));
             ++$i;
@@ -245,7 +245,7 @@ class FileParser {
             ++$i;
             $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
             $class = $terminatedNamespace . $shortname;
-            yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+            yield SymbolHandle::fromClass($class) => RawSymbolInfo::create($attrComments, $imports);
 
             // Get the full version of the tokens now.
             $tokenss->next();
@@ -256,7 +256,7 @@ class FileParser {
 
             $this->skipClassLikeExtendsImplements($tokens, $i);
             \assert(ParserUtil::expect($tokens, $i, '{'));
-            yield from $this->parseClassLikeBody($tokens, $i, $class);
+            yield from $this->parseClassLikeBody($tokens, $i, $class, $imports);
             \assert(ParserUtil::expect($tokens, $i, '}'));
             break;
 
@@ -358,12 +358,13 @@ class FileParser {
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param string $class
+   * @param array<string, string> $imports
    *
    * @return iterable<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseClassLikeBody(array $tokens, int &$pos, string $class): iterable {
+  private function parseClassLikeBody(array $tokens, int &$pos, string $class, array $imports): iterable {
     \assert(ParserUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
@@ -427,13 +428,13 @@ class FileParser {
             $method = $this->parseFunctionHead($tokens, $i, TRUE);
             \assert($method !== NULL);
             $symbol = SymbolHandle::fromMethod($class, $method);
-            yield $symbol => RawSymbolInfo::forInnerSymbol($attributeComments);
+            yield $symbol => RawSymbolInfo::create($attributeComments, $imports);
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $symbol = SymbolHandle::fromMethodParameter(
                 $class,
                 $method,
                 \substr($paramDollarName, 1));
-              yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
+              yield $symbol => RawSymbolInfo::create($paramAttrComments, $imports);
             }
             \assert(ParserUtil::expect($tokens, $i, ')'));
             ++$i;
@@ -456,7 +457,7 @@ class FileParser {
               yield SymbolHandle::fromClassProperty(
                 $class,
                 $name
-              ) => RawSymbolInfo::forInnerSymbol($attributeComments);
+              ) => RawSymbolInfo::create($attributeComments, $imports);
             }
             break;
 
@@ -466,7 +467,7 @@ class FileParser {
               yield SymbolHandle::fromClassConstant(
                 $class,
                 $name
-              ) => RawSymbolInfo::forInnerSymbol($attributeComments);
+              ) => RawSymbolInfo::create($attributeComments, $imports);
             }
             break;
 

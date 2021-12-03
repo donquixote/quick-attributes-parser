@@ -23,22 +23,11 @@ class RawSymbolInfo {
 
   /**
    * @param string[] $attributeComments
-   *
-   * @return self
-   */
-  public static function forInnerSymbol(array $attributeComments): self {
-    $instance = new self();
-    $instance->attributeComments = $attributeComments;
-    return $instance;
-  }
-
-  /**
-   * @param string[] $attributeComments
    * @param array<string, string> $imports
    *
    * @return self
    */
-  public static function forTopLevelSymbol(array $attributeComments, array $imports): self {
+  public static function create(array $attributeComments, array $imports): self {
     $instance = new self();
     $instance->attributeComments = $attributeComments;
     $instance->imports = $imports;

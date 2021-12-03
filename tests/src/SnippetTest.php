@@ -49,8 +49,14 @@ class SnippetTest extends YmlTestBase {
        */
       foreach ($parser->parseFileTokens($fileTokens) as $h => $info) {
         $imports = $info->getImports();
-        if ($imports !== null) {
-          $data['importss'][(string) $h] = $imports;
+        if ($h->isTopLevel()) {
+          if ($imports !== null) {
+            $data['importss'][(string) $h] = $imports;
+          }
+        }
+        else {
+          $expectedImports = $data['importss'][(string) $h->getTopLevel()] ?? null;
+          self::assertSame($expectedImports, $imports);
         }
         $attrComments = $info->getAttributeComments();
         $exportedAttributes = [];

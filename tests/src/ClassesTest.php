@@ -70,7 +70,10 @@ class ClassesTest extends TestCase {
         }
         else {
           // Inner symbol must have same imports as top-level symbol.
-          self::assertNull($info->getImports(), (string) $symbol);
+          self::assertSame(
+            $importss[(string) $toplevel],
+            $info->getImports(),
+            (string) $symbol);
         }
         $commentss[(string) $symbol] = $info->getAttributeComments();
       }
