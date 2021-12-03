@@ -324,6 +324,29 @@ final class SymbolHandle {
   }
 
   /**
+   * Checks if this is a top-level symbol.
+   *
+   * @return bool
+   *   TRUE if this is a top-level symbol (class-like or function).
+   */
+  public function isTopLevel(): bool {
+    switch ($this->reflectorClass) {
+      case \ReflectionMethod::class:
+      case \ReflectionProperty::class:
+      case \ReflectionClassConstant::class:
+      case \ReflectionParameter::class:
+        return false;
+
+      case \ReflectionClass::class:
+      case \ReflectionFunction::class:
+        return true;
+
+      default:
+        throw new \RuntimeException('Unreachable code.');
+    }
+  }
+
+  /**
    * Gets a handle to the top-level symbol that contains this.
    *
    * @return self<\ReflectionClass>|self<\ReflectionFunction>
