@@ -6,11 +6,13 @@ namespace Donquixote\QuickAttributes\FileTokens;
 
 /**
  * Encapsulates the tokens within a file.
+ *
+ * @psalm-type _TokenList=list<string|array{int, string, int}>
  */
 interface FileTokensInterface {
 
   /**
-   * @return \Iterator<list<string|array{int, string, int}>>
+   * @return \Iterator<_TokenList>
    *   For a class file:
    *     1. All tokens until (including) the class header.
    *     2. All tokens in the file.
