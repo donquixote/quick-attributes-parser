@@ -1,0 +1,13 @@
+php: |
+  <?php
+
+  class C extends {
+    use T;
+    function f() {}
+  }
+importss:
+  C: {  }
+attributess:
+  C: {  }
+  'C::f()': {  }
+tokenizer_split: false
