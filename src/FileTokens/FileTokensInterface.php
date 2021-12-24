@@ -7,7 +7,8 @@ namespace Donquixote\QuickAttributes\FileTokens;
 /**
  * Encapsulates the tokens within a file.
  *
- * @psalm-type _TokenList=list<string|array{int, string, int}>
+ * @psalm-type _Token=string|array{int,string,int}
+ * @psalm-type _TokenList=list<_Token>
  */
 interface FileTokensInterface {
 
