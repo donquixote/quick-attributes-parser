@@ -8,6 +8,11 @@ use Donquixote\QuickAttributes\Util\TokenizerUtil;
 
 class FileTokens_Common implements FileTokensInterface {
 
+  /**
+   * PHP from a file.
+   *
+   * @var string
+   */
   private string $php;
 
   /**
