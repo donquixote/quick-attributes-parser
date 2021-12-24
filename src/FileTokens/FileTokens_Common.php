@@ -90,48 +90,28 @@ class FileTokens_Common implements FileTokensInterface {
       $phpHead = \substr($this->php, 0, $openCurlyPos + 1);
       // Append a comment to prevent un-catchable E_COMPILE_WARNING.
       $phpHead .= '/* */';
-      $tokensHead = TokenizerUtil::tokenGetAll($phpHead);
-      $nTokensHead = \count($tokensHead);
+      $tokens = TokenizerUtil::tokenGetAll($phpHead);
+      $nTokensHead = \count($tokens);
       // Verify the regex was not tricked by a comment or string literal.
-      if ($tokensHead[$nTokensHead - 2] === '{') {
-        \assert($tokensHead[$nTokensHead - 1][0] === \T_COMMENT);
-        \assert($tokensHead[$nTokensHead - 1][1] === '/* */');
+      if ($tokens[$nTokensHead - 2] === '{') {
+        \assert($tokens[$nTokensHead - 1][0] === \T_COMMENT);
+        \assert($tokens[$nTokensHead - 1][1] === '/* */');
         // Remove the '/* */' comment.
-        \array_pop($tokensHead);
+        \array_pop($tokens);
         break;
       }
       // The regex must have found a comment or string literal.
       $offset = $openCurlyPos;
     }
 
-    $tokens = $tokensHead;
     $tokens[] = '#';
 
     // Yield a temporary tokens array that ends with the class shortname.
     yield $tokens;
 
-    // Tokenize the rest of the file.
-    // Make sure to have at least one whitespace token after `<?php`.
-    $phpRemaining = '<?php  '
-      // Prepend new lines to make sure line numbers match up.
-      . \str_repeat(
-        "\n",
-        \substr_count($phpHead, "\n"))
-      // Include the open curly bracket.
-      . \substr($this->php, $openCurlyPos);
+    $tokens = \token_get_all($this->php);
+    $tokens[] = '#';
 
-    $tokensRemaining = TokenizerUtil::tokenGetAll($phpRemaining);
-
-    // Combine old and new tokens.
-    $tokens = [
-      ...\array_slice($tokens, 0, -1),
-      ...\array_slice($tokensRemaining, 3),
-      '#',
-    ];
-
-    \assert($tokens === [...TokenizerUtil::tokenGetAll($this->php), '#']);
-
-    // Yield the final tokens array.
     yield $tokens;
   }
 
