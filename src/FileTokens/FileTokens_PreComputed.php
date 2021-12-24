@@ -62,7 +62,7 @@ class FileTokens_PreComputed implements FileTokensInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @inheritDoc
    */
   public function getTokenss(): \Iterator {
     if ($this->tokensHead !== null) {

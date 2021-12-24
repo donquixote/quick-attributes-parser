@@ -66,7 +66,7 @@ class FileTokens_Common implements FileTokensInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * @inheritDoc
    */
   public function getTokenss(): \Iterator {
     $offset = 0;
