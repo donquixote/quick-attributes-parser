@@ -788,11 +788,11 @@ class FileParser {
     }
     $first = TRUE;
     // Iterate over imports separated by comma.
-    while (TRUE) {
+    while (true) {
       \assert(ParserUtil::expect($tokens, $i, \T_STRING));
       \assert(\preg_match('@^\w+$@', $qcn));
       // Iterate over QCN fragments separated by T_NS_SEPARATOR.
-      while (TRUE) {
+      while (true) {
         \assert(ParserUtil::expect($tokens, $i, \T_STRING));
         \assert(\preg_match('@^\w+(?:\\\\\w+)*$@', $qcn));
         ++$i;
@@ -895,7 +895,7 @@ class FileParser {
       \assert(ParserUtil::expect($tokens, $i, \T_STRING));
       \assert(\preg_match('@^\w+$@', $subQcn));
       // Iterate over fragments of QCN, separated by T_NS_SEPARATOR.
-      while (TRUE) {
+      while (true) {
         \assert(ParserUtil::expect($tokens, $i, \T_STRING));
         \assert(\preg_match('@^\w+(?:\\\\\w+)*$@', $subQcn));
         ++$i;
