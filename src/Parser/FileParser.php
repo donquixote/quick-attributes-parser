@@ -26,11 +26,11 @@ class FileParser {
   /**
    * @param string $file
    *
-   * @return iterable<SymbolHandle, RawSymbolInfo>
+   * @return \Iterator<SymbolHandle, RawSymbolInfo>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseFile(string $file): iterable {
+  public function parseFile(string $file): \Iterator {
     try {
       $fileTokens = FileTokens_Common::fromFile($file);
       yield from $this->parseFileTokens($fileTokens);
