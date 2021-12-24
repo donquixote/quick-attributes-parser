@@ -175,7 +175,7 @@ class ClassesTest extends TestCase {
     // Verify that no orphan yml files exist.
     $actualFilesMap = [];
     foreach (\scandir($ymlDir) as $candidate) {
-      if (\preg_match('@\.yml$@', $candidate, $m)) {
+      if (\preg_match('@\.yml$@', $candidate)) {
         $actualFilesMap["$ymlDir/$candidate"] = TRUE;
       }
     }
