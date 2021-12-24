@@ -6,6 +6,7 @@ importss:
   C: {  }
 attributess:
   C: {  }
+tokenizer_split: false
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 3:17: Unexpected ''+'' before class body.'

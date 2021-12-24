@@ -23,6 +23,7 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *     'attr-comments'?: list<string>,
  *   }>,
  *   exception?: array,
+ *   tokenizer_split?: bool,
  * }
  *
  * @template-extends YmlTestBase<_SnippetYamlContent>
@@ -77,6 +78,7 @@ class SnippetTest extends YmlTestBase {
       'php',
       'importss',
       'attributess',
+      'tokenizer_split',
     ]);
   }
 

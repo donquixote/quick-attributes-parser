@@ -19,3 +19,4 @@ importss:
 attributess:
   other(): {  }
   other($x): {  }
+tokenizer_split: true
