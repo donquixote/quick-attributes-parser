@@ -37,14 +37,9 @@ class FileTokens_PreComputed implements FileTokensInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public static function fromFileTokens(FileTokensInterface $fileTokens): self {
-    $it = $fileTokens->getTokenss();
-    $tokens = $it->current();
-    $it->next();
-    if ($it->valid()) {
-      return new self($it->current(), $tokens);
-    }
-
-    return new self($tokens, null);
+    return new self(
+      $fileTokens->getClassFileHead(),
+      $fileTokens->getAll());
   }
 
   /**
@@ -64,11 +59,15 @@ class FileTokens_PreComputed implements FileTokensInterface {
   /**
    * @inheritDoc
    */
-  public function getTokenss(): \Iterator {
-    if ($this->tokensHead !== null) {
-      yield $this->tokensHead;
-    }
-    yield $this->tokensAll;
+  public function getClassFileHead(): ?array {
+    return $this->tokensHead;
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getAll(): array {
+    return $this->tokensAll;
   }
 
 }

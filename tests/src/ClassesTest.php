@@ -29,18 +29,14 @@ class ClassesTest extends TestCase {
    */
   public function testTokenizer(string $shortname): void {
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
-    $tokenss = FileTokens_Common::fromFile($file)->getTokenss();
-    $tokens = $tokenss->current();
-    $n = \count($tokens);
-    self::assertSame('{', $tokens[$n - 2]);
-    self::assertSame('#', $tokens[$n - 1]);
-    $tokenss->next();
-    self::assertTrue($tokenss->valid());
-    $tokens = $tokenss->current();
-    $n = \count($tokens);
-    self::assertSame('#', $tokens[$n - 1]);
-    $tokenss->next();
-    self::assertFalse($tokenss->valid());
+    $fileTokens = FileTokens_Common::fromFile($file);
+    $head = $fileTokens->getClassFileHead();
+    $all = $fileTokens->getAll();
+    self::assertSame('#', $all[\count($all) - 1]);
+    if ($head !== NULL) {
+      self::assertSame('{', $head[\count($head) - 2]);
+      self::assertSame('#', $head[\count($head) - 1]);
+    }
   }
 
   /**

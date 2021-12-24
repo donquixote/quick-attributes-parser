@@ -27,8 +27,8 @@ class SnippetTokenizerTest extends SnippetTest {
     $tokensExpected = @\token_get_all($data['php']);
     $fileTokens = new FileTokens_Common($data['php']);
     try {
-      $it = $fileTokens->getTokenss();
-      self::assertTrue($it->valid());
+      $head = $fileTokens->getClassFileHead();
+      $all = $fileTokens->getAll();
     }
     catch (ParserException $e) {
       self::assertSame(TestExportUtil::exportException($e), $data['exception'] ?? null);
@@ -36,24 +36,17 @@ class SnippetTokenizerTest extends SnippetTest {
     }
     // Verify that no tokenizer exception is in $data.
     self::assertNotSame(TokenizerException::class, $data['exception']['class'] ?? null);
-    self::assertSame(0, $it->key());
-    $tokens = $it->current();
-    self::assertSame('#', \array_pop($tokens));
-    $n = \count($tokens);
-    $it->next();
+    self::assertSame('#', \array_pop($all));
+    self::assertSame($tokensExpected, $all);
     $hasClass = (bool) \preg_grep(
       '@^[\w\\\\]+$@',
       \array_keys($data['importss'] ?? []));
     unset($data['tokenizer_split']);
-    if ($it->valid()) {
+    if ($head !== NULL) {
       // The file was split.
-      self::assertSame(\array_slice($tokensExpected, 0, $n), $tokens);
-      self::assertSame('{', \end($tokens));
-      self::assertSame(1, $it->key());
-      $tokens = $it->current();
-      self::assertSame('#', \array_pop($tokens));
-      $it->next();
-      self::assertFalse($it->valid());
+      self::assertSame('#', \array_pop($head));
+      self::assertSame(\array_slice($tokensExpected, 0, count($head)), $head);
+      self::assertSame('{', \end($head));
       if (!$hasClass && !isset($data['exception'])) {
         $data['tokenizer_split'] = true;
       }
@@ -64,7 +57,6 @@ class SnippetTokenizerTest extends SnippetTest {
         $data['tokenizer_split'] = false;
       }
     }
-    self::assertSame($tokensExpected, $tokens);
     TestArrayUtil::normalizeKeys($data, [
       'php',
       'importss',

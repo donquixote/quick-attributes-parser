@@ -13,16 +13,23 @@ namespace Donquixote\QuickAttributes\FileTokens;
 interface FileTokensInterface {
 
   /**
-   * @return \Iterator<_TokenList>
-   *   For a class file:
-   *     1. All tokens until (including) the class header.
-   *     2. All tokens in the file.
-   *   For any other file:
-   *     1. All tokens in the file.
+   *
+   * @return _TokenList|null
+   *   Token list, terminated with '#', until opening '{' of class, OR
+   *   NULL, if not a class file, or unexpected format.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    *   Invalid or unsupported PHP found, failed to tokenize.
    */
-  public function getTokenss(): \Iterator;
+  public function getClassFileHead(): ?array;
+
+  /**
+   * @return _TokenList
+   *   Token list, terminated with '#', containing all tokens in the file.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   *   Invalid or unsupported PHP found, failed to tokenize.
+   */
+  public function getAll(): array;
 
 }

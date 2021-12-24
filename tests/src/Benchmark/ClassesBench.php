@@ -232,7 +232,8 @@ class ClassesBench {
   public function benchTokenHeadThenRest(array $args): void {
     [$php] = $args;
     $fileTokens = new FileTokens_Common($php);
-    foreach ($fileTokens->getTokenss() as $_) {}
+    $fileTokens->getClassFileHead();
+    $fileTokens->getAll();
   }
 
   /**
@@ -263,7 +264,7 @@ class ClassesBench {
   public function benchTokenHeadOnly(array $args): void {
     [$php] = $args;
     $fileTokens = new FileTokens_Common($php);
-    $fileTokens->getTokenss()->current();
+    $fileTokens->getClassFileHead();
   }
 
   /**

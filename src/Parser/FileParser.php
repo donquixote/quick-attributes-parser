@@ -50,10 +50,13 @@ class FileParser {
    */
   public function parseFileTokens(FileTokensInterface $fileTokens): iterable {
 
-    $tokenss = $fileTokens->getTokenss();
-    unset($fileTokens);
+    $headFirst = true;
+    $tokens = $fileTokens->getClassFileHead();
 
-    $tokens = $tokenss->current();
+    if ($tokens === null) {
+      $headFirst = false;
+      $tokens = $fileTokens->getAll();
+    }
 
     $namespace = NULL;
     $terminatedNamespace = '';
@@ -130,9 +133,8 @@ class FileParser {
               // the head of a supposed class file.
               // This can be the case if the class is declared within an if ().
               // Load the complete token list, and try again.
-              $tokenss->next();
-              if ($tokenss->valid()) {
-                $tokens = $tokenss->current();
+              if ($headFirst) {
+                $tokens = $fileTokens->getAll();
               }
               \assert(ParserUtil::expect($tokens, $i, '{'));
               ParserUtil::skipSubtree($tokens, $i);
@@ -248,10 +250,8 @@ class FileParser {
             yield SymbolHandle::fromClass($class) => RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
 
             // Get the full version of the tokens now.
-            $tokenss->next();
-            if ($tokenss->valid()) {
-              // If not valid, $tokens already contains the complete file.
-              $tokens = $tokenss->current();
+            if ($headFirst) {
+              $tokens = $fileTokens->getAll();
             }
 
             $this->skipClassLikeExtendsImplements($tokens, $i);
