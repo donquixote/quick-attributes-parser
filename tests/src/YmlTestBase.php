@@ -17,11 +17,30 @@ abstract class YmlTestBase extends TestCase {
    * @dataProvider provider()
    */
   public function test(string $name): void {
-    $file = $this->getYmlDir() . '/' . $name . '.yml';
-    /** @var T $data */
-    $data = Yaml::parseFile($file);
+    $data = $this->loadData($name);
     $this->processData($data, $name);
+    $file = $this->getFile($name);
     TestUtil::assertFileContentsYml($file, $data);
+  }
+
+  /**
+   * @param string $name
+   *
+   * @return string
+   */
+  protected function getFile(string $name): string {
+    return $this->getYmlDir() . '/' . $name . '.yml';
+  }
+
+  /**
+   * @param string $name
+   *
+   * @return T
+   */
+  protected function loadData(string $name): array {
+    $file = $this->getFile($name);
+    /** @var T */
+    return Yaml::parseFile($file);
   }
 
   /**
