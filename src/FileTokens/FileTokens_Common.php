@@ -34,6 +34,9 @@ class FileTokens_Common implements FileTokensInterface {
       \file_get_contents($file));
   }
 
+  /**
+   * @return string
+   */
   private static function getRegex(): string {
     /** @var ?string $regex */
     static $regex;
