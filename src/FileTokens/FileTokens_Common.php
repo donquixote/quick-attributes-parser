@@ -79,9 +79,10 @@ class FileTokens_Common implements FileTokensInterface {
    * @inheritDoc
    */
   public function getClassFileHead(): ?array {
-    foreach($this->getCandidateOpenCurlyPositions() as $openCurlyPos) {
+    for ($pos = 0; null !== $pos = $this->findCandidateOpenCurlyPosition($pos);) {
+      \assert($this->php[$pos] === '{');
       // Include the open curly bracket in the file head, to act as a marker.
-      $php = \substr($this->php, 0, $openCurlyPos + 1);
+      $php = \substr($this->php, 0, $pos + 1);
       try {
         $tokens = TokenizerUtil::tokenGetAll($php);
         if (\end($tokens) === '{') {
@@ -101,33 +102,26 @@ class FileTokens_Common implements FileTokensInterface {
   }
 
   /**
-   * Gets possible positions of open curly bracket starting the class body.
+   * Finds the next position that could be the beginning of the class body.
    *
-   * @return \Iterator<int>
+   * @param int $offset
+   *
+   * @return int|null
+   *   A position, or NULL if no further candidate positions exist.
    */
-  private function getCandidateOpenCurlyPositions(): \Iterator {
-    $regex = $this->getRegex();
-    $offset = 0;
-    while (TRUE) {
-      // Look for class name.
-      if (!\preg_match(
-        $regex,
-        $this->php,
-        $m,
-        \PREG_OFFSET_CAPTURE,
-        $offset)
-      ) {
-        return;
-      }
-
-      /** @var list<array{string, int}> $m */
-      $openCurlyPos = $m[1][1];
-      \assert($this->php[$openCurlyPos] === '{');
-
-      yield $openCurlyPos;
-
-      $offset = $openCurlyPos;
+  private function findCandidateOpenCurlyPosition(int $offset = 0): ?int {
+    if (!\preg_match(
+      $this->getRegex(),
+      $this->php,
+      $m,
+      \PREG_OFFSET_CAPTURE,
+      $offset)
+    ) {
+      return NULL;
     }
+
+    /** @var list<array{string, int}> $m */
+    return $m[1][1];
   }
 
   /**
