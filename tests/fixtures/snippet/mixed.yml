@@ -36,12 +36,16 @@ php: |
 
   function f(array &$x, \Acme\Animal ...$args) {}
 
+  #[A(self::class)]
   class C extends B implements I, J {
     public const EXAMPLE = 5;
     private const X = 'x', YY = 'y' . ('y' . '');
     protected $m = 5;
+    #[A('class: ' . self::class)]
     private $a = 7, $b = 8 + (9 / 3);
+    #[A(self::class)]
     public ?int $n;
+    #[A(5)]
     public function __construct(private int $x) {}
     private function f(?int $x) {
       return $x ?? 5;
@@ -67,15 +71,31 @@ attributess:
   N\f(): {  }
   N\f($x): {  }
   N\f($args): {  }
-  N\C: {  }
+  N\C:
+    -
+      name: N\A
+      arguments:
+        - N\C
   'N\C::EXAMPLE': {  }
   'N\C::X': {  }
   'N\C::YY': {  }
   'N\C::$m': {  }
-  'N\C::$a': {  }
-  'N\C::$b': {  }
+  'N\C::$a':
+    -
+      name: N\A
+      arguments:
+        - 'class: N\C'
+  'N\C::$b':
+    -
+      name: N\A
+      arguments:
+        - 'class: N\C'
   'N\C::$n': {  }
-  'N\C::__construct()': {  }
+  'N\C::__construct()':
+    -
+      name: N\A
+      arguments:
+        - 5
   'N\C::__construct($x)': {  }
   'N\C::f()': {  }
   'N\C::f($x)': {  }
