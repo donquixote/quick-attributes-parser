@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Util;
 
+use Donquixote\QuickAttributes\Exception\ParserMalfunction;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 
 /**
@@ -18,7 +19,7 @@ class ParserAssertUtil {
    *
    * @return true
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
   public static function expectOneIn(array $tokens, int $pos, array $map): bool {
     if (isset($map[$tokens[$pos][0]])) {
@@ -31,7 +32,7 @@ class ParserAssertUtil {
         : \var_export($k, TRUE);
     }
     $export = \implode(' or ', $parts);
-    throw SyntaxException::expectedButFound($tokens, $pos, $export);
+    throw self::expectedButFound($tokens, $pos, $export);
   }
 
   /**
@@ -41,7 +42,7 @@ class ParserAssertUtil {
    *
    * @return true
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
   public static function expect(array $tokens, int $pos, $expected): bool {
     if ($tokens[$pos][0] === $expected) {
@@ -50,7 +51,7 @@ class ParserAssertUtil {
     $export = \is_int($expected)
       ? \token_name($expected)
       : \var_export($expected, TRUE);
-    throw SyntaxException::expectedButFound($tokens, $pos, $export);
+    throw self::expectedButFound($tokens, $pos, $export);
   }
 
   /**
@@ -60,10 +61,23 @@ class ParserAssertUtil {
    *
    * @return true
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
   public static function expectOneOf(array $tokens, int $pos, array $allowed): bool {
     return self::expectOneIn($tokens, $pos, \array_fill_keys($allowed, TRUE));
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   * @param string $expected
+   *
+   * @return \Donquixote\QuickAttributes\Exception\ParserMalfunction
+   */
+  private static function expectedButFound(array $tokens, int $pos, string $expected): ParserMalfunction {
+    // Borrow from SyntaxException to generate the message.
+    $message = SyntaxException::expectedButFound($tokens, $pos, $expected)->getMessage();
+    return new ParserMalfunction($message);
   }
 
 }
