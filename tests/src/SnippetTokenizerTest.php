@@ -45,7 +45,7 @@ class SnippetTokenizerTest extends SnippetTest {
     if ($head !== NULL) {
       // The file was split.
       self::assertSame('#', \array_pop($head));
-      self::assertSame(\array_slice($tokensExpected, 0, count($head)), $head);
+      self::assertSame(\array_slice($tokensExpected, 0, \count($head)), $head);
       self::assertSame('{', \end($head));
       if (!$hasClass && !isset($data['exception'])) {
         $data['tokenizer_split'] = true;
