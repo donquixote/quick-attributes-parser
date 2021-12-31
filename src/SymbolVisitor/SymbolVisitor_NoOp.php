@@ -10,19 +10,19 @@ class SymbolVisitor_NoOp implements SymbolVisitorInterface {
     // Do nothing.
   }
 
-  public function addProperty(string $class, string $property, array $attrComments): void {
+  public function addProperty(string $class, string $property, array $imports, array $attrComments): void {
     // Do nothing.
   }
 
-  public function addClassConstant(string $class, string $constant, array $attrComments): void {
+  public function addClassConstant(string $class, string $constant, array $imports, array $attrComments): void {
     // Do nothing.
   }
 
-  public function addMethod(string $class, string $method, array $attrComments): void {
+  public function addMethod(string $class, string $method, array $imports, array $attrComments): void {
     // Do nothing.
   }
 
-  public function addMethodParameter(string $class, string $method, string $param, array $attrComments): void {
+  public function addMethodParameter(string $class, string $method, string $param, array $imports, array $attrComments): void {
     // Do nothing.
   }
 
@@ -30,7 +30,7 @@ class SymbolVisitor_NoOp implements SymbolVisitorInterface {
     // Do nothing.
   }
 
-  public function addFunctionParameter(string $function, string $param, array $attrComments): void {
+  public function addFunctionParameter(string $function, string $param, array $imports, array $attrComments): void {
     // Do nothing.
   }
 

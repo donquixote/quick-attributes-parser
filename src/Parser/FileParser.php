@@ -226,6 +226,7 @@ class FileParser {
               $visitor->addFunctionParameter(
                 $functionQcn,
                 \substr($paramDollarName, 1),
+                $imports,
                 $paramAttrComments);
               yield true;
             }
@@ -260,7 +261,7 @@ class FileParser {
 
             $this->skipClassLikeExtendsImplements($tokens, $i);
             \assert(ParserAssertUtil::expect($tokens, $i, '{'));
-            yield from $this->parseClassLikeBody($tokens, $i, $class, $visitor);
+            yield from $this->parseClassLikeBody($tokens, $i, $class, $imports, $visitor);
             \assert(ParserAssertUtil::expect($tokens, $i, '}'));
             break;
 
@@ -362,6 +363,7 @@ class FileParser {
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param class-string $class
+   * @param array<string, string> $imports
    * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
    *
    * @return \Iterator<true>
@@ -369,7 +371,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseClassLikeBody(array $tokens, int &$pos, string $class, SymbolVisitorInterface $visitor): \Iterator {
+  private function parseClassLikeBody(array $tokens, int &$pos, string $class, array $imports, SymbolVisitorInterface $visitor): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
@@ -432,13 +434,14 @@ class FileParser {
           case \T_FUNCTION:
             $method = $this->parseFunctionHead($tokens, $i, TRUE);
             \assert($method !== NULL);
-            $visitor->addMethod($class, $method, $attributeComments);
+            $visitor->addMethod($class, $method, $imports, $attributeComments);
             yield true;
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $visitor->addMethodParameter(
                 $class,
                 $method,
                 \substr($paramDollarName, 1),
+                $imports,
                 $paramAttrComments);
               yield true;
             }
@@ -460,7 +463,7 @@ class FileParser {
           case \T_VARIABLE:
             $names = $this->parseClassPropertyGroup($tokens, $i);
             foreach ($names as $name) {
-              $visitor->addProperty($class, $name, $attributeComments);
+              $visitor->addProperty($class, $name, $imports, $attributeComments);
               yield true;
             }
             break;
@@ -468,7 +471,7 @@ class FileParser {
           case \T_CONST:
             $names = $this->parseClassConstGroup($tokens, $i);
             foreach ($names as $name) {
-              $visitor->addClassConstant($class, $name, $attributeComments);
+              $visitor->addClassConstant($class, $name, $imports, $attributeComments);
               yield true;
             }
             break;

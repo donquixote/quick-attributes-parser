@@ -39,28 +39,28 @@ class SymbolVisitor_CollectRawSymbolInfo implements SymbolVisitorInterface {
   /**
    * @inheritDoc
    */
-  public function addProperty(string $class, string $property, array $attrComments): void {
+  public function addProperty(string $class, string $property, array $imports, array $attrComments): void {
     $this->info[$class . '::$' . $property] = RawSymbolInfo::forInnerSymbol($attrComments);
   }
 
   /**
    * @inheritDoc
    */
-  public function addClassConstant(string $class, string $constant, array $attrComments): void {
+  public function addClassConstant(string $class, string $constant, array $imports, array $attrComments): void {
     $this->info[$class . '::' . $constant] = RawSymbolInfo::forInnerSymbol($attrComments);
   }
 
   /**
    * @inheritDoc
    */
-  public function addMethod(string $class, string $method, array $attrComments): void {
+  public function addMethod(string $class, string $method, array $imports, array $attrComments): void {
     $this->info[$class . '::' . $method . '()'] = RawSymbolInfo::forInnerSymbol($attrComments);
   }
 
   /**
    * @inheritDoc
    */
-  public function addMethodParameter(string $class, string $method, string $param, array $attrComments): void {
+  public function addMethodParameter(string $class, string $method, string $param, array $imports, array $attrComments): void {
     $this->info[$class . '::' . $method . '($' . $param . ')'] = RawSymbolInfo::forInnerSymbol($attrComments);
   }
 
@@ -74,7 +74,7 @@ class SymbolVisitor_CollectRawSymbolInfo implements SymbolVisitorInterface {
   /**
    * @inheritDoc
    */
-  public function addFunctionParameter(string $function, string $param, array $attrComments): void {
+  public function addFunctionParameter(string $function, string $param, array $imports, array $attrComments): void {
     $this->info[$function . '($' . $param . ')'] = RawSymbolInfo::forInnerSymbol($attrComments);
   }
 

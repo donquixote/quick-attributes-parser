@@ -16,31 +16,35 @@ interface SymbolVisitorInterface {
   /**
    * @param class-string $class
    * @param string $property
+   * @param array<string, string> $imports
    * @param list<string> $attrComments
    */
-  public function addProperty(string $class, string $property, array $attrComments): void;
+  public function addProperty(string $class, string $property, array $imports, array $attrComments): void;
 
   /**
    * @param class-string $class
    * @param string $constant
+   * @param array<string, string> $imports
    * @param list<string> $attrComments
    */
-  public function addClassConstant(string $class, string $constant, array $attrComments): void;
+  public function addClassConstant(string $class, string $constant, array $imports, array $attrComments): void;
 
   /**
    * @param class-string $class
    * @param string $method
+   * @param array<string, string> $imports
    * @param list<string> $attrComments
    */
-  public function addMethod(string $class, string $method, array $attrComments): void;
+  public function addMethod(string $class, string $method, array $imports, array $attrComments): void;
 
   /**
    * @param class-string $class
    * @param string $method
    * @param string $param
+   * @param array<string, string> $imports
    * @param list<string> $attrComments
    */
-  public function addMethodParameter(string $class, string $method, string $param, array $attrComments): void;
+  public function addMethodParameter(string $class, string $method, string $param, array $imports, array $attrComments): void;
 
   /**
    * @param string $function
@@ -52,8 +56,9 @@ interface SymbolVisitorInterface {
   /**
    * @param string $function
    * @param string $param
+   * @param array<string, string> $imports
    * @param list<string> $attrComments
    */
-  public function addFunctionParameter(string $function, string $param, array $attrComments): void;
+  public function addFunctionParameter(string $function, string $param, array $imports, array $attrComments): void;
 
 }
