@@ -8,6 +8,8 @@ Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$x': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$y':
   - '#[A0(''property $y'')]'
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$z':
+  - '#[A1()]'
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct()':
   - '#[A0(''constructor'')]'
   - '#[A1()]'
@@ -18,3 +20,4 @@ Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct($args)': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::f()': {  }
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::abs()': {  }
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::getZ()': {  }
