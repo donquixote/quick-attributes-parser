@@ -41,28 +41,28 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
   /**
    * @inheritDoc
    */
-  public function addProperty(string $class, string $property, array $imports, array $attrComments): void {
+  public function addProperty(string $class, string $property, array $attrComments): void {
     $this->attrCommentss[$class . '::$' . $property] = $attrComments;
   }
 
   /**
    * @inheritDoc
    */
-  public function addClassConstant(string $class, string $constant, array $imports, array $attrComments): void {
+  public function addClassConstant(string $class, string $constant, array $attrComments): void {
     $this->attrCommentss[$class . '::' . $constant] = $attrComments;
   }
 
   /**
    * @inheritDoc
    */
-  public function addMethod(string $class, string $method, array $imports, array $attrComments): void {
+  public function addMethod(string $class, string $method, array $attrComments): void {
     $this->attrCommentss[$class . '::' . $method . '()'] = $attrComments;
   }
 
   /**
    * @inheritDoc
    */
-  public function addMethodParameter(string $class, string $method, string $param, array $imports, array $attrComments): void {
+  public function addMethodParameter(string $class, string $method, string $param, array $attrComments): void {
     $this->attrCommentss[$class . '::' . $method . '($' . $param . ')'] = $attrComments;
   }
 
@@ -77,7 +77,7 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
   /**
    * @inheritDoc
    */
-  public function addFunctionParameter(string $function, string $param, array $imports, array $attrComments): void {
+  public function addFunctionParameter(string $function, string $param, array $attrComments): void {
     $this->attrCommentss[$function . '($' . $param . ')'] = $attrComments;
   }
 
