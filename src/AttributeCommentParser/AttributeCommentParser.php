@@ -142,7 +142,6 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       $qcn = $this->parseAttributeName($tokens, $i);
       \assert($i > $iBkp0);
       $id = ParserUtil::skipFillerWs($tokens, $i);
-      \assert(ParserUtil::expectOneOf($tokens, $i, ['(', ']', ',']));
       if ($id === '(') {
         yield $this->parseArgsGetRawAttribute($tokens, $i, $qcn);
         \assert($tokens[$i] === ')');
