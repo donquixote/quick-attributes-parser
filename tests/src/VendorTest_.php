@@ -7,6 +7,7 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -30,7 +31,7 @@ class VendorTest_ extends TestCase {
     $parser = new FileParser();
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
-      foreach ($parser->parseFile($file) as $_) {}
+      foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {}
     }
     catch (PhpVersionException $e) {
       // Ignore language features from PHP 8.

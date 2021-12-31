@@ -8,6 +8,7 @@ use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
@@ -35,44 +36,55 @@ class SnippetTest extends YmlTestBase {
    */
   protected function processData(array &$data, string $name): void {
     if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(true);
+      self::assertTrue(TRUE);
       return;
     }
     $fileTokens = new FileTokens_Common($data['php']);
     $parser = new FileParser();
     $attrParser = new AttributeCommentParser();
+    $visitor = new SymbolVisitor_CollectInfo();
     try {
       unset($data['attributess']);
       unset($data['importss']);
-      /**
-       * @var \Donquixote\QuickAttributes\Value\SymbolHandle $h
-       * @psalm-ignore-var
-       */
-      foreach ($parser->parseFileTokens($fileTokens) as $h => $info) {
-        $imports = $info->getImports();
-        if ($imports !== null) {
-          $data['importss'][(string) $h] = $imports;
-        }
-        $attrComments = $info->getAttributeComments();
-        $exportedAttributes = [];
-        if ($attrComments) {
-          $imports = $data['importss'][(string) $h->getTopLevel()] ?? [];
-          $attrParser = $attrParser->withContext(
-            $h->getNamespaceName(),
-            $imports,
-            $h->getClassName());
-          foreach ($attrComments as $comment) {
-            foreach ($attrParser->parse($comment) as $attr) {
-              $exportedAttributes[] = TestExportUtil::exportRawAttribute($attr);
-            }
-          }
-        }
-        $data['attributess'][(string) $h] = $exportedAttributes;
-      }
+      // Parse all.
+      foreach ($parser->parseFileTokens($fileTokens, $visitor) as $_) {}
       unset($data['exception']);
     }
     catch (ParserException $e) {
       $data['exception'] = TestExportUtil::exportException($e);
+    }
+    $importss = $visitor->getImportss();
+    if ($importss) {
+      $data['importss'] = $importss;
+    }
+    $localAttrParser = $attrParser;
+    foreach ($visitor->getAttrCommentss() as $key => $attrComments) {
+      if (isset($importss[$key])) {
+        // This is a top-level symbol with its own imports and namespace.
+        if (!\preg_match('@^(?:|(.*)\\\\)\w+(|\(\))$@', $key, $m)) {
+          throw new \RuntimeException('Unexpected regex mismatch.');
+        }
+        [, $namespace, $parens] = $m;
+        /** @var class-string|null $class */
+        $class = ($parens === '') ? $key : null;
+        $localAttrParser = $attrParser->withContext(
+          $namespace ?: null,
+          $importss[$key],
+          $class);
+      }
+      try {
+        $attributes = [];
+        foreach ($attrComments as $attrComment) {
+          foreach ($localAttrParser->parse($attrComment) as $rawAttribute) {
+            $attributes[] = TestExportUtil::exportRawAttribute($rawAttribute);
+          }
+        }
+        $data['attributess'][$key] = $attributes;
+      }
+      catch (ParserException $e) {
+        $data['exception'] = TestExportUtil::exportException($e);
+        break;
+      }
     }
     TestArrayUtil::normalizeKeys($data, [
       'php',

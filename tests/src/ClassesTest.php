@@ -10,6 +10,7 @@ use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
@@ -52,29 +53,20 @@ class ClassesTest extends TestCase {
     $ymlDir = $this->getYmlDir();
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
     $parser = new FileParser();
-    $importss = [];
-    $commentss = [];
+    $visitor = new SymbolVisitor_CollectInfo();
     try {
       /**
        * @psalm-ignore-var
        * @var \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
        */
-      foreach ($parser->parseFile($file) as $symbol => $info) {
-        $toplevel = $symbol->getTopLevel();
-        if ($toplevel === $symbol) {
-          $importss[(string) $symbol] = $info->getImports();
-        }
-        else {
-          // Inner symbol must have same imports as top-level symbol.
-          self::assertNull($info->getImports(), (string) $symbol);
-        }
-        $commentss[(string) $symbol] = $info->getAttributeComments();
-      }
+      foreach ($parser->parseFile($file, $visitor) as $_) {}
     }
     catch (ParserException $e) {
       $e->setSourceFile($file, \dirname(__DIR__, 2));
       throw $e;
     }
+    $importss = $visitor->getImportss();
+    $commentss = $visitor->getAttrCommentss();
     TestUtil::assertFileContentsYml("$ymlDir/$shortname.imports.yml", $importss);
     $this->shortnameAssertCommentsFile($shortname, $commentss);
   }
