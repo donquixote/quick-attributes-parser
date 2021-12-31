@@ -90,7 +90,11 @@ attributess:
       name: N\A
       arguments:
         - 'class: N\C'
-  'N\C::$n': {  }
+  'N\C::$n':
+    -
+      name: N\A
+      arguments:
+        - N\C
   'N\C::__construct()':
     -
       name: N\A
