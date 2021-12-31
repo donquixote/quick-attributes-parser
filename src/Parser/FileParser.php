@@ -378,7 +378,7 @@ class FileParser {
 
           case '?':
             // This is part of a type of a property or constant. Ignore.
-            break;
+            continue 2;
 
           default:
             throw SyntaxException::unexpected($tokens, $i, 'in class body');
