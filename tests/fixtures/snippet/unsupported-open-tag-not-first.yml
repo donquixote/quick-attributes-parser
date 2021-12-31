@@ -1,0 +1,6 @@
+php: |
+  Some text before the open tag.
+  <?php
+exception:
+  class: Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException
+  message: 'Line 0:0: Only files starting with T_OPEN_TAG are supported.'
