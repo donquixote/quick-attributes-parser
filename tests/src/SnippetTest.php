@@ -58,7 +58,7 @@ class SnippetTest extends YmlTestBase {
         if ($attrComments) {
           $imports = $data['importss'][(string) $h->getTopLevel()] ?? [];
           $attrParser = $attrParser->withContext(
-            null,
+            $h->getNamespaceName(),
             $imports,
             null);
           foreach ($attrComments as $comment) {

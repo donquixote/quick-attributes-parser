@@ -34,5 +34,5 @@ attributess:
   N\foo($x): {  }
   N\foo($negative):
     -
-      name: A
+      name: N\A
       arguments: {  }
