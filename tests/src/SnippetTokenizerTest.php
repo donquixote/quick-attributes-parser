@@ -38,9 +38,11 @@ class SnippetTokenizerTest extends SnippetTest {
     self::assertNotSame(TokenizerException::class, $data['exception']['class'] ?? null);
     self::assertSame('#', \array_pop($all));
     self::assertSame($tokensExpected, $all);
-    $hasClass = (bool) \preg_grep(
+    $classes = \array_values(\preg_grep(
       '@^[\w\\\\]+$@',
-      \array_keys($data['importss'] ?? []));
+      \array_keys($data['importss'] ?? [])));
+    $class = $classes[0] ?? null;
+    $hasClass = ($class !== null);
     unset($data['tokenizer_split']);
     if ($head !== NULL) {
       // The file was split.
@@ -55,6 +57,24 @@ class SnippetTokenizerTest extends SnippetTest {
       // The file was not split.
       if ($hasClass) {
         $data['tokenizer_split'] = false;
+      }
+    }
+    if ($hasClass) {
+      $parts = \explode('\\', $class);
+      $shortname = $parts[\count($parts) - 1];
+      $fileTokensNamed = new FileTokens_Common($data['php'], $shortname);
+      try {
+        $headNamed = $fileTokensNamed->getClassFileHead();
+        $allNamed = $fileTokensNamed->getAll();
+        self::assertSame('#', \array_pop($allNamed));
+        self::assertSame($all, $allNamed);
+        if ($headNamed !== null) {
+          self::assertSame('#', \array_pop($headNamed));
+          self::assertSame($head, $headNamed);
+        }
+      }
+      catch (ParserException $e) {
+        self::fail(\get_class($e) . ': ' . $e->getMessage());
       }
     }
     TestArrayUtil::normalizeKeys($data, [

@@ -16,39 +16,48 @@ class FileTokens_Common implements FileTokensInterface {
    */
   private string $php;
 
+  private ?string $expectedClassShortname = null;
+
   /**
    * Constructor.
    *
    * @param string $php
+   * @param string|null $expectedClassShortname
    */
-  public function __construct(string $php) {
+  public function __construct(string $php, string $expectedClassShortname = null) {
     $this->php = $php;
+    $this->expectedClassShortname = $expectedClassShortname;
   }
 
   /**
    * @param string $file
+   * @param bool $isClassFile
    *
    * @return self
    */
-  public static function fromFile(string $file): self {
+  public static function fromFile(string $file, bool $isClassFile = true): self {
+    if ($isClassFile
+      && \preg_match('@([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)\.php$@', $file, $m)
+    ) {
+      $shortname = $m[1];
+    }
+    else {
+      $shortname = null;
+    }
     return new self(
-      \file_get_contents($file));
+      \file_get_contents($file),
+      $shortname);
   }
 
   /**
    * @return string
    */
-  private static function getRegex(): string {
-    /** @var ?string $regex */
-    static $regex;
-    if ($regex !== NULL) {
-      return $regex;
-    }
+  private function getRegex(): string {
     $shortname = '[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*';
     $qcn = $shortname . '(?:\\\\' . $shortname . ')*';
     $name = '\\\\?' . $qcn;
     $names = $name . '(?:\s*,\s*' . $name . ')*';
-    return $regex = strtr('@
+    return \strtr('@
 # Non-word char to isolate the subsequent keyword.
 \W
 (?:abstract\s+class|final\s+class|class|interface|trait)
@@ -61,7 +70,7 @@ class FileTokens_Common implements FileTokensInterface {
 # Capture offset at opening curly bracket of class body.
 \s*(\{)
 @sx', [
-      '%shortname' => $shortname,
+      '%shortname' => $this->expectedClassShortname ?? $shortname,
       '%names' => $names,
     ]);
   }
@@ -97,7 +106,7 @@ class FileTokens_Common implements FileTokensInterface {
    * @return \Iterator<int>
    */
   private function getCandidateOpenCurlyPositions(): \Iterator {
-    $regex = self::getRegex();
+    $regex = $this->getRegex();
     $offset = 0;
     while (TRUE) {
       // Look for class name.
