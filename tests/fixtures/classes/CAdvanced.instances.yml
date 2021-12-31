@@ -16,6 +16,9 @@ Donquixote\QuickAttributes\Tests\Fixture\CAdvanced:
   -
     class: Donquixote\QuickAttributes\Tests\Attribute\A0
     $name: 'property $y'
+'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::$z':
+  -
+    class: Donquixote\QuickAttributes\Tests\Attribute\A1
 'Donquixote\QuickAttributes\Tests\Fixture\CAdvanced::__construct()':
   -
     class: Donquixote\QuickAttributes\Tests\Attribute\A0

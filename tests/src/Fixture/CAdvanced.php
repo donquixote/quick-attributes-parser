@@ -23,6 +23,9 @@ abstract class CAdvanced {
   #[A0('property $y')]
   public string $y;
 
+  #[A1()]
+  private ?int $z = 5 * (3 + 1);
+
   /**
    * Constructor.
    *
@@ -46,5 +49,9 @@ abstract class CAdvanced {
   public function f(): void {}
 
   abstract protected function abs(): void;
+
+  public function getZ(): ?int {
+    return $this->z;
+  }
 
 }
