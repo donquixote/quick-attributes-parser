@@ -455,7 +455,7 @@ class ParserUtil {
    * @param int $pos
    * @param int|string $expected
    *
-   * @return bool
+   * @return true
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
@@ -474,7 +474,7 @@ class ParserUtil {
    * @param int $pos
    * @param array-key[] $allowed
    *
-   * @return bool
+   * @return true
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
@@ -487,7 +487,7 @@ class ParserUtil {
    * @param int $pos
    * @param array $map
    *
-   * @return bool
+   * @return true
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
