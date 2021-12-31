@@ -10,6 +10,7 @@ use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
+use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\ReservedWordUtil;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
@@ -99,7 +100,7 @@ class FileParser {
         case \T_NAMESPACE:
           $namespace = $this->parseNamespace($tokens, $i);
           $terminatedNamespace = $namespace . '\\';
-          \assert(ParserUtil::expect($tokens, $i, ';'));
+          \assert(ParserAssertUtil::expect($tokens, $i, ';'));
           ++$i;
           break 2;
 
@@ -117,7 +118,7 @@ class FileParser {
           case '(':
           case '[':
             ParserUtil::skipSubtree($tokens, $i);
-            \assert(ParserUtil::expectOneOf($tokens, $i, [')', ']']));
+            \assert(ParserAssertUtil::expectOneOf($tokens, $i, [')', ']']));
             break;
 
           case '{':
@@ -136,15 +137,15 @@ class FileParser {
               if ($headFirst) {
                 $tokens = $fileTokens->getAll();
               }
-              \assert(ParserUtil::expect($tokens, $i, '{'));
+              \assert(ParserAssertUtil::expect($tokens, $i, '{'));
               ParserUtil::skipSubtree($tokens, $i);
             }
-            \assert(ParserUtil::expect($tokens, $i, '}'));
+            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
             break;
 
           case '"':
             ParserUtil::skipDoubleQuotedString($tokens, $i);
-            \assert(ParserUtil::expect($tokens, $i, '"'));
+            \assert(ParserAssertUtil::expect($tokens, $i, '"'));
             break;
 
           case ')':
@@ -199,7 +200,7 @@ class FileParser {
 
           case \T_FUNCTION:
             $shortname = $this->parseFunctionHead($tokens, $i);
-            \assert(ParserUtil::expect($tokens, $i, '('));
+            \assert(ParserAssertUtil::expect($tokens, $i, '('));
             if ($shortname === NULL) {
               // Anonymous function. Ignore.
               // Skip the parameter list first.
@@ -210,7 +211,7 @@ class FileParser {
                 ++$i;
                 ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
                 ParserUtil::skipSubtree($tokens, $i);
-                \assert(ParserUtil::expect($tokens, $i, ')'));
+                \assert(ParserAssertUtil::expect($tokens, $i, ')'));
               }
               elseif ($id === '{') {
                 --$i;
@@ -227,18 +228,18 @@ class FileParser {
                 \substr($paramDollarName, 1));
               yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
             }
-            \assert(ParserUtil::expect($tokens, $i, ')'));
+            \assert(ParserAssertUtil::expect($tokens, $i, ')'));
             ++$i;
             $id = ParserUtil::skipFillerWs($tokens, $i);
             if ($id === ':') {
               $id = $this->skipReturnType($tokens, $i);
-              \assert(ParserUtil::expectOneOf($tokens, $i, ['{', ';']));
+              \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['{', ';']));
             }
             if ($id !== '{') {
               throw SyntaxException::expectedButFound($tokens, $i, '{ or ;');
             }
             ParserUtil::skipSubtree($tokens, $i);
-            \assert(ParserUtil::expect($tokens, $i, '}'));
+            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
             break;
 
           case \T_CLASS:
@@ -255,9 +256,9 @@ class FileParser {
             }
 
             $this->skipClassLikeExtendsImplements($tokens, $i);
-            \assert(ParserUtil::expect($tokens, $i, '{'));
+            \assert(ParserAssertUtil::expect($tokens, $i, '{'));
             yield from $this->parseClassLikeBody($tokens, $i, $class);
-            \assert(ParserUtil::expect($tokens, $i, '}'));
+            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
             break;
 
           case \T_STRING:
@@ -284,7 +285,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseNamespace(array $tokens, int &$pos): string {
-    \assert(ParserUtil::expect($tokens, $pos, \T_NAMESPACE));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_NAMESPACE));
     $i = $pos + 1;
     $namespace = ParserUtil::skipFillerWsExpectTString($tokens, $i);
     while (TRUE) {
@@ -318,7 +319,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function skipClassLikeExtendsImplements(array $tokens, int &$pos): void {
-    \assert(ParserUtil::expect($tokens, $pos, \T_STRING));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
 
     // Skip all extends and implements.
     for ($i = $pos + 1;; ++$i) {
@@ -364,7 +365,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseClassLikeBody(array $tokens, int &$pos, string $class): iterable {
-    \assert(ParserUtil::expect($tokens, $pos, '{'));
+    \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
@@ -420,7 +421,7 @@ class FileParser {
             // Ignore use traits. Do clear attributes.
             // Traits are already available via native reflection.
             $this->skipUseTraits($tokens, $i);
-            \assert(ParserUtil::expectOneOf($tokens, $i, [';', '}']));
+            \assert(ParserAssertUtil::expectOneOf($tokens, $i, [';', '}']));
             break;
 
           case \T_FUNCTION:
@@ -435,12 +436,12 @@ class FileParser {
                 \substr($paramDollarName, 1));
               yield $symbol => RawSymbolInfo::forInnerSymbol($paramAttrComments);
             }
-            \assert(ParserUtil::expect($tokens, $i, ')'));
+            \assert(ParserAssertUtil::expect($tokens, $i, ')'));
             ++$i;
             $id = ParserUtil::skipFillerWs($tokens, $i);
             if ($id === ':') {
               $id = $this->skipReturnType($tokens, $i);
-              \assert(ParserUtil::expectOneOf($tokens, $i, ['{', ';']));
+              \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['{', ';']));
             }
             if ($id === '{') {
               ParserUtil::skipSubtree($tokens, $i);
@@ -499,7 +500,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseFunctionHead(array $tokens, int &$pos, bool $isClassMember = FALSE): ?string {
-    \assert(ParserUtil::expect($tokens, $pos, \T_FUNCTION));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_FUNCTION));
 
     $i = $pos + 1;
     $id = ParserUtil::skipFillerWs($tokens, $i);
@@ -546,7 +547,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseParams(array $tokens, int &$pos): iterable {
-    \assert(ParserUtil::expect($tokens, $pos, '('));
+    \assert(ParserAssertUtil::expect($tokens, $pos, '('));
     /** @var string[] $attributeComments */
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
@@ -622,7 +623,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseClassPropertyGroup(array $tokens, int &$pos): array {
-    \assert(ParserUtil::expect($tokens, $pos, \T_VARIABLE));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_VARIABLE));
     $names = [\substr($tokens[$pos][1], 1)];
 
     $i = $pos + 1;
@@ -637,7 +638,7 @@ class FileParser {
       }
       // If it is not a ';', it must be a ',', according to the documented
       // behavior of ->skipVarDefault().
-      \assert(ParserUtil::expect($tokens, $i, ','));
+      \assert(ParserAssertUtil::expect($tokens, $i, ','));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== \T_VARIABLE) {
@@ -659,7 +660,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseClassConstGroup(array $tokens, int &$pos): array {
-    \assert(ParserUtil::expect($tokens, $pos, \T_CONST));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_CONST));
 
     $i = $pos + 1;
     $names = [];
@@ -677,7 +678,7 @@ class FileParser {
       }
       // If it is not a ';', it must be a ',', according to the documented
       // behavior of ->skipVarDefault().
-      \assert(ParserUtil::expect($tokens, $i, ','));
+      \assert(ParserAssertUtil::expect($tokens, $i, ','));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id !== \T_STRING) {
@@ -702,7 +703,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function skipVarDefault(array $tokens, int &$pos, bool $isParam): string {
-    \assert(ParserUtil::expect($tokens, $pos, '='));
+    \assert(ParserAssertUtil::expect($tokens, $pos, '='));
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
       if (!\is_string($token)) {
@@ -715,7 +716,7 @@ class FileParser {
         case '{':
         case '[':
           ParserUtil::skipSubtree($tokens, $i);
-          \assert(ParserUtil::expectOneOf($tokens, $i, [')', '}', ']']));
+          \assert(ParserAssertUtil::expectOneOf($tokens, $i, [')', '}', ']']));
           break;
 
         case ',':
@@ -766,7 +767,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   protected function parseImportGroup(array $tokens, int &$pos, array &$imports): void {
-    \assert(ParserUtil::expect($tokens, $pos, \T_USE));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_USE));
     $i = $pos + 1;
     $id = ParserUtil::skipFillerWs($tokens, $i);
     if ($id === \T_CONST) {
@@ -789,11 +790,11 @@ class FileParser {
     $first = TRUE;
     // Iterate over imports separated by comma.
     while (true) {
-      \assert(ParserUtil::expect($tokens, $i, \T_STRING));
+      \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
       \assert(\preg_match('@^\w+$@', $qcn));
       // Iterate over QCN fragments separated by T_NS_SEPARATOR.
       while (true) {
-        \assert(ParserUtil::expect($tokens, $i, \T_STRING));
+        \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
         \assert(\preg_match('@^\w+(?:\\\\\w+)*$@', $qcn));
         ++$i;
         if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
@@ -809,7 +810,7 @@ class FileParser {
           // The rest of the import statement is a curly group like `N{A, B}`.
           ParserUtil::skipFillerWsExpectChar($tokens, $i, '{');
           $this->parseImportCurlyGroup($tokens, $i, $imports, $qcn, $type);
-          \assert(ParserUtil::expect($tokens, $i, '}'));
+          \assert(ParserAssertUtil::expect($tokens, $i, '}'));
           ++$i;
           ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
           $pos = $i;
@@ -861,7 +862,7 @@ class FileParser {
 
     // Iterate over sub-imports within curly group.
     while (TRUE) {
-      \assert(ParserUtil::expectOneOf($tokens, $i, [',', '{']));
+      \assert(ParserAssertUtil::expectOneOf($tokens, $i, [',', '{']));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === \T_STRING) {
@@ -892,11 +893,11 @@ class FileParser {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');
       }
       \assert(\preg_match('@^\w+$@', $subQcn));
-      \assert(ParserUtil::expect($tokens, $i, \T_STRING));
+      \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
       \assert(\preg_match('@^\w+$@', $subQcn));
       // Iterate over fragments of QCN, separated by T_NS_SEPARATOR.
       while (true) {
-        \assert(ParserUtil::expect($tokens, $i, \T_STRING));
+        \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
         \assert(\preg_match('@^\w+(?:\\\\\w+)*$@', $subQcn));
         ++$i;
         if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
@@ -942,7 +943,7 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function skipReturnType(array $tokens, int &$pos): string {
-    \assert(ParserUtil::expect($tokens, $pos, ':'));
+    \assert(ParserAssertUtil::expect($tokens, $pos, ':'));
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
       if (\is_string($token)) {
@@ -986,14 +987,14 @@ class FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function skipUseTraits(array $tokens, int &$pos): void {
-    \assert(ParserUtil::expect($tokens, $pos, \T_USE));
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_USE));
     for ($i = $pos + 1;; ++$i) {
       $token = $tokens[$i];
       if (\is_string($token)) {
         switch ($token) {
           case '{':
             ParserUtil::skipSubtree($tokens, $i);
-            \assert(ParserUtil::expect($tokens, $i, '}'));
+            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
             $pos = $i;
             return;
 

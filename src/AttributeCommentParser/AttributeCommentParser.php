@@ -10,6 +10,7 @@ use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute_Fixed;
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute_NoArgs;
 use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
+use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 
 class AttributeCommentParser implements AttributeCommentParserInterface {
@@ -49,15 +50,15 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   public function parse(string $comment): array {
     $tokens = $this->tokenize($comment);
     \assert(\end($tokens) === '#');
-    \assert(ParserUtil::expect($tokens, 0, ParserUtil::T_ATTRIBUTE));
+    \assert(ParserAssertUtil::expect($tokens, 0, ParserUtil::T_ATTRIBUTE));
     $rawAttributes = [];
     $i = 0;
     while (TRUE) {
-      \assert(ParserUtil::expect($tokens, $i, ParserUtil::T_ATTRIBUTE));
+      \assert(ParserAssertUtil::expect($tokens, $i, ParserUtil::T_ATTRIBUTE));
       foreach ($this->parseAttributes($tokens, $i) as $rawAttribute) {
         $rawAttributes[] = $rawAttribute;
       }
-      \assert(ParserUtil::expect($tokens, $i, ']'));
+      \assert(ParserAssertUtil::expect($tokens, $i, ']'));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === '#') {
@@ -132,10 +133,10 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseAttributes(array $tokens, int &$pos): iterable {
-    \assert(ParserUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
+    \assert(ParserAssertUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
     $i = $pos;
     while (TRUE) {
-      \assert(ParserUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
+      \assert(ParserAssertUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
       $iBkp0 = $i;
@@ -145,7 +146,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       if ($id === '(') {
         yield $this->parseArgsGetRawAttribute($tokens, $i, $qcn);
         \assert($tokens[$i] === ')');
-        \assert(ParserUtil::expect($tokens, $i, ')'));
+        \assert(ParserAssertUtil::expect($tokens, $i, ')'));
         ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
@@ -175,12 +176,12 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseArgsGetRawAttribute(array $tokens, int &$pos, string $qcn): RawAttributeInterface {
-    \assert(ParserUtil::expect($tokens, $pos, '('));
+    \assert(ParserAssertUtil::expect($tokens, $pos, '('));
     $i = $pos;
     $php = '';
     $namedPart = FALSE;
     while (TRUE) {
-      \assert(ParserUtil::expectOneOf($tokens, $i, ['(', ',']));
+      \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['(', ',']));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       $key = NULL;
@@ -219,7 +220,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         $pos = $i;
         break;
       }
-      \assert(ParserUtil::expect($tokens, $i, ','));
+      \assert(ParserAssertUtil::expect($tokens, $i, ','));
     }
 
     \assert($tokens[$pos] === ')');
@@ -349,7 +350,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
           case '(':
             ++$i;
             $php .= '(' . $this->parseValueExpression($tokens, $i) . ')';
-            \assert(ParserUtil::expect($tokens, $i, ')'));
+            \assert(ParserAssertUtil::expect($tokens, $i, ')'));
             break;
 
           case '[':
@@ -411,7 +412,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       throw SyntaxException::expectedButFound($tokens, $i, 'value expression');
     }
     \assert($php !== '');
-    \assert(ParserUtil::expectOneOf($tokens, $i, [',', ';', ')', '}', ']', \T_DOUBLE_ARROW]));
+    \assert(ParserAssertUtil::expectOneOf($tokens, $i, [',', ';', ')', '}', ']', \T_DOUBLE_ARROW]));
     $pos = $i;
     return $php;
   }
@@ -430,11 +431,11 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseArray(array $tokens, int &$pos, string $endchar): string {
-    \assert(ParserUtil::expectOneOf($tokens, $pos, ['(', '[']));
+    \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', '[']));
     $i = $pos;
     $php = '';
     while (TRUE) {
-      \assert(ParserUtil::expectOneOf($tokens, $i, ['(', '[', ',']));
+      \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['(', '[', ',']));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === $endchar) {
@@ -489,7 +490,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       ++$i;
     }
     else {
-      \assert(ParserUtil::expect($tokens, $pos, \T_STRING));
+      \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
       $first = $tokens[$pos][1];
       $fqn = '';
       $i = $pos + 1;
