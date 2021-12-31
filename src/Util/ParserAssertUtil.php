@@ -22,6 +22,9 @@ class ParserAssertUtil {
    * @throws \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
   public static function expectOneIn(array $tokens, int $pos, array $map): bool {
+    if ($pos < 0) {
+      $pos += \count($tokens);
+    }
     if (isset($map[$tokens[$pos][0]])) {
       return TRUE;
     }
@@ -45,6 +48,9 @@ class ParserAssertUtil {
    * @throw \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
   public static function expect(array $tokens, int $pos, $expected): bool {
+    if ($pos < 0) {
+      $pos += \count($tokens);
+    }
     if ($tokens[$pos][0] === $expected) {
       return TRUE;
     }
