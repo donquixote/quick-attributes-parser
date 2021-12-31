@@ -60,7 +60,7 @@ class SnippetTest extends YmlTestBase {
           $attrParser = $attrParser->withContext(
             $h->getNamespaceName(),
             $imports,
-            null);
+            $h->getClassName());
           foreach ($attrComments as $comment) {
             foreach ($attrParser->parse($comment) as $attr) {
               $exportedAttributes[] = TestExportUtil::exportRawAttribute($attr);
