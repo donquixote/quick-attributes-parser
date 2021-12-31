@@ -38,8 +38,8 @@ class FileTokens_PreComputed implements FileTokensInterface {
    */
   public static function fromFileTokens(FileTokensInterface $fileTokens): self {
     return new self(
-      $fileTokens->getClassFileHead(),
-      $fileTokens->getAll());
+      $fileTokens->getAll(),
+      $fileTokens->getClassFileHead());
   }
 
   /**
