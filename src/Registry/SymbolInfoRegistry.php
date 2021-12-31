@@ -6,6 +6,7 @@ namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectRawSymbolInfo;
 use Donquixote\QuickAttributes\Value\RawSymbolInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
@@ -17,14 +18,11 @@ class SymbolInfoRegistry {
   private FileParser $parser;
 
   /**
-   * @var \Donquixote\QuickAttributes\Value\RawSymbolInfo[]
-   */
-  private array $info = [];
-
-  /**
-   * @var \Iterator<int, true>[]
+   * @var array<string, \Iterator<true>>
    */
   private array $runningIterators = [];
+
+  private SymbolVisitor_CollectRawSymbolInfo $visitor;
 
   /**
    * Constructor.
@@ -36,6 +34,7 @@ class SymbolInfoRegistry {
       throw new \RuntimeException('This class should only be used in PHP < 8.');
     }
     $this->parser = $parser;
+    $this->visitor = new SymbolVisitor_CollectRawSymbolInfo();
   }
 
   /**
@@ -84,15 +83,14 @@ class SymbolInfoRegistry {
    */
   private function symbolGetInfo(SymbolHandle $symbol): RawSymbolInfo {
     $key = (string) $symbol;
-    $existing = $this->info[$key] ?? NULL;
-    if ($existing !== NULL) {
-      return $existing;
+    if (null !== $info = $this->visitor->getForKey($key)) {
+      return $info;
     }
     $file = $symbol->getFileName();
     $it = $this->runningIterators[$file] ??= $this->itFile($file);
     while ($it->valid()) {
-      if (isset($this->info[$key])) {
-        return $this->info[$key];
+      if (null !== $info = $this->visitor->getForKey($key)) {
+        return $info;
       }
       $it->next();
     }
@@ -111,11 +109,7 @@ class SymbolInfoRegistry {
    */
   private function itFile(string $file): \Iterator {
     try {
-      foreach ($this->parser->parseFile($file) as $symbol => $info) {
-        $key = (string) $symbol;
-        $this->info[$key] = $info;
-        yield TRUE;
-      }
+      yield from $this->parser->parseFile($file, $this->visitor);
     }
     catch (ParserException $e) {
       $e->setSourceFile($file);

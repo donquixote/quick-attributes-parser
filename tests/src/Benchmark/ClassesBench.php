@@ -9,6 +9,8 @@ use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
@@ -367,7 +369,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    $parser->parseFile($file);
+    $parser->parseFile($file, new SymbolVisitor_NoOp());
   }
 
   /**
@@ -406,9 +408,10 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    $symbol = $parser->parseFile($file)->key();
-    \assert($symbol instanceof SymbolHandle);
-    if ($symbol->getReflectorClass() !== \ReflectionClass::class) {
+    $visitor = new SymbolVisitor_CollectClassHeadsOnly();
+    // Force reading of first symbol.
+    $parser->parseFile($file, $visitor)->valid();
+    if ($visitor->getClasses() === []) {
       throw new \RuntimeException('Unexpected non-class symbol above class.');
     }
   }
@@ -470,7 +473,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFile($file) as $_) {
+    foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -491,7 +494,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFile($file) as $_) {
+    foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -512,7 +515,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFile($file) as $_) {
+    foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -533,7 +536,7 @@ class ClassesBench {
     }
     $fileTokens = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
+    foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -554,7 +557,7 @@ class ClassesBench {
     }
     $fileTokens = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
+    foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -575,7 +578,7 @@ class ClassesBench {
     }
     $fileTokens = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
+    foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -596,7 +599,7 @@ class ClassesBench {
     }
     $fileTokens = $args[0];
     $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
+    foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -617,7 +620,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    $it = $parser->parseFile($file);
+    $it = $parser->parseFile($file, new SymbolVisitor_NoOp());
     $it->current();
     $it->next();
     $it->current();
