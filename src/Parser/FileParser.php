@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser;
+use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
+use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
@@ -17,10 +20,25 @@ use Donquixote\QuickAttributes\Util\ReservedWordUtil;
 
 class FileParser {
 
-  public function __construct() {
+  /**
+   * @var \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser
+   */
+  private AttributeCommentMultiParser $attrCommentMultiParser;
+
+  public static function create(): self {
+    return new self(new AttributeCommentParser());
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface $attrCommentParser
+   */
+  public function __construct(AttributeCommentParserInterface $attrCommentParser) {
     if (\PHP_VERSION_ID >= 80000) {
       throw new \RuntimeException('This class should only be used in PHP < 8.');  // @codeCoverageIgnore
     }
+    $this->attrCommentMultiParser = new AttributeCommentMultiParser($attrCommentParser);
   }
 
   /**
@@ -220,13 +238,18 @@ class FileParser {
               break;
             }
             $functionQcn = $terminatedNamespace . $shortname;
-            $visitor->addFunction($functionQcn, $imports, $attrComments);
+            $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
+              $namespace,
+              $imports,
+              null);
+            $attributes = $attrCommentMultiParser->parseMultiple($attrComments);
+            $visitor->addFunction($functionQcn, $imports, $attributes);
             yield true;
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $visitor->addFunctionParameter(
                 $functionQcn,
                 \substr($paramDollarName, 1),
-                $paramAttrComments);
+                $attrCommentMultiParser->parseMultiple($paramAttrComments));
               yield true;
             }
             \assert(ParserAssertUtil::expect($tokens, $i, ')'));
@@ -250,7 +273,12 @@ class FileParser {
             $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
             /** @var class-string $class */
             $class = $terminatedNamespace . $shortname;
-            $visitor->addClass($class, $imports, $attrComments);
+            $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
+              $namespace,
+              $imports,
+              $class);
+            $attributes = $attrCommentMultiParser->parseMultiple($attrComments);
+            $visitor->addClass($class, $imports, $attributes);
             yield true;
 
             // Get the full version of the tokens now.
@@ -260,7 +288,7 @@ class FileParser {
 
             $this->skipClassLikeExtendsImplements($tokens, $i);
             \assert(ParserAssertUtil::expect($tokens, $i, '{'));
-            yield from $this->parseClassLikeBody($tokens, $i, $class, $visitor);
+            yield from $this->parseClassLikeBody($tokens, $i, $class, $visitor, $attrCommentMultiParser);
             \assert(ParserAssertUtil::expect($tokens, $i, '}'));
             break;
 
@@ -363,13 +391,15 @@ class FileParser {
    * @param int $pos
    * @param class-string $class
    * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
+   * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser $attrCommentMultiParser
+   *   Attribute comment multi parser, filled with current context.
    *
    * @return \Iterator<true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseClassLikeBody(array $tokens, int &$pos, string $class, SymbolVisitorInterface $visitor): \Iterator {
+  private function parseClassLikeBody(array $tokens, int &$pos, string $class, SymbolVisitorInterface $visitor, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for ($i = $pos + 1;; ++$i) {
@@ -432,14 +462,17 @@ class FileParser {
           case \T_FUNCTION:
             $method = $this->parseFunctionHead($tokens, $i, TRUE);
             \assert($method !== NULL);
-            $visitor->addMethod($class, $method, $attributeComments);
+            $visitor->addMethod(
+              $class,
+              $method,
+              $attrCommentMultiParser->parseMultiple($attributeComments));
             yield true;
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
               $visitor->addMethodParameter(
                 $class,
                 $method,
                 \substr($paramDollarName, 1),
-                $paramAttrComments);
+                $attrCommentMultiParser->parseMultiple($paramAttrComments));
               yield true;
             }
             \assert(ParserAssertUtil::expect($tokens, $i, ')'));
@@ -460,7 +493,10 @@ class FileParser {
           case \T_VARIABLE:
             $names = $this->parseClassPropertyGroup($tokens, $i);
             foreach ($names as $name) {
-              $visitor->addProperty($class, $name, $attributeComments);
+              $visitor->addProperty(
+                $class,
+                $name,
+                $attrCommentMultiParser->parseMultiple($attributeComments));
               yield true;
             }
             break;
@@ -468,7 +504,10 @@ class FileParser {
           case \T_CONST:
             $names = $this->parseClassConstGroup($tokens, $i);
             foreach ($names as $name) {
-              $visitor->addClassConstant($class, $name, $attributeComments);
+              $visitor->addClassConstant(
+                $class,
+                $name,
+                $attrCommentMultiParser->parseMultiple($attributeComments));
               yield true;
             }
             break;

@@ -29,7 +29,7 @@ class VendorTest_ extends TestCase {
       self::assertTrue(true);
       return;
     }
-    $parser = new FileParser();
+    $parser = FileParser::create();
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
       foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {}

@@ -9,51 +9,51 @@ interface SymbolVisitorInterface {
   /**
    * @param class-string $class
    * @param array<string, string> $imports
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addClass(string $class, array $imports, array $attrComments): void;
+  public function addClass(string $class, array $imports, array $attributes): void;
 
   /**
    * @param class-string $class
    * @param string $property
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addProperty(string $class, string $property, array $attrComments): void;
+  public function addProperty(string $class, string $property, array $attributes): void;
 
   /**
    * @param class-string $class
    * @param string $constant
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addClassConstant(string $class, string $constant, array $attrComments): void;
+  public function addClassConstant(string $class, string $constant, array $attributes): void;
 
   /**
    * @param class-string $class
    * @param string $method
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addMethod(string $class, string $method, array $attrComments): void;
+  public function addMethod(string $class, string $method, array $attributes): void;
 
   /**
    * @param class-string $class
    * @param string $method
    * @param string $param
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addMethodParameter(string $class, string $method, string $param, array $attrComments): void;
+  public function addMethodParameter(string $class, string $method, string $param, array $attributes): void;
 
   /**
    * @param string $function
    * @param array<string, string> $imports
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addFunction(string $function, array $imports, array $attrComments): void;
+  public function addFunction(string $function, array $imports, array $attributes): void;
 
   /**
    * @param string $function
    * @param string $param
-   * @param list<string> $attrComments
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public function addFunctionParameter(string $function, string $param, array $attrComments): void;
+  public function addFunctionParameter(string $function, string $param, array $attributes): void;
 
 }

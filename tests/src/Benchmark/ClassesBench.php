@@ -63,7 +63,7 @@ class ClassesBench {
     if (\PHP_VERSION_ID > 80000) {
       return;
     }
-    new FileParser();
+    FileParser::create();
   }
 
   /**
@@ -368,7 +368,7 @@ class ClassesBench {
       return;
     }
     $file = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     $parser->parseFile($file, new SymbolVisitor_NoOp());
   }
 
@@ -407,7 +407,7 @@ class ClassesBench {
       return;
     }
     $file = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     $visitor = new SymbolVisitor_CollectClassHeadsOnly();
     // Force reading of first symbol.
     $parser->parseFile($file, $visitor)->valid();
@@ -434,7 +434,7 @@ class ClassesBench {
     $symbol = SymbolHandle::fromClass($class);
     $registry = SymbolInfoRegistry::create();
     $registry->symbolGetImports($symbol->getTopLevel());
-    $registry->symbolGetAttributesComments($symbol);
+    $registry->symbolGetAttributes($symbol);
   }
 
   /**
@@ -472,7 +472,7 @@ class ClassesBench {
       return;
     }
     $file = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -493,7 +493,7 @@ class ClassesBench {
       return;
     }
     $file = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -514,7 +514,7 @@ class ClassesBench {
       return;
     }
     $file = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -535,7 +535,7 @@ class ClassesBench {
       return;
     }
     $fileTokens = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -556,7 +556,7 @@ class ClassesBench {
       return;
     }
     $fileTokens = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -577,7 +577,7 @@ class ClassesBench {
       return;
     }
     $fileTokens = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -598,7 +598,7 @@ class ClassesBench {
       return;
     }
     $fileTokens = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
@@ -619,7 +619,7 @@ class ClassesBench {
       return;
     }
     $file = $args[0];
-    $parser = new FileParser();
+    $parser = FileParser::create();
     $it = $parser->parseFile($file, new SymbolVisitor_NoOp());
     $it->current();
     $it->next();
@@ -652,7 +652,7 @@ class ClassesBench {
     }
     $symbol = SymbolHandle::fromReflector($rm);
     $registry->symbolGetImports($symbol->getTopLevel());
-    $registry->symbolGetAttributesComments($symbol);
+    $registry->symbolGetAttributes($symbol);
   }
 
   /**
@@ -681,7 +681,7 @@ class ClassesBench {
     }
     $symbol = SymbolHandle::fromReflector($rm);
     $registry->symbolGetImports($symbol->getTopLevel());
-    $registry->symbolGetAttributesComments($symbol);
+    $registry->symbolGetAttributes($symbol);
   }
 
   /**
