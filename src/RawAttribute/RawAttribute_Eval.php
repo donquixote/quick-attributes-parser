@@ -75,7 +75,7 @@ class RawAttribute_Eval implements RawAttributeInterface {
    * @throws \Throwable
    */
   private function evalCode() {
-    return eval($this->argsPhp);
+    return eval('return ' . $this->argsPhp . ';');
   }
 
 }
