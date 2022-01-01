@@ -20,6 +20,11 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  *   See https://github.com/sebastianbergmann/phpunit/pull/4795
+ *
+ * @psalm-type _RawAttributeArray=array{
+ *   name: class-string,
+ *   arguments: mixed[],
+ * }
  */
 class ClassesTest extends TestCase {
 
@@ -52,7 +57,7 @@ class ClassesTest extends TestCase {
     }
     $ymlDir = $this->getYmlDir();
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
-    $parser = new FileParser();
+    $parser = FileParser::create();
     $visitor = new SymbolVisitor_CollectInfo();
     try {
       /**
@@ -66,9 +71,7 @@ class ClassesTest extends TestCase {
       throw $e;
     }
     $importss = $visitor->getImportss();
-    $commentss = $visitor->getAttrCommentss();
     TestUtil::assertFileContentsYml("$ymlDir/$shortname.imports.yml", $importss);
-    $this->shortnameAssertCommentsFile($shortname, $commentss);
   }
 
   /**
@@ -89,22 +92,6 @@ class ClassesTest extends TestCase {
       $symbol = SymbolHandle::fromId($symbolId);
       self::assertSame($imports, $registry->symbolGetImports($symbol));
     }
-    $commentss = $this->shortnameLoadComments($shortname);
-    $toplevelNamesMap = [];
-    foreach ($commentss as $symbolId => $comments) {
-      $symbol = SymbolHandle::fromId($symbolId);
-      $toplevel = $symbol->getTopLevel();
-      if ($toplevel === $symbol) {
-        $toplevelNamesMap[(string) $symbol->getTopLevel()] = TRUE;
-      }
-      else {
-        self::assertArrayHasKey((string) $toplevel, $toplevelNamesMap);
-      }
-      self::assertSame($comments, $registry->symbolGetAttributesComments($symbol));
-    }
-    self::assertSame(
-      \array_keys($importss),
-      \array_keys($toplevelNamesMap));
   }
 
   /**
@@ -114,8 +101,7 @@ class ClassesTest extends TestCase {
     $ymlDir = $this->getYmlDir();
     $file = "$ymlDir/$shortname.raw-attributes.yml";
     $reader = RawAttributesReader::create();
-    /** @psalm-suppress MixedAssignment */
-    /** @var array<string, array[]> $orig */
+    /** @var array<string, list<_RawAttributeArray>> $orig */
     $orig = (\PHP_VERSION_ID >= 80000)
       ? Yaml::parseFile($file)
       : [];
@@ -173,7 +159,6 @@ class ClassesTest extends TestCase {
     foreach ($this->getClassShortNames() as $shortname) {
       foreach([
         "$ymlDir/$shortname.imports.yml",
-        "$ymlDir/$shortname.comments.yml",
         "$ymlDir/$shortname.raw-attributes.yml",
         "$ymlDir/$shortname.instances.yml",
       ] as $file) {
@@ -193,51 +178,16 @@ class ClassesTest extends TestCase {
 
   /**
    * @param string $shortname
-   * @param array<string, string[]> $commentss
-   */
-  protected function shortnameAssertCommentsFile(string $shortname, array $commentss): void {
-    foreach ($commentss as &$comments) {
-      foreach ($comments as &$comment) {
-        // Trim the line break on the right.
-        self::assertStringEndsWith("\n", $comment);
-        $comment = \substr($comment, 0, -1);
-      }
-    }
-    TestUtil::assertFileContentsYml(
-      $this->getYmlDir() . "/$shortname.comments.yml",
-      $commentss);
-  }
-
-  /**
-   * @param string $shortname
-   *
-   * @return array<string, string[]>
-   */
-  protected function shortnameLoadComments(string $shortname): array {
-    $ymlDir = $this->getYmlDir();
-    // Use *.comments.yml to get a list of symbols that could have attributes.
-    /** @var array<string, array<string, string>> $commentss */
-    $commentss = Yaml::parseFile("$ymlDir/$shortname.comments.yml");
-    foreach ($commentss as &$comments) {
-      foreach ($comments as &$comment) {
-        $comment .= "\n";
-      }
-    }
-    return $commentss;
-  }
-
-  /**
-   * @param string $shortname
    *
    * @return array<string, \Donquixote\QuickAttributes\Value\SymbolHandle>
    */
   protected function shortnameGetSymbols(string $shortname): array {
     $ymlDir = $this->getYmlDir();
-    // Use *.comments.yml to get a list of symbols that could have attributes.
-    /** @var array<string, array<string, string>> $commentss */
-    $commentss = Yaml::parseFile("$ymlDir/$shortname.comments.yml");
+    // Use *.raw-attributes.yml to get a list of symbols that could have attributes.
+    /** @var array<string, list<_RawAttributeArray>> $rawAttributes */
+    $rawAttributes = Yaml::parseFile("$ymlDir/$shortname.raw-attributes.yml");
     $symbols = [];
-    foreach ($commentss as $id => $_comments) {
+    foreach ($rawAttributes as $id => $_) {
       $symbols[$id] = SymbolHandle::fromId($id);
     }
     return $symbols;
