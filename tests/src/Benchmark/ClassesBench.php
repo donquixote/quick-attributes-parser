@@ -406,14 +406,9 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = new FileParser();
-    /**
-     * @var \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
-     */
-    foreach ($parser->parseFile($file) as $symbol => $_) {
-      if ($symbol->getReflectorClass() === \ReflectionClass::class) {
-        // Found!
-        break;
-      }
+    $symbol = $parser->parseFile($file)->key();
+    \assert($symbol instanceof SymbolHandle);
+    if ($symbol->getReflectorClass() !== \ReflectionClass::class) {
       throw new \RuntimeException('Unexpected non-class symbol above class.');
     }
   }
