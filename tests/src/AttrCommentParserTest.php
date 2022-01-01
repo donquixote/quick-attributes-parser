@@ -161,8 +161,8 @@ class AttrCommentParserTest extends YmlTestBase {
     }
     unset($data['exception.php8']);
     /**
+     * Suppression, see https://youtrack.jetbrains.com/issue/WI-25588.
      * @noinspection PhpUndefinedVariableInspection
-     *   See https://youtrack.jetbrains.com/issue/WI-25588.
      */
     if ($attributes !== ($data['attributes'] ?? [])) {
       $data['attributes.php8'] = $attributes;
