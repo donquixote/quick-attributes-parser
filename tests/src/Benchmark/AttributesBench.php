@@ -25,7 +25,6 @@ class AttributesBench {
    * @throws \ReflectionException
    */
   public function benchParseAttributes(): void {
-    /** @psalm-suppress InvalidLiteralArgument */
     $attrCommentParser = (new AttributeCommentParser())
       ->withContext(
         \substr(
