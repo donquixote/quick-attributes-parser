@@ -138,12 +138,7 @@ class AttrCommentParserTest extends YmlTestBase {
       $rf = new \ReflectionFunction($f);
       /** @var list<array{name: class-string, arguments: array}> $attributes */
       $attributes = [];
-      /**
-       * @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection
-       * @var \ReflectionAttribute $ra
-       */
       foreach ($rf->getAttributes() as $ra) {
-        /** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
         $attributes[] = [
           'name' => $ra->getName(),
           'arguments' => $ra->getArguments(),
