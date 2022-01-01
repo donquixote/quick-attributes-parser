@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  *
  * @psalm-suppress PropertyNotSetInConstructor
  *   See https://github.com/sebastianbergmann/phpunit/pull/4795#
+ * @psalm-suppress UnusedClass
  */
 class VendorTest_ extends TestCase {
 
