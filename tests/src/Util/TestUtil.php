@@ -17,7 +17,7 @@ class TestUtil {
    *   If TRUE, fixture files will be overwritten.
    */
   public static function updateTestsEnabled(): bool {
-    if (!(bool) \getenv('UPDATE_TESTS')) {
+    if (!\getenv('UPDATE_TESTS')) {
       return FALSE;
     }
     if (\DIRECTORY_SEPARATOR === '\\') {
