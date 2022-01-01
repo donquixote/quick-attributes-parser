@@ -19,6 +19,11 @@ use Symfony\Component\Yaml\Yaml;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  *   See https://github.com/sebastianbergmann/phpunit/pull/4795
+ *
+ * @psalm-type _RawAttributeArray=array{
+ *   name: class-string,
+ *   arguments: mixed[],
+ * }
  */
 class ClassesTest extends TestCase {
 
@@ -122,8 +127,7 @@ class ClassesTest extends TestCase {
     $ymlDir = $this->getYmlDir();
     $file = "$ymlDir/$shortname.raw-attributes.yml";
     $reader = RawAttributesReader::create();
-    /** @psalm-suppress MixedAssignment */
-    /** @var array<string, array[]> $orig */
+    /** @var array<string, list<_RawAttributeArray>> $orig */
     $orig = (\PHP_VERSION_ID >= 80000)
       ? Yaml::parseFile($file)
       : [];
