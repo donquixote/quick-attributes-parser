@@ -16,7 +16,7 @@ class FileTokens_Common implements FileTokensInterface {
    */
   private string $php;
 
-  private ?string $expectedClassShortname = null;
+  private ?string $expectedClassShortname;
 
   /**
    * Constructor.
