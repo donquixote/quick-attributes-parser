@@ -5,3 +5,6 @@ php: |
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 3:10: Unexpected '','' in imports.'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:9: Unexpected T_NS_SEPARATOR / ''\\'' in imports.'

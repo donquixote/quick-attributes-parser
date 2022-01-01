@@ -9,7 +9,7 @@ namespace Donquixote\QuickAttributes\Util;
   /* @see \Donquixote\QuickAttributes\Util\VersionDependentTokens */
   $php = \file_get_contents(__DIR__ . '/VersionDependentTokens.tpl.php');
   if (!\preg_match_all(
-    '@ const ([A-Z_]+) = (\d+);@',
+    '@ const (([A-Z_]+)(?:_(\d)|)) = (\d+);@',
     $php,
     $matches,
     \PREG_SET_ORDER
@@ -17,11 +17,14 @@ namespace Donquixote\QuickAttributes\Util;
     return;
   }
   $replacements = [];
-  foreach ($matches as [, $name, $valueExpr]) {
+  foreach ($matches as [, $fullname, $name, $version, $valueExpr]) {
     if (!\defined($name)) {
       continue;
     }
-    $replacements[" const $name = $valueExpr;"] = " const $name = \\$name;";
+    if ($version !== '' && (int) $version !== \PHP_MAJOR_VERSION) {
+      continue;
+    }
+    $replacements[" const $fullname = $valueExpr;"] = " const $fullname = \\$name;";
   }
   $php = \strtr($php, $replacements);
   $php = \preg_replace('@^<\?php@', '', $php);

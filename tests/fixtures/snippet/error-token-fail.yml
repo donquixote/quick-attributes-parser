@@ -6,3 +6,4 @@ php: |
 exception:
   class: Donquixote\QuickAttributes\Exception\TokenizerException
   message: 'Unterminated comment starting line **'
+exception.php8: null

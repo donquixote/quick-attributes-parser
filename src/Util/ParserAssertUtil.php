@@ -43,7 +43,7 @@ class ParserAssertUtil {
    * @param int $pos
    * @param int|string $expected
    *
-   * @return true
+   * @return bool
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
@@ -71,6 +71,11 @@ class ParserAssertUtil {
    */
   public static function expectOneOf(array $tokens, int $pos, array $allowed): bool {
     return self::expectOneIn($tokens, $pos, \array_fill_keys($allowed, true));
+  }
+
+  public static function test(): void {
+    \assert(self::expectOneOf([], 0, []));
+    \assert(self::expectOneOf([], 0, []));
   }
 
   /**

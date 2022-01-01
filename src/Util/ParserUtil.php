@@ -100,6 +100,7 @@ class ParserUtil extends VersionDependentTokens {
     \T_DOLLAR_OPEN_CURLY_BRACES => self::SKIP_CURLY_MAP,
     '(' => self::SKIP_PARENS_MAP,
     '[' => self::SKIP_SQUARE_MAP,
+    self::T_ATTRIBUTE => self::SKIP_SQUARE_MAP,
   ];
 
   /** @var (-1|0|1)[][] */
