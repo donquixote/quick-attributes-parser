@@ -17,8 +17,6 @@
     <directory name="tests/src" />
     <ignoreFiles>
       <directory name="vendor" />
-      <file name="src/Util/VersionDependentTokens.php" />
-      <file name="src/Util/VersionDependentTokens.php8.php" />
     </ignoreFiles>
   </projectFiles>
 

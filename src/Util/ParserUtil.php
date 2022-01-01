@@ -6,13 +6,7 @@ namespace Donquixote\QuickAttributes\Util;
 
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 
-class ParserUtil {
-
-  const T_ATTRIBUTE = VersionDependentTokens::T_ATTRIBUTE;
-
-  const T_NAME_QUALIFIED = VersionDependentTokens::T_NAME_QUALIFIED;
-
-  const T_NAME_FULLY_QUALIFIED = VersionDependentTokens::T_NAME_FULLY_QUALIFIED;
+class ParserUtil extends VersionDependentTokens {
 
   const SPECIAL_TOKEN_NAMES = [
     self::T_ATTRIBUTE => 'T_ATTRIBUTE',

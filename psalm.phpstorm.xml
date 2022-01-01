@@ -14,4 +14,12 @@
     addParamDefaultToDocblockType="true"
 >
   <xi:include href="psalm.xml" xpointer="xpointer(//psalm/*)"/>
+
+  <issueHandlers>
+    <MissingFile>
+      <errorLevel type="suppress">
+        <file name="src/Util/VersionDependentTokens.php"/>
+      </errorLevel>
+    </MissingFile>
+  </issueHandlers>
 </psalm>
