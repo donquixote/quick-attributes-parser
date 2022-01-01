@@ -78,15 +78,4 @@ class TestUtil {
     }
   }
 
-  /**
-   * @param string $file
-   * @param string $message
-   */
-  public static function foundOrphanFile(string $file, string $message): void {
-    if (self::updateTestsEnabled()) {
-      # unlink($file);
-    }
-    Assert::fail("$message: $file");
-  }
-
 }
