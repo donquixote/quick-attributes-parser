@@ -22,8 +22,9 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *     imports?: array<string, string>,
  *     'attr-comments'?: list<string>,
  *   }>,
- *   exception?: array,
  *   tokenizer_split?: bool,
+ *   exception?: array,
+ *   'exception.php8'?: array,
  * }
  *
  * @template-extends YmlTestBase<_SnippetYamlContent>
@@ -34,13 +35,10 @@ class SnippetTest extends YmlTestBase {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
-    if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(true);
-      return;
-    }
     $fileTokens = new FileTokens_Common($data['php']);
     $parser = FileParser::create();
     $visitor = new SymbolVisitor_CollectInfo();
+    $data7 = $data;
     try {
       unset($data['attributess']);
       unset($data['importss']);
@@ -59,11 +57,29 @@ class SnippetTest extends YmlTestBase {
     foreach ($visitor->getAttributess() as $key => $attributes) {
       $data['attributess'][$key] = TestExportUtil::exportRawAttributes($attributes);
     }
+    if (\PHP_VERSION_ID >= 80000) {
+      // PHP 8.
+      // Currently, exceptions are the only point where the fixtures differ.
+      if (($data['exception'] ?? null) === ($data7['exception'] ?? null)) {
+        unset($data['exception.php8']);
+      }
+      else {
+        $data['exception.php8'] = $data['exception'] ?? null;
+        if (isset($data7['exception'])) {
+          $data['exception'] = $data7['exception'];
+        }
+        else {
+          unset($data['exception']);
+        }
+      }
+    }
     TestArrayUtil::normalizeKeys($data, [
       'php',
       'importss',
       'attributess',
       'tokenizer_split',
+      'exception',
+      'exception.php8',
     ]);
   }
 

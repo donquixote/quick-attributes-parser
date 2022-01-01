@@ -7,3 +7,6 @@ php: |
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 3:11: Unexpected T_NS_SEPARATOR / ''\\'' in imports.'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:11: Unexpected T_NAME_FULLY_QUALIFIED / ''\\Bar'' in imports.'
