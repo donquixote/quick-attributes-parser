@@ -49,7 +49,7 @@ class RawAttribute_Eval implements RawAttributeInterface {
       throw new \ReflectionException(
         \vsprintf("%s in eval():\n  Message %s\n  Eval'd code:\n    %s", [
           \get_class($e),
-          \var_export($e->getMessage(), true),
+          \var_export($e->getMessage(), TRUE),
           \str_replace("\n", "\n    ", $this->argsPhp),
         ]),
         0,
@@ -59,7 +59,7 @@ class RawAttribute_Eval implements RawAttributeInterface {
       throw new \ReflectionException(
         \vsprintf("Expected an array, found %s, from eval(%s)", [
         MessageUtil::formatValue($args),
-        \var_export($this->argsPhp, true),
+        \var_export($this->argsPhp, TRUE),
       ]));
     }
     return $args;

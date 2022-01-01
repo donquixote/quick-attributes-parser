@@ -34,7 +34,7 @@ The parser is optimized using the following techniques:
 - Low-level operations: The parser uses integer indices and array index lookups instead of object methods or `foreach ()`, to get to the next token.
 - No token preprocessing: The parser operates directly on the result of `token_get_all()`, only one terminating `'#'` is appended to mark the EOF.
 - No / lazy array copy or array slicing: The array of tokens remains unmodified throughout the parsing process, and no (or very few) other arrays are created.
-- No complex AST: The parser returns (iterates over) a list of "facts" about the world, that do not form a hierarchy. Currently these are represented as `RawSymbolInfo` objects, but this might change.
+- No complex AST: The parser iterates, yielding `true` values, and writing "facts" to a visitor. Each fact stands for itself, they don't form a hierarchy.
 
 If you disagree with any of these optimization strategies, open an issue!
 
