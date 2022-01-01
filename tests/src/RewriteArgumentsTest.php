@@ -85,7 +85,7 @@ class RewriteArgumentsTest extends YmlTestBase {
   private function processPhp8(array &$data): void {
 
     if (\PHP_VERSION_ID <= 80000) {
-      self::assertTrue(TRUE);
+      self::assertTrue(true);
       return;
     }
 
@@ -108,14 +108,14 @@ class RewriteArgumentsTest extends YmlTestBase {
         /** @psalm-suppress MixedAssignment */
         /** @var array $rewritten */
         $rewritten = $f(...$call['arguments']);
-        if ($rewritten !== ($call['rewritten'] ?? NULL)) {
+        if ($rewritten !== ($call['rewritten'] ?? null)) {
           $call['rewritten.php8'] = $rewritten;
         }
       }
       catch (\Throwable $e) {
         $call['error.php8'] = TestExportUtil::exportException($e);
         if (isset($call['rewritten'])) {
-          $call['mismatch'] = TRUE;
+          $call['mismatch'] = true;
         }
       }
     }

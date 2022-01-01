@@ -28,48 +28,48 @@ class ParserUtil {
 
   const IDENTIFIER_START_TOKENS = (\PHP_VERSION_ID < 80000)
     ? [
-      \T_STRING => TRUE,
-      \T_NS_SEPARATOR => TRUE,
+      \T_STRING => true,
+      \T_NS_SEPARATOR => true,
     ]
     : [
-      \T_STRING => TRUE,
-      self::T_NAME_FULLY_QUALIFIED => TRUE,
-      self::T_NAME_QUALIFIED => TRUE,
+      \T_STRING => true,
+      self::T_NAME_FULLY_QUALIFIED => true,
+      self::T_NAME_QUALIFIED => true,
     ];
 
   const WS_MAPS = [
     \T_WHITESPACE => [
-      \T_WHITESPACE => TRUE,
+      \T_WHITESPACE => true,
     ],
     \T_COMMENT => [
-      \T_WHITESPACE => TRUE,
-      \T_COMMENT => TRUE,
+      \T_WHITESPACE => true,
+      \T_COMMENT => true,
     ],
     \T_DOC_COMMENT => [
-      \T_WHITESPACE => TRUE,
-      \T_COMMENT => TRUE,
-      \T_DOC_COMMENT => TRUE,
+      \T_WHITESPACE => true,
+      \T_COMMENT => true,
+      \T_DOC_COMMENT => true,
     ],
   ];
 
   const WS_MAP = [
-    \T_WHITESPACE => TRUE,
+    \T_WHITESPACE => true,
   ];
 
   const WS_OR_COMMENT = [
-    \T_WHITESPACE => TRUE,
-    \T_COMMENT => TRUE,
+    \T_WHITESPACE => true,
+    \T_COMMENT => true,
   ];
 
   const WS_OR_DOC = [
-    \T_WHITESPACE => TRUE,
-    \T_DOC_COMMENT => TRUE,
+    \T_WHITESPACE => true,
+    \T_DOC_COMMENT => true,
   ];
 
   const WS_OR_COMMENT_OR_DOC = [
-    \T_WHITESPACE => TRUE,
-    \T_COMMENT => TRUE,
-    \T_DOC_COMMENT => TRUE,
+    \T_WHITESPACE => true,
+    \T_COMMENT => true,
+    \T_DOC_COMMENT => true,
   ];
 
   /** @var (-1|0|1)[] */
@@ -139,8 +139,8 @@ class ParserUtil {
    */
   public static function skipSubtree(array $tokens, int &$pos): void {
     /** @var (-1|0|1)[]|null $map */
-    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? NULL;
-    if ($map === NULL) {
+    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? null;
+    if ($map === null) {
       throw new \RuntimeException(
         'skipSubtree() was called on an invalid position.');
     }
@@ -184,7 +184,7 @@ class ParserUtil {
    */
   public static function skipDoubleQuotedString(array $tokens, int &$pos): void {
     $i = $pos;
-    while (TRUE) {
+    while (true) {
       ++$i;
       if ($tokens[$i] === '"') {
         break;
@@ -214,8 +214,8 @@ class ParserUtil {
    */
   public static function skipSubtreeReverse(array $tokens, int &$pos): void {
     /** @var (1|0|-1)[]|null $map */
-    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? NULL;
-    if ($map === NULL) {
+    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? null;
+    if ($map === null) {
       throw new \RuntimeException(
         'skipSubtree() was called on an invalid position.');
     }
@@ -248,7 +248,7 @@ class ParserUtil {
    *
    * @return int|string
    */
-  public static function skipHeaderWs(array $tokens, int &$pos, string &$docComment = NULL) {
+  public static function skipHeaderWs(array $tokens, int &$pos, string &$docComment = null) {
     $i = $pos;
     while (true) {
       $id = $tokens[$i][0];
@@ -345,7 +345,7 @@ class ParserUtil {
    */
   public static function skipFillerWs(array $tokens, int &$pos) {
     $i = $pos;
-    while (TRUE) {
+    while (true) {
       $id = $tokens[$i][0];
       if ($id === \T_COMMENT) {
         if (\PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
@@ -373,12 +373,12 @@ class ParserUtil {
       if ($name === 'UNKNOWN') {
         $name = self::SPECIAL_TOKEN_NAMES[$token[0]] ?? $name;
       }
-      return $name . ' / ' . \var_export($token[1], TRUE);
+      return $name . ' / ' . \var_export($token[1], true);
     }
     if ($token === '#') {
       return 'EOF';
     }
-    return \var_export($token, TRUE);
+    return \var_export($token, true);
   }
 
   /**
@@ -394,7 +394,7 @@ class ParserUtil {
    */
   public static function skipValueExpression(array $tokens, int &$pos): string {
     $i = $pos;
-    while (TRUE) {
+    while (true) {
       $token = $tokens[$i];
       if (\is_string($token)) {
         switch ($token) {

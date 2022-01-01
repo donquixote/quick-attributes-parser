@@ -27,12 +27,12 @@ final class SymbolHandle {
 @x';
 
   public const ALLOWED_REFLECTOR_CLASSES_MAP = [
-    \ReflectionClass::class => TRUE,
-    \ReflectionFunction::class => TRUE,
-    \ReflectionMethod::class => TRUE,
-    \ReflectionParameter::class => TRUE,
-    \ReflectionProperty::class => TRUE,
-    \ReflectionClassConstant::class => TRUE,
+    \ReflectionClass::class => true,
+    \ReflectionFunction::class => true,
+    \ReflectionMethod::class => true,
+    \ReflectionParameter::class => true,
+    \ReflectionProperty::class => true,
+    \ReflectionClassConstant::class => true,
   ];
 
   /**
@@ -203,7 +203,7 @@ final class SymbolHandle {
     while (!isset(self::ALLOWED_REFLECTOR_CLASSES_MAP[$class])) {
       // Convert reflector adapters back to the native class.
       $class = \get_parent_class($class);
-      if ($class === FALSE) {
+      if ($class === false) {
         throw new \ReflectionException(
           \sprintf("Unsupported reflector class '%s'.",
             // Get the original class name for the error message.
@@ -413,10 +413,10 @@ final class SymbolHandle {
    */
   public function getNamespaceName(): ?string {
     $qcn = $this->getToplevelQcn();
-    if (FALSE !== $pos = \strrpos($qcn, '\\')) {
+    if (false !== $pos = \strrpos($qcn, '\\')) {
       return \substr($qcn, 0, $pos);
     }
-    return NULL;
+    return null;
   }
 
   /**
@@ -426,7 +426,7 @@ final class SymbolHandle {
    */
   public function getTerminatingNamespaceName(): string {
     $qcn = $this->getToplevelQcn();
-    if (FALSE !== $pos = \strrpos($qcn, '\\')) {
+    if (false !== $pos = \strrpos($qcn, '\\')) {
       return \substr($qcn, $pos + 1);
     }
     return '';
@@ -469,13 +469,13 @@ final class SymbolHandle {
   public function getClassName(): ?string {
     switch ($this->reflectorClass) {
       case \ReflectionFunction::class:
-        return NULL;
+        return null;
 
       case \ReflectionParameter::class:
         /** @psalm-suppress LessSpecificReturnStatement */
         return \is_array($this->reflectorArgs[0])
           ? $this->reflectorArgs[0][0]
-          : NULL;
+          : null;
 
       case \ReflectionClass::class:
       case \ReflectionMethod::class:

@@ -25,7 +25,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   /**
    * @var class-string|null
    */
-  private ?string $class = NULL;
+  private ?string $class = null;
 
   /**
    * @param string|null $namespace
@@ -36,9 +36,9 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    */
   public function withContext(?string $namespace, array $imports, ?string $class): self {
     \assert($namespace !== '');
-    \assert($namespace === NULL || $namespace[0] !== '\\');
+    \assert($namespace === null || $namespace[0] !== '\\');
     $clone = clone $this;
-    $clone->terminatedNamespace = ($namespace === NULL) ? '' : ($namespace . '\\');
+    $clone->terminatedNamespace = ($namespace === null) ? '' : ($namespace . '\\');
     $clone->imports = $imports;
     $clone->class = $class;
     return $clone;
@@ -53,7 +53,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     \assert(ParserAssertUtil::expect($tokens, 0, ParserUtil::T_ATTRIBUTE));
     $rawAttributes = [];
     $i = 0;
-    while (TRUE) {
+    while (true) {
       \assert(ParserAssertUtil::expect($tokens, $i, ParserUtil::T_ATTRIBUTE));
       foreach ($this->parseAttributes($tokens, $i) as $rawAttribute) {
         $rawAttributes[] = $rawAttribute;
@@ -84,7 +84,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       throw new \InvalidArgumentException('Comment must begin with #[.');
     }
     if (\strpos($comment, "\n") !== \strlen($comment) - 1) {
-      throw new \InvalidArgumentException('Comment must be single-line and end with line break.' . \var_export($comment, TRUE));
+      throw new \InvalidArgumentException('Comment must be single-line and end with line break.' . \var_export($comment, true));
     }
     $php = '<?php ' . \substr($comment, 2);
     /** @var list<string|array{int, string, int}> $tokens */
@@ -95,7 +95,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
      *
      * @var list<string|array{int, string, int}> $tokens
      */
-    while (TRUE) {
+    while (true) {
       $tkLast = \end($tokens);
       if ($tkLast[0] !== \T_COMMENT) {
         break;
@@ -135,7 +135,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   private function parseAttributes(array $tokens, int &$pos): iterable {
     \assert(ParserAssertUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
     $i = $pos;
-    while (TRUE) {
+    while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
@@ -179,12 +179,12 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     \assert(ParserAssertUtil::expect($tokens, $pos, '('));
     $i = $pos;
     $php = '';
-    $namedPart = FALSE;
-    while (TRUE) {
+    $namedPart = false;
+    while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['(', ',']));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
-      $key = NULL;
+      $key = null;
       if ($id === ')') {
         // Empty arg list, or trailing comma after last arg.
         $pos = $i;
@@ -205,9 +205,9 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       $valuePhp = $this->parseValueExpression($tokens, $i);
       \assert($valuePhp !== '');
       $id = $tokens[$i][0];
-      if ($key !== NULL) {
-        $php .= '  ' . \var_export($key, TRUE) . ' => ' . $valuePhp . ",  // value\n";
-        $namedPart = TRUE;
+      if ($key !== null) {
+        $php .= '  ' . \var_export($key, true) . ' => ' . $valuePhp . ",  // value\n";
+        $namedPart = true;
       }
       elseif ($namedPart) {
         throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot use positional argument after named argument');
@@ -308,7 +308,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       return $qcn;
     }
     // Parse remaining part of the QCN.
-    while (TRUE) {
+    while (true) {
       ++$i;
       if ($tokens[$i][0] !== \T_STRING) {
         throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
@@ -336,7 +336,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   private function parseValueExpression(array $tokens, int &$pos): string {
     $i = $pos;
     $php = '';
-    while (TRUE) {
+    while (true) {
       $token = $tokens[$i];
       if (\is_string($token)) {
         switch ($token) {
@@ -435,7 +435,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', '[']));
     $i = $pos;
     $php = '';
-    while (TRUE) {
+    while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['(', '[', ',']));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
@@ -486,7 +486,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       if ($tokens[$i][0] !== \T_STRING) {
         throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
       }
-      $first = NULL;
+      $first = null;
       $fqn = $tokens[$i][1];
       ++$i;
     }
@@ -511,16 +511,16 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     }
     if ($id !== \T_DOUBLE_COLON) {
       // Fqn refers to a global constant.
-      if ($first !== NULL) {
+      if ($first !== null) {
         // Allow PHP to do a fallback lookup for the constant, if not imported.
         // A namespace declaration must be prepended to eval'd code.
         $qn = $this->imports["const $first"] ?? null;
-        if ($qn !== NULL) {
+        if ($qn !== null) {
           $fqn = '\\' . $qn . $fqn;
         }
         else {
           $fqn = \vsprintf('(defined(%s) ? %s : %s)', [
-            \var_export($this->terminatedNamespace . $first . $fqn, TRUE),
+            \var_export($this->terminatedNamespace . $first . $fqn, true),
             '\\' . $this->terminatedNamespace . $first . $fqn,
             '\\' . $first . $fqn,
           ]);
@@ -530,9 +530,9 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       return $fqn;
     }
     // Fqn refers to a class.
-    if ($first !== NULL) {
+    if ($first !== null) {
       if ($fqn === '' && \strtolower($first) === 'self') {
-        if ($this->class === NULL) {
+        if ($this->class === null) {
           throw SyntaxException::unexpected($tokens, $i, 'outside of class context');
         }
         $fqn = '\\' . $this->class;

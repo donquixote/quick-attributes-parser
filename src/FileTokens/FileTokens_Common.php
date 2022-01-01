@@ -98,7 +98,7 @@ class FileTokens_Common implements FileTokensInterface {
     }
 
     // Not a regular class file, or unsupported code formatting.
-    return NULL;
+    return null;
   }
 
   /**
@@ -117,7 +117,7 @@ class FileTokens_Common implements FileTokensInterface {
       \PREG_OFFSET_CAPTURE,
       $offset)
     ) {
-      return NULL;
+      return null;
     }
 
     /** @var list<array{string, int}> $m */

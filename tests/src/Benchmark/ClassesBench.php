@@ -643,7 +643,7 @@ class ClassesBench {
     $rm = $rc->getReflectionConstants()[0]
       ?? $rc->getProperties()[0]
       ?? $rc->getMethods()[0]
-      ?? NULL;
+      ?? null;
     if (!$rm) {
       return;
     }
@@ -672,7 +672,7 @@ class ClassesBench {
     $rm = \array_reverse($rc->getMethods())[0]
       ?? \array_reverse($rc->getProperties())[0]
       ?? \array_reverse($rc->getReflectionConstants())[0]
-      ?? NULL;
+      ?? null;
     if (!$rm) {
       return;
     }
@@ -701,7 +701,7 @@ class ClassesBench {
     $rm = $rc->getReflectionConstants()[0]
       ?? $rc->getProperties()[0]
       ?? $rc->getMethods()[0]
-      ?? NULL;
+      ?? null;
     if (!$rm) {
       return;
     }

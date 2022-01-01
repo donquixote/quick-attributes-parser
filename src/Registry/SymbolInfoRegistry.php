@@ -58,7 +58,7 @@ class SymbolInfoRegistry {
    */
   public function symbolGetImports(SymbolHandle $symbol): array {
     $imports = $this->symbolGetInfo($symbol->getTopLevel())->getImports();
-    if ($imports === NULL) {
+    if ($imports === null) {
       throw new \RuntimeException('Imports for a top-level symbol can never be NULL.');
     }
     return $imports;
@@ -84,8 +84,8 @@ class SymbolInfoRegistry {
    */
   private function symbolGetInfo(SymbolHandle $symbol): RawSymbolInfo {
     $key = (string) $symbol;
-    $existing = $this->info[$key] ?? NULL;
-    if ($existing !== NULL) {
+    $existing = $this->info[$key] ?? null;
+    if ($existing !== null) {
       return $existing;
     }
     $file = $symbol->getFileName();
@@ -114,7 +114,7 @@ class SymbolInfoRegistry {
       foreach ($this->parser->parseFile($file) as $symbol => $info) {
         $key = (string) $symbol;
         $this->info[$key] = $info;
-        yield TRUE;
+        yield true;
       }
     }
     catch (ParserException $e) {

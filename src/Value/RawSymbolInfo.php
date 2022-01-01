@@ -9,7 +9,7 @@ class RawSymbolInfo {
   /**
    * @var array<string, string>|null
    */
-  private ?array $imports = NULL;
+  private ?array $imports = null;
 
   /**
    * @var string[]

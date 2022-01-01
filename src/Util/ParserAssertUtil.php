@@ -26,13 +26,13 @@ class ParserAssertUtil {
       $pos += \count($tokens);
     }
     if (isset($map[$tokens[$pos][0]])) {
-      return TRUE;
+      return true;
     }
     $parts = [];
     foreach ($map as $k => $_) {
       $parts[] = \is_int($k)
         ? \token_name($k)
-        : \var_export($k, TRUE);
+        : \var_export($k, true);
     }
     $export = \implode(' or ', $parts);
     throw self::expectedButFound($tokens, $pos, $export);
@@ -52,11 +52,11 @@ class ParserAssertUtil {
       $pos += \count($tokens);
     }
     if ($tokens[$pos][0] === $expected) {
-      return TRUE;
+      return true;
     }
     $export = \is_int($expected)
       ? \token_name($expected)
-      : \var_export($expected, TRUE);
+      : \var_export($expected, true);
     throw self::expectedButFound($tokens, $pos, $export);
   }
 
@@ -70,7 +70,7 @@ class ParserAssertUtil {
    * @throws \Donquixote\QuickAttributes\Exception\ParserMalfunction
    */
   public static function expectOneOf(array $tokens, int $pos, array $allowed): bool {
-    return self::expectOneIn($tokens, $pos, \array_fill_keys($allowed, TRUE));
+    return self::expectOneIn($tokens, $pos, \array_fill_keys($allowed, true));
   }
 
   /**

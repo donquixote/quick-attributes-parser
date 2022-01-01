@@ -47,7 +47,7 @@ class ArgumentsUtil {
     }
     /** @var array<int, mixed> $mappedArgs */
     $mappedArgs = [];
-    $named = FALSE;
+    $named = false;
     /** @var mixed $v */
     foreach ($args as $k => $v) {
       if (!\is_string($k)) {
@@ -58,9 +58,9 @@ class ArgumentsUtil {
         $mappedArgs[] = $v;
       }
       else {
-        $named = TRUE;
-        $index = $map[$k] ?? NULL;
-        if ($index === NULL) {
+        $named = true;
+        $index = $map[$k] ?? null;
+        if ($index === null) {
           throw new \ReflectionException("Unknown argument name '$k'.");
         }
         if (\array_key_exists($index, $mappedArgs)) {

@@ -27,7 +27,7 @@ class TokenizerUtil {
       throw TokenizerException::fromParseError($e);
     }
     $err = \error_get_last();
-    if ($err !== NULL) {
+    if ($err !== null) {
       // @todo Enhance the exception message.
       throw TokenizerException::fromError($err);
     }

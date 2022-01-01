@@ -38,7 +38,7 @@ class ClassesTest extends TestCase {
     $head = $fileTokens->getClassFileHead();
     $all = $fileTokens->getAll();
     self::assertSame('#', $all[\count($all) - 1]);
-    if ($head !== NULL) {
+    if ($head !== null) {
       self::assertSame('{', $head[\count($head) - 2]);
       self::assertSame('#', $head[\count($head) - 1]);
     }
@@ -51,7 +51,7 @@ class ClassesTest extends TestCase {
    */
   public function testParser(string $shortname): void {
     if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(TRUE, 'Skip test in PHP 8+.');
+      self::assertTrue(true, 'Skip test in PHP 8+.');
       return;
     }
     $ymlDir = $this->getYmlDir();
@@ -91,7 +91,7 @@ class ClassesTest extends TestCase {
    */
   public function testRegistry(string $shortname): void {
     if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(TRUE, 'Skip test in PHP 8+.');
+      self::assertTrue(true, 'Skip test in PHP 8+.');
       return;
     }
     $ymlDir = $this->getYmlDir();
@@ -108,7 +108,7 @@ class ClassesTest extends TestCase {
       $symbol = SymbolHandle::fromId($symbolId);
       $toplevel = $symbol->getTopLevel();
       if ($toplevel === $symbol) {
-        $toplevelNamesMap[(string) $symbol->getTopLevel()] = TRUE;
+        $toplevelNamesMap[(string) $symbol->getTopLevel()] = true;
       }
       else {
         self::assertArrayHasKey((string) $toplevel, $toplevelNamesMap);
@@ -176,7 +176,7 @@ class ClassesTest extends TestCase {
     $actualFilesMap = [];
     foreach (\scandir($ymlDir) as $candidate) {
       if (\preg_match('@\.yml$@', $candidate)) {
-        $actualFilesMap["$ymlDir/$candidate"] = TRUE;
+        $actualFilesMap["$ymlDir/$candidate"] = true;
       }
     }
     \ksort($actualFilesMap);
@@ -189,7 +189,7 @@ class ClassesTest extends TestCase {
         "$ymlDir/$shortname.raw-attributes.yml",
         "$ymlDir/$shortname.instances.yml",
       ] as $file) {
-        $expectedFilesMap[$file] = TRUE;
+        $expectedFilesMap[$file] = true;
       }
     }
     \ksort($expectedFilesMap);

@@ -32,7 +32,7 @@ class SyntaxException extends ParserException {
    *
    * @return static
    */
-  public static function unexpectedAfter(array $tokens, int $pos, string $preceding = NULL): self {
+  public static function unexpectedAfter(array $tokens, int $pos, string $preceding = null): self {
     return static::fromTokenPos(
       $tokens,
       $pos,

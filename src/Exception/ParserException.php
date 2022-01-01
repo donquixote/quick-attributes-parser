@@ -19,7 +19,7 @@ class ParserException extends \Exception {
    * This explicit override is needed for psalm.
    * See https://github.com/vimeo/psalm/issues/6627
    */
-  public function __construct(string $message = "", int $code = 0, Throwable $previous = NULL) {
+  public function __construct(string $message = "", int $code = 0, Throwable $previous = null) {
     parent::__construct($message, $code, $previous);
   }
 
@@ -31,8 +31,8 @@ class ParserException extends \Exception {
    * @param int $startLine
    * @param int $indent
    */
-  public function setSourceFile(string $file, string $basedir = NULL, int $startLine = 0, int $indent = 0): void {
-    if ($basedir !== NULL && \preg_match(
+  public function setSourceFile(string $file, string $basedir = null, int $startLine = 0, int $indent = 0): void {
+    if ($basedir !== null && \preg_match(
       '@^' . \preg_quote($basedir  . '/', '@') . '(.*)$@',
       $file,
       $m)
@@ -62,7 +62,7 @@ class ParserException extends \Exception {
    *
    * @noinspection PhpMissingReturnTypeInspection
    */
-  public static function fromTokenPos(array $tokens, int $pos, string $message, bool $append_found = FALSE) {
+  public static function fromTokenPos(array $tokens, int $pos, string $message, bool $append_found = false) {
     [$line, $chrpos] = TokenPositionUtil::findLineChrPos($tokens, $pos);
     $message = "Line $line:$chrpos: $message";
     if ($append_found) {

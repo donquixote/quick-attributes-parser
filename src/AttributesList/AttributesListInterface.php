@@ -13,7 +13,7 @@ interface AttributesListInterface {
    *
    * @return bool
    */
-  public function has(string $type = NULL): bool;
+  public function has(string $type = null): bool;
 
   /**
    * @template T as object
@@ -22,7 +22,7 @@ interface AttributesListInterface {
    *
    * @return int
    */
-  public function count(string $type = NULL): int;
+  public function count(string $type = null): int;
 
   /**
    * @template T as object
@@ -34,6 +34,6 @@ interface AttributesListInterface {
    *
    * @throws \ReflectionException
    */
-  public function createInstances(string $type = NULL): array;
+  public function createInstances(string $type = null): array;
 
 }

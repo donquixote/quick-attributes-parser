@@ -69,9 +69,9 @@ class AttrCommentParserTest extends YmlTestBase {
 
     $parser = new AttributeCommentParser();
     $parser = $parser->withContext(
-      $data['namespace'] ?? NULL,
+      $data['namespace'] ?? null,
       $data['imports'] ?? [],
-      $data['class'] ?? NULL);
+      $data['class'] ?? null);
 
     try {
       $attributes = $parser->parse($data['comment'] . "\n");
@@ -103,7 +103,7 @@ class AttrCommentParserTest extends YmlTestBase {
     }
     foreach ($data['imports'] ?? [] as $alias => $qcn) {
       // Optimize for the more common case where the alias has no space.
-      if (FALSE !== $spacepos = \strpos($alias, ' ')) {
+      if (false !== $spacepos = \strpos($alias, ' ')) {
         $type = \substr($alias, 0, $spacepos);
         $alias = \substr($alias, $spacepos + 1);
         $php .= "use $type $qcn as $alias;\n";
@@ -149,7 +149,7 @@ class AttrCommentParserTest extends YmlTestBase {
       $data['exception.php8'] = TestExportUtil::exportException($e);
       unset($data['attributes.php8']);
       if (!isset($data['exception'])) {
-        $data['mismatch'] = TRUE;
+        $data['mismatch'] = true;
       }
       else {
         unset($data['mismatch']);

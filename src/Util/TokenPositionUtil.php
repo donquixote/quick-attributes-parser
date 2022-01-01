@@ -45,7 +45,7 @@ class TokenPositionUtil {
       }
       else {
         $chrpos += \strlen($tokens[$i][1]);
-        if (FALSE !== $nlpos = \strrpos($tokens[$i][1], "\n")) {
+        if (false !== $nlpos = \strrpos($tokens[$i][1], "\n")) {
           return [
             $tokens[$i][2] + \substr_count($tokens[$i][1], "\n"),
             $chrpos - $nlpos,
@@ -100,7 +100,7 @@ class TokenPositionUtil {
       }
       else {
         $chrpos += \strlen($tokens[$i][1]);
-        if (FALSE !== $nlpos = \strrpos($tokens[$i][1], "\n")) {
+        if (false !== $nlpos = \strrpos($tokens[$i][1], "\n")) {
           return $chrpos - $nlpos;
         }
       }

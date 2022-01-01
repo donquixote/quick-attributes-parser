@@ -49,7 +49,7 @@ class FileTokens_PreComputed implements FileTokensInterface {
    * @param _TokenList|null $tokensHead
    */
   public function __construct(array $tokensAll, ?array $tokensHead) {
-    if ($tokensHead !== NULL) {
+    if ($tokensHead !== null) {
       \assert(\array_slice($tokensAll, 0, \count($tokensHead)) === $tokensHead);
     }
     $this->tokensHead = $tokensHead;

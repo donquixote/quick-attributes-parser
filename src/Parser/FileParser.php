@@ -59,7 +59,7 @@ class FileParser {
       $tokens = $fileTokens->getAll();
     }
 
-    $namespace = NULL;
+    $namespace = null;
     $terminatedNamespace = '';
     $imports = [];
     if ($tokens[0][0] !== \T_OPEN_TAG) {
@@ -189,7 +189,7 @@ class FileParser {
             continue 2;
 
           case \T_NAMESPACE:
-            if ($namespace !== NULL) {
+            if ($namespace !== null) {
               throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot redeclare namespace.');
             }
             throw SyntaxException::unexpected($tokens, $i, 'after non-declare statements');
@@ -201,7 +201,7 @@ class FileParser {
           case \T_FUNCTION:
             $shortname = $this->parseFunctionHead($tokens, $i);
             \assert(ParserAssertUtil::expect($tokens, $i, '('));
-            if ($shortname === NULL) {
+            if ($shortname === null) {
               // Anonymous function. Ignore.
               // Skip the parameter list first.
               ParserUtil::skipSubtree($tokens, $i);
@@ -288,7 +288,7 @@ class FileParser {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_NAMESPACE));
     $i = $pos + 1;
     $namespace = ParserUtil::skipFillerWsExpectTString($tokens, $i);
-    while (TRUE) {
+    while (true) {
       ++$i;
       if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
         break;
@@ -425,8 +425,8 @@ class FileParser {
             break;
 
           case \T_FUNCTION:
-            $method = $this->parseFunctionHead($tokens, $i, TRUE);
-            \assert($method !== NULL);
+            $method = $this->parseFunctionHead($tokens, $i, true);
+            \assert($method !== null);
             $symbol = SymbolHandle::fromMethod($class, $method);
             yield $symbol => RawSymbolInfo::forInnerSymbol($attributeComments);
             foreach ($this->parseParams($tokens, $i) as $paramDollarName => $paramAttrComments) {
@@ -499,7 +499,7 @@ class FileParser {
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseFunctionHead(array $tokens, int &$pos, bool $isClassMember = FALSE): ?string {
+  private function parseFunctionHead(array $tokens, int &$pos, bool $isClassMember = false): ?string {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_FUNCTION));
 
     $i = $pos + 1;
@@ -515,7 +515,7 @@ class FileParser {
         throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function in class not allowed.');
       }
       $pos = $i;
-      return NULL;
+      return null;
     }
 
     if ($id !== \T_STRING) {
@@ -592,7 +592,7 @@ class FileParser {
             ++$i;
             $id = ParserUtil::skipHeaderWs($tokens, $i);
             if ($id === '=') {
-              $id = $this->skipVarDefault($tokens, $i, TRUE);
+              $id = $this->skipVarDefault($tokens, $i, true);
             }
             // Skip until the comma or ')'.
             if ($id === ')') {
@@ -630,7 +630,7 @@ class FileParser {
     $id = ParserUtil::skipFillerWs($tokens, $i);
     while (true) {
       if ($id === '=') {
-        $id = $this->skipVarDefault($tokens, $i, FALSE);
+        $id = $this->skipVarDefault($tokens, $i, false);
       }
       if ($id === ';') {
         $pos = $i;
@@ -670,7 +670,7 @@ class FileParser {
     $id = ParserUtil::skipFillerWs($tokens, $i);
     while (true) {
       if ($id === '=') {
-        $id = $this->skipVarDefault($tokens, $i, FALSE);
+        $id = $this->skipVarDefault($tokens, $i, false);
       }
       if ($id === ';') {
         $pos = $i;
@@ -787,7 +787,7 @@ class FileParser {
     else {
       throw SyntaxException::unexpected($tokens, $i, 'in imports');
     }
-    $first = TRUE;
+    $first = true;
     // Iterate over imports separated by comma.
     while (true) {
       \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
@@ -839,7 +839,7 @@ class FileParser {
       }
       ++$i;
       $qcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
-      $first = FALSE;
+      $first = false;
     }
   }  // @codeCoverageIgnore
 
@@ -861,7 +861,7 @@ class FileParser {
     $i = $pos;
 
     // Iterate over sub-imports within curly group.
-    while (TRUE) {
+    while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $i, [',', '{']));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);

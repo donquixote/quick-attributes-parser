@@ -25,28 +25,28 @@ class AttributesList_Fallback implements AttributesListInterface {
   /**
    * {@inheritdoc}
    */
-  public function has(string $type = NULL): bool {
-    if ($type === NULL) {
+  public function has(string $type = null): bool {
+    if ($type === null) {
       return $this->rawAttributes !== [];
     }
     foreach ($this->rawAttributes as $rawAttribute) {
-      if (\is_a($rawAttribute->getName(), $type, TRUE)) {
-        return TRUE;
+      if (\is_a($rawAttribute->getName(), $type, true)) {
+        return true;
       }
     }
-    return FALSE;
+    return false;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function count(string $type = NULL): int {
-    if ($type === NULL) {
+  public function count(string $type = null): int {
+    if ($type === null) {
       return \count($this->rawAttributes);
     }
     $n = 0;
     foreach ($this->rawAttributes as $rawAttribute) {
-      if (\is_a($rawAttribute->getName(), $type, TRUE)) {
+      if (\is_a($rawAttribute->getName(), $type, true)) {
         ++$n;
       }
     }
@@ -56,7 +56,7 @@ class AttributesList_Fallback implements AttributesListInterface {
   /**
    * {@inheritdoc}
    */
-  public function createInstances(string $type = NULL): array {
+  public function createInstances(string $type = null): array {
     return RawAttribute::createInstances($this->rawAttributes, $type);
   }
 

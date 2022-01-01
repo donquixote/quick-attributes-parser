@@ -53,7 +53,7 @@ class StaticReflectionParserBenchmarkEquivalent {
    */
   public function parseClassFile(string $class, string $file): void {
 
-    if (FALSE !== $lastNsPos = \strrpos($class, '\\')) {
+    if (false !== $lastNsPos = \strrpos($class, '\\')) {
       $namespace = substr($class, 0, $lastNsPos);
       $shortname = substr($class, $lastNsPos + 1);
     }

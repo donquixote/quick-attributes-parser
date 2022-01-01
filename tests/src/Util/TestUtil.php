@@ -18,13 +18,13 @@ class TestUtil {
    */
   public static function updateTestsEnabled(): bool {
     if (!\getenv('UPDATE_TESTS')) {
-      return FALSE;
+      return false;
     }
     if (\DIRECTORY_SEPARATOR === '\\') {
       throw new \RuntimeException(
         'Cannot update tests in Windows OS, because file would be written with wrong line endings and directory separator.');
     }
-    return TRUE;
+    return true;
   }
 
   /**
@@ -33,7 +33,7 @@ class TestUtil {
    * @param bool $writeIfEnabled
    * @param int $inline
    */
-  public static function assertFileContentsYml(string $file, $data, bool $writeIfEnabled = TRUE, int $inline = 99): void {
+  public static function assertFileContentsYml(string $file, $data, bool $writeIfEnabled = true, int $inline = 99): void {
     self::assertFileContents(
       $file,
       Yaml::dump(
@@ -51,7 +51,7 @@ class TestUtil {
    *   Actual content.
    * @param bool $writeIfEnabled
    */
-  public static function assertFileContents(string $file, string $content_actual, bool $writeIfEnabled = TRUE): void {
+  public static function assertFileContents(string $file, string $content_actual, bool $writeIfEnabled = true): void {
     try {
       if (!\is_file($file)) {
         Assert::fail("File '$file' is missing.");

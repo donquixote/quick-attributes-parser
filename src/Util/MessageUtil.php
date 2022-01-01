@@ -42,7 +42,7 @@ class MessageUtil {
         return '(int)' . $value;
 
       default:
-        return \var_export($value, TRUE);
+        return \var_export($value, true);
     }
   }
 

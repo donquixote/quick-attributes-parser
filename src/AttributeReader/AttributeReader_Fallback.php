@@ -50,7 +50,7 @@ class AttributeReader_Fallback implements AttributeReaderInterface {
   public function read(SymbolHandle $symbol): ?AttributesListInterface {
     $comments = $this->registry->symbolGetAttributesComments($symbol);
     if (!$comments) {
-      return NULL;
+      return null;
     }
     $imports = $this->registry->symbolGetImports($symbol);
     $commentParser = $this->attributeCommentParser->withContext(
@@ -69,7 +69,7 @@ class AttributeReader_Fallback implements AttributeReaderInterface {
       }
     }
     if (!$rawAttributes) {
-      return NULL;
+      return null;
     }
     return new AttributesList_Fallback($rawAttributes);
   }

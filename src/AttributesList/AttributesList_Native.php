@@ -25,7 +25,7 @@ class AttributesList_Native implements AttributesListInterface {
   /**
    * {@inheritdoc}
    */
-  public function has(string $type = NULL): bool {
+  public function has(string $type = null): bool {
     return (bool) $this->reflector->getAttributes(
       $type,
       \ReflectionAttribute::IS_INSTANCEOF);
@@ -34,7 +34,7 @@ class AttributesList_Native implements AttributesListInterface {
   /**
    * {@inheritdoc}
    */
-  public function count(string $type = NULL): int {
+  public function count(string $type = null): int {
     return \count(
       $this->reflector->getAttributes(
         $type,
@@ -44,7 +44,7 @@ class AttributesList_Native implements AttributesListInterface {
   /**
    * {@inheritdoc}
    */
-  public function createInstances(string $type = NULL): array {
+  public function createInstances(string $type = null): array {
     $instances = [];
     foreach ($this->reflector->getAttributes(
       $type,
