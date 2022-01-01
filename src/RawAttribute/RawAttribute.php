@@ -18,16 +18,16 @@ class RawAttribute {
    * @return array<TKey, $type is null ? object : T>
    * @throws \ReflectionException
    */
-  public static function createInstances(array $rawAttributes, string $type = NULL): array {
+  public static function createInstances(array $rawAttributes, string $type = null): array {
     $instances = [];
-    if ($type === NULL) {
+    if ($type === null) {
       foreach ($rawAttributes as $i => $rawAttribute) {
         $instances[$i] = self::createInstance($rawAttribute);
       }
     }
     else {
       foreach ($rawAttributes as $i => $rawAttribute) {
-        if (\is_a($rawAttribute->getName(), $type, TRUE)) {
+        if (\is_a($rawAttribute->getName(), $type, true)) {
           $instances[$i] = self::createInstance($rawAttribute);
         }
       }

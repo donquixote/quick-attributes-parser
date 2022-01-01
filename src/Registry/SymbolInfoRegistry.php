@@ -6,8 +6,7 @@ namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectRawSymbolInfo;
-use Donquixote\QuickAttributes\Value\RawSymbolInfo;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 
 class SymbolInfoRegistry {
@@ -22,7 +21,7 @@ class SymbolInfoRegistry {
    */
   private array $runningIterators = [];
 
-  private SymbolVisitor_CollectRawSymbolInfo $visitor;
+  private SymbolVisitor_CollectInfo $visitor;
 
   /**
    * Constructor.
@@ -34,14 +33,14 @@ class SymbolInfoRegistry {
       throw new \RuntimeException('This class should only be used in PHP < 8.');
     }
     $this->parser = $parser;
-    $this->visitor = new SymbolVisitor_CollectRawSymbolInfo();
+    $this->visitor = new SymbolVisitor_CollectInfo();
   }
 
   /**
    * @return self
    */
   public static function create(): self {
-    return new self(new FileParser());
+    return new self(FileParser::create());
   }
 
   /**
@@ -56,47 +55,49 @@ class SymbolInfoRegistry {
    *   Failed to load imports for this symbol.
    */
   public function symbolGetImports(SymbolHandle $symbol): array {
-    $imports = $this->symbolGetInfo($symbol->getTopLevel())->getImports();
-    if ($imports === null) {
-      throw new \RuntimeException('Imports for a top-level symbol can never be NULL.');
-    }
-    return $imports;
-  }
-
-  /**
-   * @param \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
-   *
-   * @return string[]
-   *
-   * @throws \ReflectionException
-   */
-  public function symbolGetAttributesComments(SymbolHandle $symbol): array {
-    return $this->symbolGetInfo($symbol)->getAttributeComments();
-  }
-
-  /**
-   * @param \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
-   *
-   * @return \Donquixote\QuickAttributes\Value\RawSymbolInfo
-   *
-   * @throws \ReflectionException
-   */
-  private function symbolGetInfo(SymbolHandle $symbol): RawSymbolInfo {
-    $key = (string) $symbol;
-    if (null !== $info = $this->visitor->getForKey($key)) {
-      return $info;
+    $key = (string) $symbol->getTopLevel();
+    if (null !== $imports = $this->visitor->keyGetImports($key)) {
+      return $imports;
     }
     $file = $symbol->getFileName();
     $it = $this->runningIterators[$file] ??= $this->itFile($file);
     while ($it->valid()) {
-      if (null !== $info = $this->visitor->getForKey($key)) {
-        return $info;
+      if (null !== $imports = $this->visitor->keyGetImports($key)) {
+        return $imports;
       }
       $it->next();
     }
     throw new \ReflectionException(
-      \vsprintf('Failed to load info for %s.', [
+      \vsprintf('Symbol %s not found in %s.', [
         (string) $symbol,
+        $file,
+      ]));
+  }
+
+  /**
+   * @param \Donquixote\QuickAttributes\Value\SymbolHandle $symbol
+   *
+   * @return list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
+   *
+   * @throws \ReflectionException
+   */
+  public function symbolGetAttributes(SymbolHandle $symbol): array {
+    $key = (string) $symbol;
+    if (null !== $attributes = $this->visitor->keyGetAttributes($key)) {
+      return $attributes;
+    }
+    $file = $symbol->getTopLevel()->getFileName();
+    $it = $this->runningIterators[$file] ??= $this->itFile($file);
+    while ($it->valid()) {
+      if (null !== $attributes = $this->visitor->keyGetAttributes($key)) {
+        return $attributes;
+      }
+      $it->next();
+    }
+    throw new \ReflectionException(
+      \vsprintf('Symbol %s not found in %s.', [
+        (string) $symbol,
+        $file,
       ]));
   }
 
