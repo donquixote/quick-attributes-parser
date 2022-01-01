@@ -4,17 +4,15 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolVisitor;
 
-use Donquixote\QuickAttributes\Value\RawSymbolInfo;
-
 class SymbolVisitor_CollectClassHeadsOnly extends SymbolVisitor_NoOp {
 
   /**
-   * @var array<class-string, \Donquixote\QuickAttributes\Value\RawSymbolInfo>
+   * @var array<class-string, true>
    */
   private $classes = [];
 
   /**
-   * @return array<class-string, \Donquixote\QuickAttributes\Value\RawSymbolInfo>
+   * @return array<class-string, true>
    */
   public function getClasses(): array {
     return $this->classes;
@@ -23,8 +21,8 @@ class SymbolVisitor_CollectClassHeadsOnly extends SymbolVisitor_NoOp {
   /**
    * @inheritDoc
    */
-  public function addClass(string $class, array $imports, array $attrComments): void {
-    $this->classes[$class] = RawSymbolInfo::forTopLevelSymbol($attrComments, $imports);
+  public function addClass(string $class, array $imports, array $attributes): void {
+    $this->classes[$class] = true;
   }
 
 }

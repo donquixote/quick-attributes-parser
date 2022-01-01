@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
-use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
@@ -40,8 +39,7 @@ class SnippetTest extends YmlTestBase {
       return;
     }
     $fileTokens = new FileTokens_Common($data['php']);
-    $parser = new FileParser();
-    $attrParser = new AttributeCommentParser();
+    $parser = FileParser::create();
     $visitor = new SymbolVisitor_CollectInfo();
     try {
       unset($data['attributess']);
@@ -58,34 +56,8 @@ class SnippetTest extends YmlTestBase {
     if ($importss) {
       $data['importss'] = $importss;
     }
-    $localAttrParser = $attrParser;
-    foreach ($visitor->getAttrCommentss() as $key => $attrComments) {
-      if (isset($importss[$key])) {
-        // This is a top-level symbol with its own imports and namespace.
-        if (!\preg_match('@^(?:|(.*)\\\\)\w+(|\(\))$@', $key, $m)) {
-          throw new \RuntimeException('Unexpected regex mismatch.');
-        }
-        [, $namespace, $parens] = $m;
-        /** @var class-string|null $class */
-        $class = ($parens === '') ? $key : null;
-        $localAttrParser = $attrParser->withContext(
-          $namespace ?: null,
-          $importss[$key],
-          $class);
-      }
-      try {
-        $attributes = [];
-        foreach ($attrComments as $attrComment) {
-          foreach ($localAttrParser->parse($attrComment) as $rawAttribute) {
-            $attributes[] = TestExportUtil::exportRawAttribute($rawAttribute);
-          }
-        }
-        $data['attributess'][$key] = $attributes;
-      }
-      catch (ParserException $e) {
-        $data['exception'] = TestExportUtil::exportException($e);
-        break;
-      }
+    foreach ($visitor->getAttributess() as $key => $attributes) {
+      $data['attributess'][$key] = TestExportUtil::exportRawAttributes($attributes);
     }
     TestArrayUtil::normalizeKeys($data, [
       'php',
