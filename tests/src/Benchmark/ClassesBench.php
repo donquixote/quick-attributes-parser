@@ -10,6 +10,7 @@ use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
+use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
 use PhpBench\Benchmark\Metadata\Annotations\Groups;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
