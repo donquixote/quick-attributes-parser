@@ -19,7 +19,6 @@ use PhpBench\Benchmark\Metadata\Annotations\OutputTimeUnit;
 use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
 use PhpBench\Benchmark\Metadata\Annotations\RetryThreshold;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
-use PhpBench\Benchmark\Metadata\Annotations\Sleep;
 use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 use PhpParser\ParserFactory;
 use PHPUnit\Framework\TestCase;
