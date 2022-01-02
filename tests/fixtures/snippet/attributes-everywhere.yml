@@ -1,0 +1,79 @@
+php: |
+  <?php
+
+  #[A('class attr')]
+  class C {
+
+    #[A('class const attr')]  
+    const X = 5 + 7;
+
+    #[A('class property attr')]
+    private int $x;
+
+    #[A('method attr')]
+    public function f(
+      #[A('method param attr')]
+      $x,
+      #[A('method param 2 attr')]
+      int $y = 5
+    ) {}
+  }
+
+  #[A('function attr')]
+  #[A('function attr 2')]
+  function f(
+    #[A('function param attr')]
+    \stdClass $x
+  ) {}
+importss:
+  C: {  }
+  f(): {  }
+attributess:
+  C:
+    -
+      name: A
+      arguments:
+        - 'class attr'
+  'C::X':
+    -
+      name: A
+      arguments:
+        - 'class const attr'
+  'C::$x':
+    -
+      name: A
+      arguments:
+        - 'class property attr'
+  'C::f()':
+    -
+      name: A
+      arguments:
+        - 'method attr'
+  'C::f($x)':
+    -
+      name: A
+      arguments:
+        - 'method param attr'
+  'C::f($y)':
+    -
+      name: A
+      arguments:
+        - 'method param 2 attr'
+  f():
+    -
+      name: A
+      arguments:
+        - 'class attr'
+    -
+      name: A
+      arguments:
+        - 'function attr'
+    -
+      name: A
+      arguments:
+        - 'function attr 2'
+  f($x):
+    -
+      name: A
+      arguments:
+        - 'function param attr'
