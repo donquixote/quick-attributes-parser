@@ -222,7 +222,7 @@ class ClassesBench {
   /**
    * @Revs(200)
    * @Iterations(15)
-   * @Groups("head", "tokenize")
+   * @Groups("head", "tokenize", "tokenize-head")
    * @ParamProviders("provideClassFileContents")
    *
    * @param array{string} $args
@@ -340,7 +340,7 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(10)
-   * @Groups("head")
+   * @Groups("head", "parse-head")
    * @ParamProviders("provideClasses")
    *
    * @param array{class-string} $args
@@ -360,7 +360,7 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(10)
-   * @Groups("head")
+   * @Groups("head", "parse-head")
    * @ParamProviders("provideClassFiles")
    *
    * @param array{string} $args
@@ -384,7 +384,7 @@ class ClassesBench {
    * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
-   * @Groups("head", "registry")
+   * @Groups("head", "registry", "read-head")
    *
    * @param array{class-string} $args
    *
@@ -405,7 +405,7 @@ class ClassesBench {
    * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
-   * @Groups("head")
+   * @Groups("head", "read-head")
    *
    * @param array{class-string} $args
    *
@@ -445,7 +445,7 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(5)
-   * @Groups("full", "parse-full", "parse-tokens-full")
+   * @Groups("full", "parse-full")
    * @ParamProviders("provideClassFileTokens")
    *
    * @param array{\Donquixote\QuickAttributes\FileTokens\FileTokensInterface} $args
@@ -466,7 +466,7 @@ class ClassesBench {
   /**
    * @Revs(3)
    * @Iterations(5)
-   * @Groups("full", "registry")
+   * @Groups("head", "parse-head")
    * @ParamProviders("provideClassFiles")
    *
    * @param array{string} $args
@@ -489,7 +489,7 @@ class ClassesBench {
    * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
-   * @Groups("full", "registry")
+   * @Groups("head", "registry", "read-head")
    *
    * @param array{class-string} $args
    *
@@ -518,7 +518,7 @@ class ClassesBench {
    * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
-   * @Groups("full", "registry")
+   * @Groups("full", "registry", "read-full")
    *
    * @param array{class-string} $args
    *
@@ -547,7 +547,7 @@ class ClassesBench {
    * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
-   * @Groups("full")
+   * @Groups("head", "read-head")
    *
    * @param array{class-string} $args
    *
@@ -574,7 +574,7 @@ class ClassesBench {
   /**
    * @Revs(3)
    * @Iterations(5)
-   * @Groups("full")
+   * @Groups("full", "read-full", "parse-full")
    * @ParamProviders("provideClasses")
    *
    * @param array{class-string} $args
