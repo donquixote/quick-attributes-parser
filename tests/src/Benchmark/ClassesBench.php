@@ -80,10 +80,9 @@ class ClassesBench {
 
   /**
    * @Revs(1)
-   * @Iterations(150)
+   * @Iterations(15)
    * @Groups("tokenize", "tokenize-twice")
    * @ParamProviders("provideClassFileContents")
-   * @Sleep(10000)
    *
    * @param array{string} $args
    */
@@ -96,10 +95,9 @@ class ClassesBench {
 
   /**
    * @Revs(1)
-   * @Iterations(150)
+   * @Iterations(15)
    * @Groups("tokenize", "tokenize-twice")
    * @ParamProviders("provideClassFileContents")
-   * @Sleep(10000)
    *
    * @param array{string} $args
    */
