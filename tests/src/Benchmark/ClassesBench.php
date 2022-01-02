@@ -110,37 +110,6 @@ class ClassesBench {
   }
 
   /**
-   * @Revs(1)
-   * @Iterations(150)
-   * @Groups("tokenize", "tokenize-twice")
-   * @ParamProviders("provideClassFileContents")
-   * @Sleep(10000)
-   *
-   * @param array{string} $args
-   */
-  public function benchTokenGetAllTwice2(array $args): void {
-    [$php] = $args;
-    $tokens = \token_get_all($php);
-    $tokens2 = \token_get_all($php);
-    unset($tokens, $tokens2);
-  }
-
-  /**
-   * @Revs(1)
-   * @Iterations(150)
-   * @Groups("tokenize", "tokenize-twice")
-   * @ParamProviders("provideClassFileContents")
-   * @Sleep(10000)
-   *
-   * @param array{string} $args
-   */
-  public function benchTokenGetAllConcat2(array $args): void {
-    [$php] = $args;
-    $tokens = \token_get_all($php . '?>' . $php);
-    unset($tokens);
-  }
-
-  /**
    * @Revs(200)
    * @Iterations(15)
    * @Groups("full", "tokenize", "tokenize-full")
@@ -478,48 +447,6 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(5)
-   * @Groups("full", "parse-full")
-   * @ParamProviders("provideClassFiles")
-   *
-   * @param array{string} $args
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function benchParseClassFull1(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $file = $args[0];
-    $parser = new FileParser();
-    foreach ($parser->parseFile($file) as $_) {
-      unset($_);
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @Groups("full", "parse-full")
-   * @ParamProviders("provideClassFiles")
-   *
-   * @param array{string} $args
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function benchParseClassFull2(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $file = $args[0];
-    $parser = new FileParser();
-    foreach ($parser->parseFile($file) as $_) {
-      unset($_);
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
    * @Groups("full", "parse-full", "parse-tokens-full")
    * @ParamProviders("provideClassFileTokens")
    *
@@ -528,69 +455,6 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchParseTokensFull(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $fileTokens = $args[0];
-    $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
-      unset($_);
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @Groups("full", "parse-full", "parse-tokens-full")
-   * @ParamProviders("provideClassFileTokens")
-   *
-   * @param array{\Donquixote\QuickAttributes\FileTokens\FileTokensInterface} $args
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function benchParseTokensFull1(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $fileTokens = $args[0];
-    $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
-      unset($_);
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @Groups("full", "parse-full", "parse-tokens-full")
-   * @ParamProviders("provideClassFileTokens")
-   *
-   * @param array{\Donquixote\QuickAttributes\FileTokens\FileTokensInterface} $args
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function benchParseTokensFull2(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $fileTokens = $args[0];
-    $parser = new FileParser();
-    foreach ($parser->parseFileTokens($fileTokens) as $_) {
-      unset($_);
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @Groups("full", "parse-full", "parse-tokens-full")
-   * @ParamProviders("provideClassFileTokens")
-   *
-   * @param array{\Donquixote\QuickAttributes\FileTokens\FileTokensInterface} $args
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function benchParseTokensFull3(array $args): void {
     if (\PHP_VERSION_ID > 80000) {
       return;
     }
