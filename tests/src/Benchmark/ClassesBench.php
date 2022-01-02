@@ -546,6 +546,68 @@ class ClassesBench {
    * @Revs(10)
    * @Iterations(5)
    * @ParamProviders("provideClasses")
+   * @Groups("full", "registry", "read-full")
+   *
+   * @param array{class-string} $args
+   *
+   * @throws \ReflectionException
+   */
+  public function benchRegistryAllMembers(array $args): void {
+    if (\PHP_VERSION_ID > 80000) {
+      return;
+    }
+    $registry = SymbolInfoRegistry::create();
+    foreach ($this->classGetAllReflectors($args[0]) as $r) {
+      $registry->symbolGetAttributesComments(SymbolHandle::fromReflector($r));
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClasses")
+   * @Groups("full", "registry", "read-full")
+   *
+   * @param array{class-string} $args
+   *
+   * @throws \ReflectionException
+   */
+  public function benchRegistryAllMembersReverse(array $args): void {
+    if (\PHP_VERSION_ID > 80000) {
+      return;
+    }
+    $registry = SymbolInfoRegistry::create();
+    foreach ($this->classGetAllReflectors($args[0], true) as $r) {
+      $registry->symbolGetAttributesComments(SymbolHandle::fromReflector($r));
+    }
+  }
+
+  /**
+   * @param class-string $class
+   *
+   * @return \Reflector[]
+   * @throws \ReflectionException
+   */
+  private function classGetAllReflectors(string $class, bool $reverse = false): array {
+    $rc = new \ReflectionClass($class);
+    $reflectorss = [[$rc]];
+    $reflectorss[] = $rc->getReflectionConstants();
+    $reflectorss[] = $rc->getProperties();
+    foreach ($rc->getMethods() as $rm) {
+      $reflectorss[][] = $rm;
+      $reflectorss[] = $rm->getParameters();
+    }
+    $reflectors = \array_merge(...$reflectorss);
+    if ($reverse) {
+      $reflectors = \array_reverse($reflectors);
+    }
+    return $reflectors;
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClasses")
    * @Groups("head", "read-head")
    *
    * @param array{class-string} $args
