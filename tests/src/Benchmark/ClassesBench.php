@@ -8,7 +8,10 @@ use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
+use Donquixote\QuickAttributes\Registry\FileReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
+use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
@@ -490,6 +493,58 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("head", "read-head")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderFirstElement(array $args): void {
+    $found = false;
+    foreach (FileReader::create()->read($args[0]) as $element) {
+      $element->getImports();
+      $element->getAttributes();
+      $found = true;
+      break;
+    }
+    if (!$found) {
+      throw new \RuntimeException('First element not found.');
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("head", "read-head")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderFirstMethod(array $args): void {
+    $found = false;
+    foreach (FileReader::create()->read($args[0]) as $element) {
+      if ($element instanceof ClassInfo) {
+        foreach ($element->readMethods() as $methodInfo) {
+          $methodInfo->getAttributes();
+          $found = true;
+          break;
+        }
+        break;
+      }
+    }
+    if (!$found) {
+      throw new \RuntimeException('First method not found.');
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
    * @ParamProviders("provideClasses")
    * @Groups("head", "registry", "read-head")
    *
@@ -582,6 +637,103 @@ class ClassesBench {
     $registry = SymbolInfoRegistry::create();
     foreach ($this->classGetAllReflectors($args[0], true) as $r) {
       $registry->symbolGetAttributes(SymbolHandle::fromReflector($r));
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClasses")
+   * @Groups("full", "registry", "read-full")
+   *
+   * @param array{class-string} $args
+   *
+   * @throws \ReflectionException
+   */
+  public function benchRegistryAllMemberModern(array $args): void {
+    if (\PHP_VERSION_ID > 80000) {
+      return;
+    }
+    $registry = SymbolInfoRegistry::create();
+    $classInfo = $registry->classGetInfo($args[0]);
+    if ($classInfo === null) {
+      throw new \RuntimeException('Class not found.');
+    }
+    $rc = new \ReflectionClass($args[0]);
+    foreach ($rc->getConstants() as $constname => $_) {
+      $constAttributes = $classInfo->constGetAttributes($constname);
+      if ($constAttributes === null) {
+        throw new \RuntimeException(\sprintf(
+          'Constant not found: %s.',
+          $constname));
+      }
+    }
+    foreach ($rc->getProperties() as $rp) {
+      $propertyAttributes = $classInfo->propertyGetAttributes($rp->getName());
+      if ($propertyAttributes === null) {
+        throw new \RuntimeException(\sprintf(
+          'Property not found: %s.',
+          $rp->getName()));
+      }
+    }
+    foreach ($rc->getMethods() as $rm) {
+      if ($rm->getFileName() !== $rc->getFileName()) {
+        continue;
+      }
+      $methodInfo = $classInfo->methodGetInfo($rm->getName());
+      if ($methodInfo === null) {
+        throw new \RuntimeException(\sprintf(
+          'Method not found: %s.',
+          $rm->getName()));
+      }
+      $methodAttributes = $methodInfo->getAttributes();
+      unset($methodAttributes);
+      foreach ($rm->getParameters() as $rp) {
+        $methodInfo->paramGetAttributes($rp->getName());
+      }
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("full", "read-full")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderAll(array $args): void {
+    foreach (FileReader::create()->read($args[0]) as $element) {
+      $element->getImports();
+      $element->getAttributes();
+      /** @psalm-suppress RedundantCondition */
+      if ($element instanceof ClassInfo) {
+        foreach ($element->readMemberTypes() as $member => $type) {
+          if ($type === 'function') {
+            $methodInfo = $element->methodGetInfo($member);
+            $methodInfo->getAttributes();
+            foreach ($methodInfo->readParameters() as $_) {}
+          }
+          elseif ($type === '$') {
+            $element->propertyGetAttributes($member);
+          }
+          elseif ($type === 'const') {
+            $element->constGetAttributes($member);
+          }
+          else {
+            throw new \RuntimeException('Unexpected member type.');
+          }
+        }
+      }
+      elseif ($element instanceof FunctionInfo) {
+        foreach ($element->readParameters() as $_) {}
+      }
+      else {
+        throw new \RuntimeException('Unexpected element.');
+      }
     }
   }
 

@@ -345,6 +345,8 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
           case '*':
           case '/':
           case '.':
+          case '&':
+          case '|':
             $php .= $token;
             break;
 

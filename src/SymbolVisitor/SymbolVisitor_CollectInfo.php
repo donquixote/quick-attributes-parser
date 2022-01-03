@@ -4,7 +4,24 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolVisitor;
 
-class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
+use Donquixote\QuickAttributes\Lookup\LookupInterface;
+
+class SymbolVisitor_CollectInfo implements SymbolVisitorInterface, LookupInterface {
+
+  /**
+   * @var list<string>
+   */
+  private array $toplevelNames = [];
+
+  /**
+   * @var array<string, true>
+   */
+  private array $completed = [];
+
+  /**
+   * @var array<string, list<string>>
+   */
+  private array $childNames = [];
 
   /**
    * @var array<string, array<string, string>>
@@ -21,6 +38,10 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
    */
   public function getImportss(): array {
     return $this->importss;
+  }
+
+  public function clearImportss(): void {
+    $this->importss = [];
   }
 
   /**
@@ -53,11 +74,37 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function readToplevelNames(int &$offset = 0): \Iterator {
+    $n = \count($this->toplevelNames);
+    for (; $offset < $n; ++$offset) {
+      yield $this->toplevelNames[$offset];
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function keyReadChildNames(string $key, int &$offset = 0): \Iterator {
+    $names = $this->childNames[$key] ?? [];
+    $n = \count($names);
+    for (; $offset < $n; ++$offset) {
+      yield $names[$offset];
+    }
+    if ($this->completed[$key] ?? false) {
+      // All children are known.
+      $offset = -1;
+    }
+  }
+
+  /**
    * @inheritDoc
    */
   public function addClass(string $class, array $imports, array $attributes): void {
     $this->importss[$class] = $imports;
     $this->attributess[$class] = $attributes;
+    $this->toplevelNames[] = $class;
   }
 
   /**
@@ -65,6 +112,7 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
    */
   public function addProperty(string $class, string $property, array $attributes): void {
     $this->attributess[$class . '::$' . $property] = $attributes;
+    $this->childNames[$class][] = '$' . $property;
   }
 
   /**
@@ -72,6 +120,7 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
    */
   public function addClassConstant(string $class, string $constant, array $attributes): void {
     $this->attributess[$class . '::' . $constant] = $attributes;
+    $this->childNames[$class][] = $constant;
   }
 
   /**
@@ -79,6 +128,7 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
    */
   public function addMethod(string $class, string $method, array $attributes): void {
     $this->attributess[$class . '::' . $method . '()'] = $attributes;
+    $this->childNames[$class][] = $method . '()';
   }
 
   /**
@@ -86,14 +136,25 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
    */
   public function addMethodParameter(string $class, string $method, string $param, array $attributes): void {
     $this->attributess[$class . '::' . $method . '($' . $param . ')'] = $attributes;
+    $this->childNames[$class . '::' . $method . '()'][] = $param;
+  }
+
+  public function methodComplete(string $class, string $method): void {
+    $this->completed[$class . '::' . $method . '()'] = true;
+  }
+
+  public function classComplete(string $class): void {
+    $this->completed[$class] = true;
   }
 
   /**
    * @inheritDoc
    */
   public function addFunction(string $function, array $imports, array $attributes): void {
-    $this->importss[$function . '()'] = $imports;
-    $this->attributess[$function . '()'] = $attributes;
+    $name = $function . '()';
+    $this->importss[$name] = $imports;
+    $this->attributess[$name] = $attributes;
+    $this->toplevelNames[] = $name;
   }
 
   /**
@@ -101,6 +162,11 @@ class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
    */
   public function addFunctionParameter(string $function, string $param, array $attributes): void {
     $this->attributess[$function . '($' . $param . ')'] = $attributes;
+    $this->childNames[$function . '()'][] = $param;
+  }
+
+  public function functionComplete(string $function): void {
+    $this->completed[$function . '()'] = true;
   }
 
 }
