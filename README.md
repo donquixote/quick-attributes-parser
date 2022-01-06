@@ -17,8 +17,6 @@ The parser only looks for information that is _not_ already available from nativ
 ## PHP versions.
 It requires at least PHP 7.4. The idea is that most projects will be able to upgrade to PHP 7.4, but it will take more time to go to PHP 8.0+.
 
-In PHP 8+ it will still work, but the attributes parser will always turn up empty. It is the user's responsibility to implement a fallback mechanism. (TBD)
-
 ## Limitations
 The parser does NOT reliably find errors in the code. 
 
@@ -27,16 +25,99 @@ The parser does NOT retrieve all the info in the file, only what is needed to ge
 ## Performance
 The parser is optimized using the following techniques:
 
-- Lazy parsing: It only goes as far into the file as needed to find the desired symbol(s). Once another symbol from the same file is requested, the iterator (generator) for that file will continue to run, until that other symbol is found.
+- Lazy / incremental parsing: It only goes as far into the file as needed to find the desired symbol(s). Once another symbol from the same file is requested, the iterator (generator) for that file will continue to run, until that other symbol is found.
 - Skipping and ignoring: Large parts of code are ignored, because they have no relevant info. E.g. function bodies are completely skipped.
 - Linear path: It rarely has to go back and parse the same piece of code twice.
 - Optimized switch statements: PHP will optimize switch statements using a lookup table, but only if string and integer values are not mixed. Switch statements in this package that could encounter integer _or_ string are split into two parts.
 - Low-level operations: The parser uses integer indices and array index lookups instead of object methods or `foreach ()`, to get to the next token.
 - No token preprocessing: The parser operates directly on the result of `token_get_all()`, only one terminating `'#'` is appended to mark the EOF.
 - No / lazy array copy or array slicing: The array of tokens remains unmodified throughout the parsing process, and no (or very few) other arrays are created.
-- No complex AST: The parser iterates, yielding `true` values, and writing "facts" to a visitor. Each fact stands for itself, they don't form a hierarchy.
+- No complex AST: The parser iterates, yielding `true` values, and writes data to a visitor.
 
 If you disagree with any of these optimization strategies, open an issue!
+
+## Usage
+
+```php
+<?php
+
+use Donquixote\QuickAttributes\RawAttribute\RawAttribute;
+use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\Registry\FileInfoLoader;
+use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
+
+/**
+ * Analyse a file, e.g. during a discovery operation.
+ */
+function processFile(string $file, string $exampleClass, string $exampleFunction) {
+  $fileInfo = FileInfoLoader::create()->loadFile($file);
+
+  // Find a specific class, if it is in the file.
+  // This will only parse until the class head.
+  $exampleClassInfo = $fileInfo->findClass($exampleClass);
+  // Get imports for the class.
+  $imports = $exampleClassInfo->getImports();
+  unset($imports);
+  if ($exampleClassInfo !== null) {
+    // Find the constructor, read its attributes.
+    $exampleClassConstructor = $exampleClassInfo->findMethod('__construct');
+    if ($exampleClassConstructor !== null) {
+      $attributes = $exampleClassConstructor->getAttributes();
+      // (Unset to silence "unused variable" inspections.)
+      unset($attributes);
+    }
+    // (Unset to avoid unused variable inspection. Normally you would use this
+    // value for something).
+    unset($exampleClassConstructor);
+    // If we stop here, the rest of the file won't be parsed.
+    return;
+  }
+
+  // Find specific function, if it is in the file.
+  $exampleFunctionInfo = $fileInfo->findFunction($exampleFunction);
+  unset($exampleFunctionInfo);
+
+  // Read all elements in the file, using iterators.
+  // Aborting an iterator means that the rest of the file won't be read.
+  foreach ($fileInfo->readElements() as $element) {
+    assert($element instanceof ClassInfo || $element instanceof FunctionInfo);
+  }
+  foreach ($fileInfo->readClasses() as $classInfo) {unset($classInfo);}
+  foreach ($fileInfo->readFunctions() as $functionInfo) {unset($functionInfo);}
+}
+
+/**
+ * Locate and analyse a class and its members.
+ */
+function processClass(string $class) {
+  // Use the Composer autoloader to locate the class, then read it.
+  // At this point, the parser will only go until the class head.
+  $classInfo = ClassInfoFinder::create()->findClass($class);
+  if ($classInfo === null) {
+    return;
+  }
+  foreach ($classInfo->getAttributes() as $attribute) {..}
+  foreach ($classInfo->getImports() as $alias => $qcn) {..}
+
+  // Read class members, using iterators.
+  // Aborting an iterator means that the rest of the file won't be read.
+  foreach ($classInfo->readMembers() as ...) {..}  // All.
+  foreach ($classInfo->readConstants() as ...) {..}
+  foreach ($classInfo->readProperties() as ...) {..}
+  foreach ($classInfo->readMethods() as $method) {
+    foreach ($method->getAttributes() as $attribute) {..}
+    foreach ($method->readParameters() as $param) {
+      foreach ($param->getAttributes() as $attribute) {
+        $name = $attribute->getName();
+        $args = $attribute->getArguments();
+        $instance = RawAttribute::createInstance($attribute);
+        unset($name, $args, $instance);
+      }
+    }
+  }
+}
+```
 
 ## Work in progress
 What you see here is likely to change, before you see a first stable release..
