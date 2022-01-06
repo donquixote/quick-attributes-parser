@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Util;
 
-use Donquixote\QuickAttributes\Value\SymbolHandle;
-
 class ArgumentsUtil {
 
   /**
@@ -73,8 +71,14 @@ class ArgumentsUtil {
     foreach ($params as $i => $param) {
       if (!\array_key_exists($i, $mappedArgs)) {
         if (!$param->isOptional()) {
-          $f = (string) SymbolHandle::fromReflector($param->getDeclaringFunction());
-          throw new \ReflectionException("Missing argument $i for $f.");
+          $rf = $param->getDeclaringFunction();
+          $fname = $rf->getName() . '()';
+          if ($rf instanceof \ReflectionMethod) {
+            $fname = $rf->getDeclaringClass()->getName() . '::' . $fname;
+          }
+          throw new \ReflectionException(\vsprintf(
+            "Missing argument %s for %s.",
+            [$i, $fname]));
         }
         /** @psalm-suppress MixedAssignment */
         try {

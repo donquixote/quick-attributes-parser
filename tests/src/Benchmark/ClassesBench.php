@@ -18,7 +18,6 @@ use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
-use Donquixote\QuickAttributes\Value\SymbolHandle;
 use PhpBench\Benchmark\Metadata\Annotations\Groups;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\OutputMode;
@@ -390,47 +389,6 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("head", "registry", "read-head")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRegistryClass(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $class = $args[0];
-    $symbol = SymbolHandle::fromClass($class);
-    $registry = SymbolInfoRegistry::create();
-    $registry->symbolGetImports($symbol->getTopLevel());
-    $registry->symbolGetAttributes($symbol);
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("head", "read-head")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRawReaderClass(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $class = $args[0];
-    $reader = RawAttributesReader::create();
-    $symbol = SymbolHandle::fromClass($class);
-    $reader->read($symbol);
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
    * @Groups("full", "parse-full")
    * @ParamProviders("provideClassFiles")
    *
@@ -544,104 +502,6 @@ class ClassesBench {
     }
     if (!$found) {
       throw new \RuntimeException('First method not found.');
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("head", "registry", "read-head")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRegistryFirstMember(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $class = $args[0];
-    $rc = new \ReflectionClass($class);
-    $registry = SymbolInfoRegistry::create();
-    $rm = $rc->getReflectionConstants()[0]
-      ?? $rc->getProperties()[0]
-      ?? $rc->getMethods()[0]
-      ?? null;
-    if (!$rm) {
-      return;
-    }
-    $symbol = SymbolHandle::fromReflector($rm);
-    $registry->symbolGetImports($symbol->getTopLevel());
-    $registry->symbolGetAttributes($symbol);
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("full", "registry", "read-full")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRegistryLastMember(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $class = $args[0];
-    $rc = new \ReflectionClass($class);
-    $registry = SymbolInfoRegistry::create();
-    $rm = \array_reverse($rc->getMethods())[0]
-      ?? \array_reverse($rc->getProperties())[0]
-      ?? \array_reverse($rc->getReflectionConstants())[0]
-      ?? null;
-    if (!$rm) {
-      return;
-    }
-    $symbol = SymbolHandle::fromReflector($rm);
-    $registry->symbolGetImports($symbol->getTopLevel());
-    $registry->symbolGetAttributes($symbol);
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("full", "registry", "read-full")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRegistryAllMembers(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $registry = SymbolInfoRegistry::create();
-    foreach ($this->classGetAllReflectors($args[0]) as $r) {
-      $registry->symbolGetAttributes(SymbolHandle::fromReflector($r));
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("full", "registry", "read-full")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRegistryAllMembersReverse(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $registry = SymbolInfoRegistry::create();
-    foreach ($this->classGetAllReflectors($args[0], true) as $r) {
-      $registry->symbolGetAttributes(SymbolHandle::fromReflector($r));
     }
   }
 
@@ -820,34 +680,6 @@ class ClassesBench {
       $reflectors = \array_reverse($reflectors);
     }
     return $reflectors;
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("head", "read-head")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRawReaderFirstMember(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $class = $args[0];
-    $rc = new \ReflectionClass($class);
-    $reader = RawAttributesReader::create();
-    $rm = $rc->getReflectionConstants()[0]
-      ?? $rc->getProperties()[0]
-      ?? $rc->getMethods()[0]
-      ?? null;
-    if (!$rm) {
-      return;
-    }
-    $symbol = SymbolHandle::fromReflector($rm);
-    $reader->read($symbol);
   }
 
   /**
