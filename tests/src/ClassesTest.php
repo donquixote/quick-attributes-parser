@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\AttributeReader\AttributeReader;
+use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
+use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\Registry\FileInfoLoader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
+use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
+use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use Donquixote\QuickAttributes\Value\SymbolHandle;
@@ -140,6 +145,42 @@ class ClassesTest extends TestCase {
       $data);
   }
 
+  /**
+   * @dataProvider providerTestClasses()
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function testClassInfoFinder(string $shortname): void {
+    /** @var class-string $class */
+    $class = $this->getClassesNamespace() . '\\' . $shortname;
+    $file = ClassFileFinder_ComposerAutoload::create()->find($class);
+    self::assertNotNull($file);
+    $finder = ClassInfoFinder::create();
+    $fileInfo = FileInfoLoader::create()->loadFile($file);
+    $found = false;
+    foreach ($fileInfo->readClasses() as $c0) {
+      self::assertSame($class, $c0->getName());
+      $found = true;
+    }
+    self::assertTrue($found);
+    $classInfo = $finder->findClass($class);
+    self::assertNotNull($classInfo, "Class $class not found.");
+    /** @var array<string, list<_RawAttributeArray>> $orig */
+    $data = [];
+    $data[$classInfo->getId()] = TestExportUtil::exportRawAttributes( $classInfo->getAttributes());
+    foreach ($classInfo->readMembers() as $member) {
+      $data[$member->getId()] = TestExportUtil::exportRawAttributes( $member->getAttributes());
+      if ($member instanceof MethodInfo) {
+        foreach ($member->readParameters() as $parameter) {
+          $data[$parameter->getId()] = TestExportUtil::exportRawAttributes( $parameter->getAttributes());
+        }
+      }
+    }
+    $ymlDir = $this->getYmlDir();
+    $ymlfile = "$ymlDir/$shortname.raw-attributes.yml";
+    TestUtil::assertFileContentsYml($ymlfile, $data);
+  }
+
   public function testNoOrphanYmlFiles(): void {
     $ymlDir = $this->getYmlDir();
 
@@ -203,6 +244,13 @@ class ClassesTest extends TestCase {
     }
 
     return $names;
+  }
+
+  /**
+   * @return string
+   */
+  private function getClassesNamespace(): string {
+    return \substr(CMinimal::class, 0, -9);
   }
 
   private function getClassesDir(): string {

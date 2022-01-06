@@ -7,8 +7,31 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\Registry\FileReader;
+use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
+use Infection\ExtensionInstaller\Plugin;
+use PhpBench\Attributes\AbstractMethodsAttribute;
+use PhpBench\Attributes\AfterClassMethods;
+use PhpBench\Attributes\AfterMethods;
+use PhpBench\Attributes\BeforeClassMethods;
+use PhpBench\Attributes\BeforeMethods;
+use PhpBench\Attributes\Iterations;
+use PhpBench\Attributes\ParamProviders;
+use PhpBench\Attributes\RetryThreshold;
+use PhpBench\Attributes\Revs;
+use PhpBench\Attributes\Warmup;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Console\Attribute\AsCommand;
+use Symfony\Component\Console\DependencyInjection\AddConsoleCommandPass;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\Console\Event\ConsoleErrorEvent;
+use Symfony\Component\Console\Event\ConsoleEvent;
+use Symfony\Component\Console\Event\ConsoleSignalEvent;
+use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Console\EventListener\ErrorListener;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Service\Attribute\SubscribedService;
 
 /**
  * This test does not run by default, but can be executed manually.
@@ -18,6 +41,73 @@ use PHPUnit\Framework\TestCase;
  * @psalm-suppress UnusedClass
  */
 class VendorTest_ extends TestCase {
+
+  private const BAD_PATHS = [
+    'vendor/amphp/amp/lib/functions.php',
+    'vendor/phpbench/phpbench/lib/Template/Expression/Printer/SkipTemplate.php',
+    'vendor/composer/package-versions-deprecated/src/PackageVersions',
+  ];
+
+  /** @psalm-suppress MissingDependency */
+  private const BAD_CLASSES = [
+    SubscribedService::class,
+    AsciiSlugger::class,
+    AsCommand::class,
+    AddConsoleCommandPass::class,
+    ConsoleEvent::class,
+    ConsoleCommandEvent::class,
+    ConsoleErrorEvent::class,
+    ConsoleSignalEvent::class,
+    ConsoleTerminateEvent::class,
+    ErrorListener::class,
+    AbstractMethodsAttribute::class,
+    AfterClassMethods::class,
+    BeforeClassMethods::class,
+    AfterMethods::class,
+    BeforeMethods::class,
+    Iterations::class,
+    ParamProviders::class,
+    RetryThreshold::class,
+    Revs::class,
+    Warmup::class,
+    Plugin::class,
+  ];
+
+  /**
+   * @dataProvider providerTestClassFile()
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   * @throws \ReflectionException
+   */
+  public function testFileReader(string $file): void {
+    $reader = FileReader::create();
+    foreach ($reader->read($file) as $toplevelName => $element) {
+      if ($element instanceof ClassInfo) {
+        /** @var class-string $class */
+        $class = $toplevelName;
+        $rc = new \ReflectionClass($class);
+        $readerMethodNames = [];
+        foreach ($element->readMethods() as $method) {
+          $readerMethodNames[$method->getName()] = true;
+        }
+        $reflectionMethodNames = [];
+        foreach ($rc->getMethods() as $rm) {
+          if ($rm->getDeclaringClass()->getName() !== $class) {
+            continue;
+          }
+          if ($rm->getFileName() !== $rc->getFileName()) {
+            continue;
+          }
+          $reflectionMethodNames[$rm->getName()] = true;
+        }
+        if ($reflectionMethodNames !== $readerMethodNames) {
+          # self::fail($file);
+        }
+        self::assertSame($reflectionMethodNames, $readerMethodNames);
+      }
+    }
+    self::assertTrue(true);
+  }
 
   /**
    * @dataProvider providerTestClassFile()
@@ -58,7 +148,9 @@ class VendorTest_ extends TestCase {
     $nsdirs = require \dirname(__DIR__, 2) . '/vendor/composer/autoload_psr4.php';
     $troot = \dirname(__DIR__, 2) . '/';
     $ltroot = \strlen($troot);
-    foreach ($nsdirs as $dirs) {
+    foreach ($nsdirs as $ns => $dirs) {
+      $ns = \rtrim($ns, '\\');
+      $tns = ($ns === '') ? '' : ($ns . '\\');
       foreach ($dirs as $dir) {
         if (\strpos($dir, $troot) !== 0) {
           continue;
@@ -69,7 +161,8 @@ class VendorTest_ extends TestCase {
         $reldir = \substr($dir, $ltroot);
         yield from $this->nsdirRecursive(
           $troot,
-          \rtrim($reldir, '/'));
+          \rtrim($reldir, '/'),
+          $tns);
       }
     }
   }
@@ -79,18 +172,31 @@ class VendorTest_ extends TestCase {
    *   Project root terminated with '/'.
    * @param string $reldir
    *   Directory relative to $troot.
+   * @param string $tns
+   *   Terminated namespace.
    *
    * @return \Iterator<array{string}>
    */
-  private function nsdirRecursive(string $troot, string $reldir): \Iterator {
+  private function nsdirRecursive(string $troot, string $reldir, string $tns): \Iterator {
+    $badClassesMap = \array_fill_keys(self::BAD_CLASSES, true);
+    $badPathsMap = \array_fill_keys(self::BAD_PATHS, true);
+    if (isset($badPathsMap[$reldir])) {
+      return;
+    }
     foreach (\scandir($troot . $reldir) as $candidate) {
       $relpath = $reldir . '/' . $candidate;
       if (\preg_match('@^\w+$@', $candidate)) {
         if (\is_dir($troot . $relpath)) {
-          yield from $this->nsdirRecursive($troot, $relpath);
+          yield from $this->nsdirRecursive($troot, $relpath, $tns . $candidate . '\\');
         }
       }
-      elseif (\preg_match('@^\w+\.php$@', $candidate)) {
+      elseif (\preg_match('@^(\w+)\.php$@', $candidate, $m)) {
+        if (isset($badPathsMap[$relpath])) {
+          continue;
+        }
+        if (isset($badClassesMap[$tns . $m[1]])) {
+          continue;
+        }
         if (\is_file($troot . $relpath)) {
           yield [$relpath];
         }

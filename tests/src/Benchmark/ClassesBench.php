@@ -8,7 +8,12 @@ use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
+use Donquixote\QuickAttributes\Registry\FileInfoLoader;
+use Donquixote\QuickAttributes\Registry\FileReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
+use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
+use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
@@ -490,6 +495,61 @@ class ClassesBench {
   /**
    * @Revs(10)
    * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("head", "read-head")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderFirstElement(array $args): void {
+    $found = false;
+    foreach (FileReader::create()->read($args[0]) as $element) {
+      $imports = $element->getImports();
+      unset($imports);
+      $attributes = $element->getAttributes();
+      unset($attributes);
+      $found = true;
+      break;
+    }
+    if (!$found) {
+      throw new \RuntimeException('First element not found.');
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("head", "read-head")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderFirstMethod(array $args): void {
+    $found = false;
+    foreach (FileReader::create()->read($args[0]) as $element) {
+      if ($element instanceof ClassInfo) {
+        foreach ($element->readMethods() as $methodInfo) {
+          $attributes = $methodInfo->getAttributes();
+          unset($attributes);
+          $found = true;
+          break;
+        }
+        break;
+      }
+    }
+    if (!$found) {
+      throw new \RuntimeException('First method not found.');
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
    * @ParamProviders("provideClasses")
    * @Groups("head", "registry", "read-head")
    *
@@ -582,6 +642,161 @@ class ClassesBench {
     $registry = SymbolInfoRegistry::create();
     foreach ($this->classGetAllReflectors($args[0], true) as $r) {
       $registry->symbolGetAttributes(SymbolHandle::fromReflector($r));
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClasses")
+   * @Groups("full", "registry", "read-full")
+   *
+   * @param array{class-string} $args
+   *
+   * @throws \ReflectionException
+   */
+  public function benchRegistryAllMemberModern(array $args): void {
+    if (\PHP_VERSION_ID > 80000) {
+      return;
+    }
+    $registry = SymbolInfoRegistry::create();
+    $classInfo = $registry->classGetInfo($args[0]);
+    if ($classInfo === null) {
+      throw new \RuntimeException('Class not found.');
+    }
+    $imports = $classInfo->getImports();
+    unset($imports);
+    $attributes = $classInfo->getAttributes();
+    unset($attributes);
+    foreach ($classInfo->readMembers() as $member) {
+      $attributes = $member->getAttributes();
+      unset($attributes);
+      if ($member instanceof MethodInfo) {
+        foreach ($member->readParameters() as $param) {
+          $attributes = $param->getAttributes();
+          unset($attributes);
+        }
+      }
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("full", "read-full")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderAll(array $args): void {
+    foreach (FileReader::create()->read($args[0]) as $element) {
+      $imports = $element->getImports();
+      unset($imports);
+      $attributes = $element->getAttributes();
+      unset($attributes);
+      /** @psalm-suppress RedundantCondition */
+      if ($element instanceof ClassInfo) {
+        foreach ($element->readMembers() as $member) {
+          $attributes = $member->getAttributes();
+          unset($attributes);
+          if ($member instanceof MethodInfo) {
+            foreach ($member->readParameters() as $param) {
+              $attributes = $param->getAttributes();
+              unset($attributes);
+            }
+          }
+        }
+      }
+      elseif ($element instanceof FunctionInfo) {
+        foreach ($element->readParameters() as $param) {
+          $attributes = $param->getAttributes();
+          unset($attributes);
+        }
+      }
+      else {
+        throw new \RuntimeException('Unexpected element.');
+      }
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("full", "read-full")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileInfoAll(array $args): void {
+    foreach (FileInfoLoader::create()->loadFile($args[0])->readElements() as $element) {
+      $imports = $element->getImports();
+      unset($imports);
+      $attributes = $element->getAttributes();
+      unset($attributes);
+      /** @psalm-suppress RedundantCondition */
+      if ($element instanceof ClassInfo) {
+        foreach ($element->readMembers() as $member) {
+          $attributes = $member->getAttributes();
+          unset($attributes);
+          if ($member instanceof MethodInfo) {
+            foreach ($member->readParameters() as $param) {
+              $attributes = $param->getAttributes();
+              unset($attributes);
+            }
+          }
+        }
+      }
+      elseif ($element instanceof FunctionInfo) {
+        foreach ($element->readParameters() as $param) {
+          $attributes = $param->getAttributes();
+          unset($attributes);
+        }
+      }
+      else {
+        throw new \RuntimeException('Unexpected element.');
+      }
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("full", "read-full")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileInfoAllMethods(array $args): void {
+    foreach (FileInfoLoader::create()->loadFile($args[0])->readElements() as $element) {
+      $imports = $element->getImports();
+      unset($imports);
+      $attributes = $element->getAttributes();
+      unset($attributes);
+      /** @psalm-suppress RedundantCondition */
+      if ($element instanceof ClassInfo) {
+        foreach ($element->readMethods() as $method) {
+          $attributes = $method->getAttributes();
+          unset($attributes);
+        }
+      }
+      elseif ($element instanceof FunctionInfo) {
+        foreach ($element->readParameters() as $param) {
+          $attributes = $param->getAttributes();
+          unset($attributes);
+        }
+      }
+      else {
+        throw new \RuntimeException('Unexpected element.');
+      }
     }
   }
 

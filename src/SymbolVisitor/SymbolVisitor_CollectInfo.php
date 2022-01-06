@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolVisitor;
 
-class SymbolVisitor_CollectInfo implements SymbolVisitorInterface {
+use Donquixote\QuickAttributes\Lookup\LookupInterface;
+
+class SymbolVisitor_CollectInfo implements SymbolVisitorInterface, LookupInterface {
 
   /**
    * @var list<string>
