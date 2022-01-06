@@ -260,6 +260,8 @@ abstract class FileParser {
                 $attrCommentMultiParser->parseMultiple($paramAttrComments));
               yield true;
             }
+            $visitor->functionComplete($functionQcn);
+            yield true;
             \assert(ParserAssertUtil::expect($tokens, $i, ')'));
             ++$i;
             $id = ParserUtil::skipFillerWs($tokens, $i);
@@ -298,6 +300,8 @@ abstract class FileParser {
             \assert(ParserAssertUtil::expect($tokens, $i, '{'));
             yield from $this->parseClassLikeBody($tokens, $i, $class, $visitor, $attrCommentMultiParser);
             \assert(ParserAssertUtil::expect($tokens, $i, '}'));
+            $visitor->classComplete($class);
+            yield true;
             break;
 
           case \T_STRING:
@@ -464,6 +468,8 @@ abstract class FileParser {
                 $attrCommentMultiParser->parseMultiple($paramAttrComments));
               yield true;
             }
+            $visitor->methodComplete($class, $method);
+            yield true;
             \assert(ParserAssertUtil::expect($tokens, $i, ')'));
             ++$i;
             $id = ParserUtil::skipFillerWs($tokens, $i);

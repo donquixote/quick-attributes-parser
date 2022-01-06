@@ -42,6 +42,13 @@ interface SymbolVisitorInterface {
    */
   public function addMethodParameter(string $class, string $method, string $param, array $attributes): void;
 
+  public function methodComplete(string $class, string $method): void;
+
+  /**
+   * @param class-string $class
+   */
+  public function classComplete(string $class): void;
+
   /**
    * @param string $function
    * @param array<string, string> $imports
@@ -55,5 +62,7 @@ interface SymbolVisitorInterface {
    * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
   public function addFunctionParameter(string $function, string $param, array $attributes): void;
+
+  public function functionComplete(string $function): void;
 
 }

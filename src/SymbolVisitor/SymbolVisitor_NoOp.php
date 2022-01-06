@@ -26,11 +26,23 @@ class SymbolVisitor_NoOp implements SymbolVisitorInterface {
     // Do nothing.
   }
 
+  public function methodComplete(string $class, string $method): void {
+    // Do nothing.
+  }
+
+  public function classComplete(string $class): void {
+    // Do nothing.
+  }
+
   public function addFunction(string $function, array $imports, array $attributes): void {
     // Do nothing.
   }
 
   public function addFunctionParameter(string $function, string $param, array $attributes): void {
+    // Do nothing.
+  }
+
+  public function functionComplete(string $function): void {
     // Do nothing.
   }
 
