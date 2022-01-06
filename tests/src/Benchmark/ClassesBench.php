@@ -597,7 +597,7 @@ class ClassesBench {
     $reflectorss[] = $rc->getReflectionConstants();
     $reflectorss[] = $rc->getProperties();
     foreach ($rc->getMethods() as $rm) {
-      $reflectorss[][] = $rm;
+      $reflectorss[] = [$rm];
       $reflectorss[] = $rm->getParameters();
     }
     $reflectors = \array_merge(...$reflectorss);
