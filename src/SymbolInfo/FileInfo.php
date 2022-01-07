@@ -29,13 +29,13 @@ class FileInfo {
 
   /**
    * @param string $file
-   * @param \Donquixote\QuickAttributes\Parser\FileParser $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
    *
    * @return self
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromFile(string $file, FileParser $parser): self {
+  public static function fromFile(string $file, FileParser $parser = null): self {
     return self::fromFileTokens(
       FileTokens_Common::fromFile($file),
       $parser);
@@ -43,14 +43,15 @@ class FileInfo {
 
   /**
    * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
-   * @param \Donquixote\QuickAttributes\Parser\FileParser $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
    *
    * @return self
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromFileTokens(FileTokensInterface $fileTokens, FileParser $parser): self {
+  public static function fromFileTokens(FileTokensInterface $fileTokens, FileParser $parser = null): self {
     $visitor = new SymbolVisitor_CollectInfo();
+    $parser ??= FileParser::create();
     $it = $parser->parseFileTokens($fileTokens, $visitor);
     $lookup = new Lookup_LazyLoadDecorator($visitor, $it);
     return new self($lookup);
