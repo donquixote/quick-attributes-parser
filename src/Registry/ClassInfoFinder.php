@@ -6,7 +6,7 @@ namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinderInterface;
-use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 
 class ClassInfoFinder {
 
@@ -40,7 +40,7 @@ class ClassInfoFinder {
   /**
    * @param class-string $class
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassInfo
+   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -61,7 +61,7 @@ class ClassInfoFinder {
   /**
    * @param class-string $class
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassInfo|null
+   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo|null
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
+use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 
 class FileInfoLoader {
 
@@ -27,7 +27,7 @@ class FileInfoLoader {
   /**
    * @param string $file
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\FileInfo
+   * @return \Donquixote\QuickAttributes\SymbolInfo\File\FileInfo
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */

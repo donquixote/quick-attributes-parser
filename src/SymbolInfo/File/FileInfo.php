@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\SymbolInfo;
+namespace Donquixote\QuickAttributes\SymbolInfo\File;
 
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
 use Donquixote\QuickAttributes\Lookup\Lookup_LazyLoadDecorator;
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 
 class FileInfo {

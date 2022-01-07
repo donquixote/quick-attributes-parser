@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\SymbolInfo;
+namespace Donquixote\QuickAttributes\SymbolInfo\FunctionLike;
 
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoInterface;
 
 /**
  * @psalm-suppress PropertyNotSetInConstructor

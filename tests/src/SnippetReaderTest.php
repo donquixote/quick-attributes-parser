@@ -6,9 +6,9 @@ namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\SnippetReader\SnippetReader;
-use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
-use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
-use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**

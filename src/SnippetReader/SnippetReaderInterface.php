@@ -8,7 +8,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SnippetReader;
 
-use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
+use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 
 interface SnippetReaderInterface {
 
@@ -17,7 +17,7 @@ interface SnippetReaderInterface {
    *   PHP snippet starting with '<?php'.
    * @param string|null $expectedClassShortname
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\FileInfo
+   * @return \Donquixote\QuickAttributes\SymbolInfo\File\FileInfo
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */

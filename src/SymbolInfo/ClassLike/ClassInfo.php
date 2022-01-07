@@ -2,9 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\SymbolInfo;
+namespace Donquixote\QuickAttributes\SymbolInfo\ClassLike;
 
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfo;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
 /**
  * @psalm-suppress PropertyNotSetInConstructor
@@ -118,7 +123,7 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
   }
 
   /**
-   * @return \Iterator<int, \Donquixote\QuickAttributes\SymbolInfo\SymbolInfoInterface>
+   * @return \Iterator<int, \Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoInterface>
    * @psalm-return \Iterator<int, PropertyInfo|MethodInfo|ClassConstInfo>
    */
   public function readMembers(): \Iterator {

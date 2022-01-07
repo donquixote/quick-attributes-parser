@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\SymbolInfo;
+namespace Donquixote\QuickAttributes\SymbolInfo\Shared;
 
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
 
