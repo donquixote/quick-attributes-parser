@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Registry;
 
+use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
+use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
+use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
 
 class FileInfoLoader {
 
@@ -27,12 +29,33 @@ class FileInfoLoader {
   /**
    * @param string $file
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\FileInfo
+   * @return \Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function loadKnownFile(string $file): FileInfoInterface {
+    return FileInfo::fromKnownFile($file, $this->parser);
+  }
+
+  /**
+   * @param string $file
+   *
+   * @return FileInfoInterface|null
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function loadFile(string $file): FileInfo {
+  public function loadFile(string $file): ?FileInfoInterface {
     return FileInfo::fromFile($file, $this->parser);
+  }
+
+  /**
+   * @param FileTokensInterface $fileTokens
+   *
+   * @return FileInfoInterface
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function loadFileTokens(FileTokensInterface $fileTokens): FileInfoInterface {
+    return FileInfo::fromFileTokens($fileTokens, $this->parser);
   }
 
 }

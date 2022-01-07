@@ -25,9 +25,9 @@ class FileTokens_PreComputed implements FileTokensInterface {
    * @return self
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromFile(string $file): self {
+  public static function fromKnownFile(string $file): self {
     return self::fromFileTokens(
-      FileTokens_Common::fromFile($file));
+      FileTokens_Common::fromKnownFile($file));
   }
 
   /**

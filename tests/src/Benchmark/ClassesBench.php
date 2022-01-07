@@ -7,15 +7,15 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
+use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
 use Donquixote\QuickAttributes\Registry\FileInfoLoader;
-use Donquixote\QuickAttributes\Registry\FileReader;
-use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
-use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
-use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
-use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\FunctionInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
+use Donquixote\QuickAttributes\SymbolVisitor\File\SymbolVisitor_CollectClassHeadsOnly;
+use Donquixote\QuickAttributes\SymbolVisitor\File\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use PhpBench\Benchmark\Metadata\Annotations\Groups;
@@ -339,7 +339,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = FileParser::create();
-    $parser->parseFile($file, new SymbolVisitor_NoOp());
+    $parser->parseKnownFile($file, new SymbolVisitor_NoOp());
   }
 
   /**
@@ -380,7 +380,7 @@ class ClassesBench {
     $parser = FileParser::create();
     $visitor = new SymbolVisitor_CollectClassHeadsOnly();
     // Force reading of first symbol.
-    $parser->parseFile($file, $visitor)->valid();
+    $parser->parseKnownFile($file, $visitor)->valid();
     if ($visitor->getClasses() === []) {
       throw new \RuntimeException('Unexpected non-class symbol above class.');
     }
@@ -402,7 +402,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = FileParser::create();
-    foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
+    foreach ($parser->parseKnownFile($file, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -444,7 +444,7 @@ class ClassesBench {
     }
     $file = $args[0];
     $parser = FileParser::create();
-    $it = $parser->parseFile($file, new SymbolVisitor_NoOp());
+    $it = $parser->parseKnownFile($file, new SymbolVisitor_NoOp());
     $it->current();
     $it->next();
     $it->current();
@@ -463,7 +463,7 @@ class ClassesBench {
    */
   public function benchFileReaderFirstElement(array $args): void {
     $found = false;
-    foreach (FileReader::create()->read($args[0]) as $element) {
+    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();
@@ -483,22 +483,65 @@ class ClassesBench {
    * @Groups("head", "read-head")
    *
    * @param array{string} $args
+   *   Arguments with the file to read.
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function benchFileReaderFirstMember(array $args): void {
+    $found = false;
+    /**
+     * @var ClassInfoInterface $class
+     * @psalm-ignore-var
+     */
+    foreach (FileInfo::fromKnownFile($args[0])->readClasses() as $class) {
+      /**
+       * @var MethodInfoInterface|\Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface|\Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface $member
+       * @psalm-ignore-var
+       */
+      foreach ($class->readMembers() as $member) {
+        $attributes = $member->getAttributes();
+        unset($attributes);
+        $found = true;
+        break;
+      }
+      break;
+    }
+    if (!$found) {
+      throw new \RuntimeException('First class member not found.');
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("head", "read-head")
+   *
+   * @param array{string} $args
+   *   Arguments with the file to read.
    *
    * @throws \ReflectionException
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchFileReaderFirstMethod(array $args): void {
     $found = false;
-    foreach (FileReader::create()->read($args[0]) as $element) {
-      if ($element instanceof ClassInfo) {
-        foreach ($element->readMethods() as $methodInfo) {
-          $attributes = $methodInfo->getAttributes();
-          unset($attributes);
-          $found = true;
-          break;
-        }
+    /**
+     * @var ClassInfoInterface $class
+     * @psalm-ignore-var
+     */
+    foreach (FileInfo::fromKnownFile($args[0])->readClasses() as $class) {
+      /**
+       * @var MethodInfoInterface $methodInfo
+       * @psalm-ignore-var
+       */
+      foreach ($class->readMethods() as $methodInfo) {
+        $attributes = $methodInfo->getAttributes();
+        unset($attributes);
+        $found = true;
         break;
       }
+      break;
     }
     if (!$found) {
       throw new \RuntimeException('First method not found.');
@@ -514,13 +557,13 @@ class ClassesBench {
    * @param array{class-string} $args
    *
    * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchRegistryAllMemberModern(array $args): void {
     if (\PHP_VERSION_ID > 80000) {
       return;
     }
-    $registry = SymbolInfoRegistry::create();
-    $classInfo = $registry->classGetInfo($args[0]);
+    $classInfo = ClassInfoFinder::create()->findClass($args[0]);
     if ($classInfo === null) {
       throw new \RuntimeException('Class not found.');
     }
@@ -552,13 +595,13 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchFileReaderAll(array $args): void {
-    foreach (FileReader::create()->read($args[0]) as $element) {
+    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
       /** @psalm-suppress RedundantCondition */
-      if ($element instanceof ClassInfo) {
+      if ($element instanceof ClassInfoInterface) {
         foreach ($element->readMembers() as $member) {
           $attributes = $member->getAttributes();
           unset($attributes);
@@ -570,7 +613,7 @@ class ClassesBench {
           }
         }
       }
-      elseif ($element instanceof FunctionInfo) {
+      elseif ($element instanceof FunctionInfoInterface) {
         foreach ($element->readParameters() as $param) {
           $attributes = $param->getAttributes();
           unset($attributes);
@@ -594,17 +637,17 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchFileInfoAll(array $args): void {
-    foreach (FileInfoLoader::create()->loadFile($args[0])->readElements() as $element) {
+    foreach (FileInfoLoader::create()->loadKnownFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
       /** @psalm-suppress RedundantCondition */
-      if ($element instanceof ClassInfo) {
+      if ($element instanceof ClassInfoInterface) {
         foreach ($element->readMembers() as $member) {
           $attributes = $member->getAttributes();
           unset($attributes);
-          if ($member instanceof MethodInfo) {
+          if ($member instanceof MethodInfoInterface) {
             foreach ($member->readParameters() as $param) {
               $attributes = $param->getAttributes();
               unset($attributes);
@@ -612,7 +655,7 @@ class ClassesBench {
           }
         }
       }
-      elseif ($element instanceof FunctionInfo) {
+      elseif ($element instanceof FunctionInfoInterface) {
         foreach ($element->readParameters() as $param) {
           $attributes = $param->getAttributes();
           unset($attributes);
@@ -636,19 +679,19 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchFileInfoAllMethods(array $args): void {
-    foreach (FileInfoLoader::create()->loadFile($args[0])->readElements() as $element) {
+    foreach (FileInfoLoader::create()->loadKnownFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
       /** @psalm-suppress RedundantCondition */
-      if ($element instanceof ClassInfo) {
+      if ($element instanceof ClassInfoInterface) {
         foreach ($element->readMethods() as $method) {
           $attributes = $method->getAttributes();
           unset($attributes);
         }
       }
-      elseif ($element instanceof FunctionInfo) {
+      elseif ($element instanceof FunctionInfoInterface) {
         foreach ($element->readParameters() as $param) {
           $attributes = $param->getAttributes();
           unset($attributes);
@@ -711,7 +754,7 @@ class ClassesBench {
       if (!$file) {
         continue;
       }
-      yield $class => [FileTokens_PreComputed::fromFile($file)];
+      yield $class => [FileTokens_PreComputed::fromKnownFile($file)];
     }
   }
 

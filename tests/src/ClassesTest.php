@@ -10,8 +10,8 @@ use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
 use Donquixote\QuickAttributes\Registry\FileInfoLoader;
-use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolVisitor\File\SymbolVisitor_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
@@ -58,16 +58,19 @@ class ClassesTest extends TestCase {
     $ymlDir = $this->getYmlDir();
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
     $parser = FileParser::create();
-    $visitor = new SymbolVisitor_CollectInfo();
+    $importss = [];
+    $attributess = [];
+    $visitor = new SymbolVisitor_CollectImportsAndAttributes(
+      $importss,
+      $attributess);
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
-      foreach ($parser->parseFile($file, $visitor) as $_) {}
+      foreach ($parser->parseKnownFile($file, $visitor) as $_) {}
     }
     catch (ParserException $e) {
       $e->setSourceFile($file, \dirname(__DIR__, 2));
       throw $e;
     }
-    $importss = $visitor->getImportss();
     TestUtil::assertFileContentsYml("$ymlDir/$shortname.imports.yml", $importss);
   }
 
@@ -82,7 +85,7 @@ class ClassesTest extends TestCase {
     $file = ClassFileFinder_ComposerAutoload::create()->find($class);
     self::assertNotNull($file);
     $finder = ClassInfoFinder::create();
-    $fileInfo = FileInfoLoader::create()->loadFile($file);
+    $fileInfo = FileInfoLoader::create()->loadKnownFile($file);
     $found = false;
     foreach ($fileInfo->readClasses() as $c0) {
       self::assertSame($class, $c0->getName());
@@ -94,11 +97,21 @@ class ClassesTest extends TestCase {
     /** @var array<string, list<_RawAttributeArray>> $orig */
     $data = [];
     $data[$classInfo->getId()] = TestExportUtil::exportRawAttributes( $classInfo->getAttributes());
+    $prefix = $classInfo->getName() . '::';
+    /**
+     * @var \Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface|\Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface|\Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface $member
+     * @psalm-ignore-var
+     */
     foreach ($classInfo->readMembers() as $member) {
-      $data[$member->getId()] = TestExportUtil::exportRawAttributes( $member->getAttributes());
+      $data[$prefix . $member->getMemberId()] = TestExportUtil::exportRawAttributes( $member->getAttributes());
       if ($member instanceof MethodInfo) {
+        $methodPrefix = $prefix . $member->getName() . '($';
+        /**
+         * @var \Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfoInterface $parameter
+         * @psalm-ignore-var
+         */
         foreach ($member->readParameters() as $parameter) {
-          $data[$parameter->getId()] = TestExportUtil::exportRawAttributes( $parameter->getAttributes());
+          $data[$methodPrefix . $parameter->getName() . ')'] = TestExportUtil::exportRawAttributes( $parameter->getAttributes());
         }
       }
     }

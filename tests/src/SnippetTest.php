@@ -7,7 +7,7 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
+use Donquixote\QuickAttributes\SymbolVisitor\File\SymbolVisitor_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
@@ -37,11 +37,15 @@ class SnippetTest extends YmlTestBase {
   protected function processData(array &$data, string $name): void {
     $fileTokens = new FileTokens_Common($data['php']);
     $parser = FileParser::create();
-    $visitor = new SymbolVisitor_CollectInfo();
     $data7 = $data;
+    $importss = [];
+    $attributess = [];
     try {
       unset($data['attributess']);
       unset($data['importss']);
+      $visitor = new SymbolVisitor_CollectImportsAndAttributes(
+        $importss,
+        $attributess);
       // Parse all.
       /** @noinspection PhpUnusedLocalVariableInspection */
       foreach ($parser->parseFileTokens($fileTokens, $visitor) as $_) {}
@@ -50,11 +54,10 @@ class SnippetTest extends YmlTestBase {
     catch (ParserException $e) {
       $data['exception'] = TestExportUtil::exportException($e);
     }
-    $importss = $visitor->getImportss();
     if ($importss) {
       $data['importss'] = $importss;
     }
-    foreach ($visitor->getAttributess() as $key => $attributes) {
+    foreach ($attributess as $key => $attributes) {
       $data['attributess'][$key] = TestExportUtil::exportRawAttributes($attributes);
     }
     if (\PHP_VERSION_ID >= 80000) {

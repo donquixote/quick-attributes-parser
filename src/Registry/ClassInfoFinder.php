@@ -6,7 +6,7 @@ namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinderInterface;
-use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 
 class ClassInfoFinder {
 
@@ -40,17 +40,17 @@ class ClassInfoFinder {
   /**
    * @param class-string $class
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassInfo
+   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function requireClass(string $class): ClassInfo {
+  public function requireClass(string $class): ClassInfoInterface {
     $file = $this->classFileFinder->find($class);
     if ($file === null) {
       throw new \RuntimeException("No file found for class $class.");
     }
     $info = $this->fileInfoLoader
-      ->loadFile($file)
+      ->loadKnownFile($file)
       ->findClass($class);
     if ($info === null) {
       throw new \RuntimeException("Class $class not found in file $file.");
@@ -61,17 +61,17 @@ class ClassInfoFinder {
   /**
    * @param class-string $class
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassInfo|null
+   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface|null
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function findClass(string $class): ?ClassInfo {
+  public function findClass(string $class): ?ClassInfoInterface {
     $file = $this->classFileFinder->find($class);
     if ($file === null) {
       return null;
     }
     return $this->fileInfoLoader
-      ->loadFile($file)
+      ->loadKnownFile($file)
       ->findClass($class);
   }
 

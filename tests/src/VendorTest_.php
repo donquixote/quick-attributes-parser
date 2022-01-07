@@ -7,9 +7,9 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Registry\FileReader;
-use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
+use Donquixote\QuickAttributes\Registry\FileInfoLoader;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
+use Donquixote\QuickAttributes\SymbolVisitor\File\SymbolVisitor_NoOp;
 use Infection\ExtensionInstaller\Plugin;
 use PhpBench\Attributes\AbstractMethodsAttribute;
 use PhpBench\Attributes\AfterClassMethods;
@@ -80,19 +80,17 @@ class VendorTest_ extends TestCase {
    * @throws \ReflectionException
    */
   public function testFileReader(string $file): void {
-    $reader = FileReader::create();
-    foreach ($reader->read($file) as $toplevelName => $element) {
-      if ($element instanceof ClassInfo) {
-        /** @var class-string $class */
-        $class = $toplevelName;
-        $rc = new \ReflectionClass($class);
+    $reader = FileInfoLoader::create();
+    foreach ($reader->loadKnownFile($file)->readElements() as $element) {
+      if ($element instanceof ClassInfoInterface) {
+        $rc = new \ReflectionClass($element->getName());
         $readerMethodNames = [];
         foreach ($element->readMethods() as $method) {
           $readerMethodNames[$method->getName()] = true;
         }
         $reflectionMethodNames = [];
         foreach ($rc->getMethods() as $rm) {
-          if ($rm->getDeclaringClass()->getName() !== $class) {
+          if ($rm->getDeclaringClass()->getName() !== $element->getName()) {
             continue;
           }
           if ($rm->getFileName() !== $rc->getFileName()) {
@@ -122,7 +120,7 @@ class VendorTest_ extends TestCase {
     $parser = FileParser::create();
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
-      foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {}
+      foreach ($parser->parseKnownFile($file, new SymbolVisitor_NoOp()) as $_) {}
     }
     catch (PhpVersionException $e) {
       // Ignore language features from PHP 8.
@@ -144,6 +142,7 @@ class VendorTest_ extends TestCase {
   public function providerTestClassFile(): \Iterator {
     /**
      * @var array<string, list<string>> $nsdirs
+     * @psalm-suppress MissingFile
      */
     $nsdirs = require \dirname(__DIR__, 2) . '/vendor/composer/autoload_psr4.php';
     $troot = \dirname(__DIR__, 2) . '/';
