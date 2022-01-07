@@ -6,6 +6,7 @@ namespace Donquixote\QuickAttributes\SymbolInfo\FunctionLike;
 
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfo;
+use Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
 /**
@@ -39,7 +40,7 @@ abstract class FunctionInfoBase extends SymbolInfoBase {
     return $instance;
   }
 
-  public function findParameter(string $name): ?ParamInfo {
+  public function findParameter(string $name): ?ParamInfoInterface {
     \assert(\preg_match('@^\w+$@', $name), $name);
     return ParamInfo::create(
       $this->lookup,
@@ -48,7 +49,7 @@ abstract class FunctionInfoBase extends SymbolInfoBase {
   }
 
   /**
-   * @return \Iterator<int, ParamInfo>
+   * @return \Iterator<int, ParamInfoInterface>
    */
   public function readParameters(): \Iterator {
     foreach ($this->lookup->keyReadChildNames($this->function . '()') as $param) {
