@@ -12,7 +12,7 @@ use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  */
-abstract class FunctionInfoBase extends SymbolInfoBase {
+abstract class FunctionInfoBase extends SymbolInfoBase implements FunctionLikeInfoInterface {
 
   /**
    * @var \Donquixote\QuickAttributes\Lookup\LookupInterface
