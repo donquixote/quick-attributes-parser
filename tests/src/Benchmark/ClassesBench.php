@@ -661,28 +661,6 @@ class ClassesBench {
   }
 
   /**
-   * @param class-string $class
-   *
-   * @return \Reflector[]
-   * @throws \ReflectionException
-   */
-  private function classGetAllReflectors(string $class, bool $reverse = false): array {
-    $rc = new \ReflectionClass($class);
-    $reflectorss = [[$rc]];
-    $reflectorss[] = $rc->getReflectionConstants();
-    $reflectorss[] = $rc->getProperties();
-    foreach ($rc->getMethods() as $rm) {
-      $reflectorss[] = [$rm];
-      $reflectorss[] = $rm->getParameters();
-    }
-    $reflectors = \array_merge(...$reflectorss);
-    if ($reverse) {
-      $reflectors = \array_reverse($reflectors);
-    }
-    return $reflectors;
-  }
-
-  /**
    * @Revs(3)
    * @Iterations(5)
    * @Groups("full", "read-full", "parse-full")
