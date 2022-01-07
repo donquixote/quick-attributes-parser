@@ -17,7 +17,7 @@ use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
+class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface, ClassInfoInterface {
 
   /**
    * @var \Donquixote\QuickAttributes\Lookup\LookupInterface

@@ -43,7 +43,7 @@ If you disagree with any of these optimization strategies, open an issue!
 
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
-use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 
@@ -81,7 +81,7 @@ function processFile(string $file, string $exampleClass, string $exampleFunction
   // Read all elements in the file, using iterators.
   // Aborting an iterator means that the rest of the file won't be read.
   foreach ($fileInfo->readElements() as $element) {
-    assert($element instanceof ClassInfo || $element instanceof FunctionInfoInterface);
+    assert($element instanceof ClassInfoInterface || $element instanceof FunctionInfoInterface);
   }
   foreach ($fileInfo->readClasses() as $classInfo) {unset($classInfo);}
   foreach ($fileInfo->readFunctions() as $functionInfo) {unset($functionInfo);}

@@ -7,7 +7,7 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
@@ -544,7 +544,7 @@ class ClassesBench {
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
-      if ($element instanceof ClassInfo) {
+      if ($element instanceof ClassInfoInterface) {
         foreach ($element->readMembers() as $member) {
           $attributes = $member->getAttributes();
           unset($attributes);
@@ -585,7 +585,7 @@ class ClassesBench {
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
-      if ($element instanceof ClassInfo) {
+      if ($element instanceof ClassInfoInterface) {
         foreach ($element->readMethods() as $method) {
           $attributes = $method->getAttributes();
           unset($attributes);

@@ -10,6 +10,7 @@ use Donquixote\QuickAttributes\Lookup\Lookup_LazyLoadDecorator;
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
@@ -92,7 +93,7 @@ class FileInfo {
     return new self($lookup);
   }
 
-  public function findClass(string $name): ?ClassInfo {
+  public function findClass(string $name): ?ClassInfoInterface {
     return ClassInfo::create(
       $this->lookup,
       $name,
@@ -107,7 +108,7 @@ class FileInfo {
   }
 
   /**
-   * @return \Iterator<int, ClassInfo>
+   * @return \Iterator<int, ClassInfoInterface>
    */
   public function readClasses(): \Iterator {
     foreach ($this->lookup->readToplevelNames() as $name) {
@@ -135,7 +136,7 @@ class FileInfo {
   }
 
   /**
-   * @return \Iterator<int, ClassInfo|FunctionInfoInterface>
+   * @return \Iterator<int, ClassInfoInterface|FunctionInfoInterface>
    */
   public function readElements(): \Iterator {
     foreach ($this->lookup->readToplevelNames() as $name) {
