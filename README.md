@@ -56,10 +56,10 @@ function processFile(string $file, string $exampleClass, string $exampleFunction
   // Find a specific class, if it is in the file.
   // This will only parse until the class head.
   $exampleClassInfo = $fileInfo->findClass($exampleClass);
-  // Get imports for the class.
-  $imports = $exampleClassInfo->getImports();
-  unset($imports);
   if ($exampleClassInfo !== null) {
+    // Get imports for the class.
+    $imports = $exampleClassInfo->getImports();
+    unset($imports);
     // Find the constructor, read its attributes.
     $exampleClassConstructor = $exampleClassInfo->findMethod('__construct');
     if ($exampleClassConstructor !== null) {
