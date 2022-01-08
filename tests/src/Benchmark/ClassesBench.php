@@ -10,7 +10,7 @@ use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
-use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
@@ -544,7 +544,6 @@ class ClassesBench {
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
-      /** @psalm-suppress RedundantCondition */
       if ($element instanceof ClassInfo) {
         foreach ($element->readMembers() as $member) {
           $attributes = $member->getAttributes();
@@ -557,7 +556,7 @@ class ClassesBench {
           }
         }
       }
-      elseif ($element instanceof FunctionInfo) {
+      elseif ($element instanceof FunctionInfoInterface) {
         foreach ($element->readParameters() as $param) {
           $attributes = $param->getAttributes();
           unset($attributes);
@@ -586,14 +585,13 @@ class ClassesBench {
       unset($imports);
       $attributes = $element->getAttributes();
       unset($attributes);
-      /** @psalm-suppress RedundantCondition */
       if ($element instanceof ClassInfo) {
         foreach ($element->readMethods() as $method) {
           $attributes = $method->getAttributes();
           unset($attributes);
         }
       }
-      elseif ($element instanceof FunctionInfo) {
+      elseif ($element instanceof FunctionInfoInterface) {
         foreach ($element->readParameters() as $param) {
           $attributes = $param->getAttributes();
           unset($attributes);

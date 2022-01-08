@@ -8,7 +8,7 @@ use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\SnippetReader\SnippetReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
-use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -34,7 +34,6 @@ class SnippetReaderTest extends SnippetTest {
         $secondaryElement = $secondaryIterator->current();
         $data['importss'][$element->getId()] = $element->getImports();
         $attributess[$element->getId()] = $element->getAttributes();
-        /** @psalm-suppress RedundantCondition */
         if ($element instanceof ClassInfo) {
           if (!$secondaryElement instanceof ClassInfo) {
             self::fail();
@@ -50,8 +49,8 @@ class SnippetReaderTest extends SnippetTest {
             }
           }
         }
-        elseif ($element instanceof FunctionInfo) {
-          self::assertTrue($secondaryElement instanceof FunctionInfo);
+        elseif ($element instanceof FunctionInfoInterface) {
+          self::assertTrue($secondaryElement instanceof FunctionInfoInterface);
           $function = $element->getName();
           foreach ($element->readParameters() as $param) {
             $attributess[$function . '($' . $param->getName() . ')'] = $param->getAttributes();

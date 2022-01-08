@@ -11,6 +11,7 @@ use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 
 class FileInfo {
@@ -98,7 +99,7 @@ class FileInfo {
       $name);
   }
 
-  public function findFunction(string $name): ?FunctionInfo {
+  public function findFunction(string $name): ?FunctionInfoInterface {
     return FunctionInfo::create(
       $this->lookup,
       $name,
@@ -119,7 +120,7 @@ class FileInfo {
   }
 
   /**
-   * @return \Iterator<int, FunctionInfo>
+   * @return \Iterator<int, FunctionInfoInterface>
    */
   public function readFunctions(): \Iterator {
     foreach ($this->lookup->readToplevelNames() as $name) {
@@ -134,7 +135,7 @@ class FileInfo {
   }
 
   /**
-   * @return \Iterator<int, ClassInfo|FunctionInfo>
+   * @return \Iterator<int, ClassInfo|FunctionInfoInterface>
    */
   public function readElements(): \Iterator {
     foreach ($this->lookup->readToplevelNames() as $name) {

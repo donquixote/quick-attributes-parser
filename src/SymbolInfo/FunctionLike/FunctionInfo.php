@@ -10,7 +10,7 @@ use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoInterface;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class FunctionInfo extends FunctionInfoBase implements GlobalSymbolInfoInterface {
+class FunctionInfo extends FunctionInfoBase implements GlobalSymbolInfoInterface, FunctionInfoInterface {
 
   /**
    * @var array<string, string>
