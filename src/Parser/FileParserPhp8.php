@@ -19,7 +19,7 @@ class FileParserPhp8 extends FileParser {
     $i = $pos + 1;
     $id = ParserUtil::skipFillerWs($tokens, $i);
     if ($id !== \T_STRING && $id !== \T_NAME_QUALIFIED) {
-      throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING or T_NAME_QUALIFIED');
+      throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING or T_NAME_QUALIFIED');
     }
     $namespace = $tokens[$i][1];
     ++$i;
