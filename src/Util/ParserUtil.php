@@ -239,36 +239,6 @@ class ParserUtil {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   * @param string|null $docComment
-   *
-   * @return int|string
-   */
-  public static function skipHeaderWs(array $tokens, int &$pos, string &$docComment = null) {
-    $i = $pos;
-    while (true) {
-      $id = $tokens[$i][0];
-      if ($id === \T_COMMENT) {
-        if (\PHP_VERSION_ID < 80000 && \substr($tokens[$i][1], 0, 2) === '#[') {
-          // Found an attribute-like comment.
-          $pos = $i;
-          return $id;
-        }
-      }
-      elseif ($id === \T_DOC_COMMENT) {
-        $docComment = $tokens[$i][1];
-      }
-      elseif ($id !== \T_WHITESPACE) {
-        // Found a non-whitespace, non-comment token.
-        $pos = $i;
-        return $id;
-      }
-      ++$i;
-    }
-  }
-
-  /**
-   * @param list<string|array{int, string, int}> $tokens
-   * @param int $pos
    * @param int $expected
    *
    * @return string
