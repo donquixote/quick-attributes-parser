@@ -7,7 +7,6 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Registry\FileReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
@@ -460,9 +459,9 @@ class ClassesBench {
    * @throws \ReflectionException
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function benchFileReaderFirstElement(array $args): void {
+  public function benchFileInfoFirstElement(array $args): void {
     $found = false;
-    foreach (FileReader::create()->read($args[0]) as $element) {
+    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();
@@ -486,9 +485,9 @@ class ClassesBench {
    * @throws \ReflectionException
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function benchFileReaderFirstMethod(array $args): void {
+  public function benchFileInfoFirstMethod(array $args): void {
     $found = false;
-    foreach (FileReader::create()->read($args[0]) as $element) {
+    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
       if ($element instanceof ClassInfo) {
         foreach ($element->readMethods() as $methodInfo) {
           $attributes = $methodInfo->getAttributes();
@@ -535,48 +534,6 @@ class ClassesBench {
           $attributes = $param->getAttributes();
           unset($attributes);
         }
-      }
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClassFiles")
-   * @Groups("full", "read-full")
-   *
-   * @param array{string} $args
-   *
-   * @throws \ReflectionException
-   * @throws \Donquixote\QuickAttributes\Exception\ParserException
-   */
-  public function benchFileReaderAll(array $args): void {
-    foreach (FileReader::create()->read($args[0]) as $element) {
-      $imports = $element->getImports();
-      unset($imports);
-      $attributes = $element->getAttributes();
-      unset($attributes);
-      /** @psalm-suppress RedundantCondition */
-      if ($element instanceof ClassInfo) {
-        foreach ($element->readMembers() as $member) {
-          $attributes = $member->getAttributes();
-          unset($attributes);
-          if ($member instanceof MethodInfo) {
-            foreach ($member->readParameters() as $param) {
-              $attributes = $param->getAttributes();
-              unset($attributes);
-            }
-          }
-        }
-      }
-      elseif ($element instanceof FunctionInfo) {
-        foreach ($element->readParameters() as $param) {
-          $attributes = $param->getAttributes();
-          unset($attributes);
-        }
-      }
-      else {
-        throw new \RuntimeException('Unexpected element.');
       }
     }
   }

@@ -7,8 +7,8 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Registry\FileReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Infection\ExtensionInstaller\Plugin;
 use PhpBench\Attributes\AbstractMethodsAttribute;
@@ -79,12 +79,11 @@ class VendorTest_ extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    * @throws \ReflectionException
    */
-  public function testFileReader(string $file): void {
-    $reader = FileReader::create();
-    foreach ($reader->read($file) as $toplevelName => $element) {
+  public function testFileInfo(string $file): void {
+    foreach (FileInfo::fromFile($file)->readElements() as $element) {
       if ($element instanceof ClassInfo) {
         /** @var class-string $class */
-        $class = $toplevelName;
+        $class = $element->getName();
         $rc = new \ReflectionClass($class);
         $readerMethodNames = [];
         foreach ($element->readMethods() as $method) {
