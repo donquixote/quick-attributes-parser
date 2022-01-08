@@ -9,4 +9,4 @@ exception:
   message: 'Line 3:35: Expected T_STRING, but found ''{''.'
 exception.php8:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 3:34: Expected T_STRING, but found T_NS_SEPARATOR / ''\\''.'
+  message: 'Line 3:34: Unexpected T_NS_SEPARATOR / ''\\'' in imports.'
