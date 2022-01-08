@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  namespace N;
+
+  public 5;
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:1: Unexpected T_PUBLIC / ''public'' outside of class scope.'
