@@ -192,51 +192,6 @@ class ParserUtil {
   }
 
   /**
-   * Skips a code section with '(..)', backwards.
-   *
-   * It is assumed that the code in between is valid.
-   *
-   * @param list<string|array{int, string, int}> $tokens
-   *   Tokens from token_get_all(), with terminating '#'.
-   * @param int $pos
-   *   Before: Position of the closing ')', ']' or '}'.
-   *   After (success): Position of opening '(', '[' or '{'.
-   *   After (failure): Original position.
-   *
-   * @return void
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
-   */
-  public static function skipSubtreeReverse(array $tokens, int &$pos): void {
-    /** @var (1|0|-1)[]|null $map */
-    $map = self::SKIP_MAP[$tokens[$pos][0]] ?? null;
-    if ($map === null) {
-      throw new \RuntimeException(
-        'skipSubtree() was called on an invalid position.');
-    }
-    $level = 0;
-    for ($i = $pos - 1; $i >= 0; --$i) {
-      if (!isset($map[$tokens[$i][0]])) {
-        // Ignore this token.
-        // This is the most frequent case, to be optimized for.
-        continue;
-      }
-      if ($tokens[$i] === '#') {
-        throw SyntaxException::fromTokenPos(
-          $tokens,
-          $i,
-          'Unexpected end of file in nested structure.');
-      }
-      $level -= $map[$tokens[$i][0]];
-      if ($level < 0) {
-        // Set new position.
-        $pos = $i;
-        return;
-      }
-    }
-  }
-
-  /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param int $expected
