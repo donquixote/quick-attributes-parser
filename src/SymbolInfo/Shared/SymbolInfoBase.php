@@ -4,55 +4,20 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\Shared;
 
-use Donquixote\QuickAttributes\Lookup\LookupInterface;
-
 abstract class SymbolInfoBase implements SymbolInfoInterface {
 
   /**
    * @var list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
    */
-  private array $attributes = [];
-
-  private string $name = '?';
-
-  final private function __construct() {}
+  private array $attributes;
 
   /**
-   * @param \Donquixote\QuickAttributes\Lookup\LookupInterface $lookup
-   * @param string $name
-   * @param string $id
+   * Constructor.
    *
-   * @return static
-   *
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    */
-  public static function createExpected(LookupInterface $lookup, string $name, string $id): self {
-    $instance = static::create($lookup, $name, $id);
-    if ($instance === null) {
-      throw new \RuntimeException("Symbol $id / $name not found.");
-    }
-    return $instance;
-  }
-
-  /**
-   * @param \Donquixote\QuickAttributes\Lookup\LookupInterface $lookup
-   * @param string $name
-   * @param string $id
-   *
-   * @return static|null
-   */
-  public static function create(LookupInterface $lookup, string $name, string $id): ?self {
-    $attributes = $lookup->keyGetAttributes($id);
-    if ($attributes === null) {
-      return null;
-    }
-    $instance = new static();
-    $instance->name = $name;
-    $instance->attributes = $attributes;
-    return $instance;
-  }
-
-  public function getName(): string {
-    return $this->name;
+  public function __construct(array $attributes) {
+    $this->attributes = $attributes;
   }
 
   public function getAttributes(): array {

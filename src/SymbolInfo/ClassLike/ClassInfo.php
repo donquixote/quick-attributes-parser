@@ -4,165 +4,66 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\ClassLike;
 
-use Donquixote\QuickAttributes\Lookup\LookupInterface;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfo;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfo;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
-use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoInterface;
-use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
+use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoBase;
+use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorAndInfoTrait;
+use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface;
 
-/**
- * @psalm-suppress PropertyNotSetInConstructor
- */
-class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface, ClassInfoInterface {
+class ClassInfo extends GlobalSymbolInfoBase implements ClassInfoInterface, ClassMemberVisitorInterface {
+
+  use ClassMemberVisitorAndInfoTrait;
 
   /**
-   * @var \Donquixote\QuickAttributes\Lookup\LookupInterface
+   * @var class-string
    */
-  private LookupInterface $lookup;
+  private string $name;
 
   /**
-   * @var array<string, string>
+   * @param class-string $class
+   *
+   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface|null
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private array $imports;
+  public static function fromClass(string $class): ?ClassInfoInterface {
+    return ClassInfoFinder::create()->findClass($class);
+  }
 
-  private string $prefix = '?::';
+  /**
+   * @param class-string $class
+   *
+   * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public static function fromExpectedClass(string $class): ClassInfoInterface {
+    return ClassInfoFinder::create()->requireClass($class);
+  }
 
   /**
    * Constructor.
    *
-   * @param \Donquixote\QuickAttributes\Lookup\LookupInterface $lookup
-   * @param string $name
-   * @param string $id
-   *
-   * @return static|null
+   * @param class-string $name
+   * @param array<string, string> $imports
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   * @param \Iterator<int, true> $it
    */
-  public static function create(LookupInterface $lookup, string $name, string $id): ?self {
-    $instance = parent::create($lookup, $name, $id);
-    if ($instance === null) {
-      return null;
-    }
-    $imports = $lookup->keyGetImports($name);
-    if ($imports === null) {
-      return null;
-    }
-    $instance->lookup = $lookup;
-    $instance->imports = $imports;
-    $instance->prefix = $name . '::';
-    return $instance;
+  public function __construct(string $name, array $imports, array $attributes, \Iterator $it) {
+    parent::__construct($imports, $attributes);
+    $this->name = $name;
+    $this->it = $it;
   }
 
   /**
    * {@inheritdoc}
    */
   public function getId(): string {
-    return $this->getName();
+    return $this->name;
   }
 
   /**
-   * @return array<string, string>
+   * @return class-string
    */
-  public function getImports(): array {
-    return $this->imports;
-  }
-
-  public function findConstant(string $name): ?ClassConstInfoInterface {
-    return ClassConstInfo::create(
-      $this->lookup,
-      $name,
-      $this->prefix . $name);
-  }
-
-  public function findProperty(string $name): ?PropertyInfoInterface {
-    return PropertyInfo::create(
-      $this->lookup,
-      $name,
-      $this->prefix . '$' . $name);
-  }
-
-  public function findMethod(string $name): ?MethodInfoInterface {
-    return MethodInfo::create(
-      $this->lookup,
-      $name,
-      $this->prefix . $name . '()');
-  }
-
-  /**
-   * @return \Iterator<int, PropertyInfoInterface>
-   */
-  public function readProperties(): \Iterator {
-    foreach ($this->lookup->keyReadChildNames($this->getName()) as $key) {
-      if ($key[0] === '$') {
-        yield PropertyInfo::createExpected(
-          $this->lookup,
-          \substr($key, 1),
-          $this->prefix . $key);
-      }
-    }
-  }
-
-  /**
-   * @return \Iterator<int, ClassConstInfoInterface>
-   */
-  public function readConstants(): \Iterator {
-    foreach ($this->lookup->keyReadChildNames($this->getName()) as $key) {
-      if ($key[0] !== '$' && \substr($key, -2) !== '()') {
-        yield ClassConstInfo::createExpected(
-          $this->lookup,
-          $key,
-          $this->prefix . $key);
-      }
-    }
-  }
-
-  /**
-   * @return \Iterator<int, MethodInfoInterface>
-   */
-  public function readMethods(): \Iterator {
-    foreach ($this->lookup->keyReadChildNames($this->getName()) as $key) {
-      if (\substr($key, -2) === '()') {
-        yield MethodInfo::createExpected(
-          $this->lookup,
-          \substr($key, 0, -2),
-          $this->prefix . $key);
-      }
-    }
-  }
-
-  /**
-   * @return \Iterator<int, \Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoInterface>
-   * @psalm-return \Iterator<int, PropertyInfoInterface|MethodInfoInterface|ClassConstInfoInterface>
-   */
-  public function readMembers(): \Iterator {
-    $offset = 0;
-    $prefix = $this->getName() . '::';
-    foreach ($this->lookup->keyReadChildNames($this->getName(), $offset) as $key) {
-      \assert(\preg_match('@^\$?\w+(?:\(\))?$@', $key), $key);
-      if ($key[0] === '$') {
-        // Property.
-        yield PropertyInfo::createExpected(
-          $this->lookup,
-          \substr($key, 1),
-          $prefix . $key);
-      }
-      elseif (\substr($key, -2) === '()') {
-        // Method.
-        yield MethodInfo::createExpected(
-          $this->lookup,
-          \substr($key, 0, -2),
-          $prefix . $key);
-      }
-      else {
-        // Class constant.
-        yield ClassConstInfo::createExpected(
-          $this->lookup,
-          $key,
-          $prefix . $key);
-      }
-    }
+  public function getName(): string {
+    return $this->name;
   }
 
 }

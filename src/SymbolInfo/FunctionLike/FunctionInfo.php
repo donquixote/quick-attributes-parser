@@ -4,50 +4,45 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\FunctionLike;
 
-use Donquixote\QuickAttributes\Lookup\LookupInterface;
-use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoBase;
+use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorAndInfoTrait;
+use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface;
 
-/**
- * @psalm-suppress PropertyNotSetInConstructor
- */
-class FunctionInfo extends FunctionInfoBase implements GlobalSymbolInfoInterface, FunctionInfoInterface {
+class FunctionInfo extends GlobalSymbolInfoBase implements FunctionInfoInterface, ParamVisitorInterface {
+
+  use ParamVisitorAndInfoTrait;
 
   /**
-   * @var array<string, string>
+   * @var callable-string
    */
-  private array $imports = [];
+  private string $name;
 
   /**
    * Constructor.
    *
-   * @param \Donquixote\QuickAttributes\Lookup\LookupInterface $lookup
-   * @param string $name
-   * @param string $id
-   *
-   * @return static|null
+   * @param callable-string $name
+   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   * @param array<string, string> $imports
+   * @param \Iterator<int, true> $it
    */
-  public static function create(LookupInterface $lookup, string $name, string $id): ?self {
-    $imports = $lookup->keyGetImports($name . '()');
-    if ($imports === null) {
-      return null;
-    }
-    $instance = parent::create($lookup, $name, $id);
-    if ($instance === null) {
-      throw new \RuntimeException('Attributes found, but no imports?');
-    }
-    $instance->imports = $imports;
-    return $instance;
-  }
-
-  public function getId(): string {
-    return $this->getName() . '()';
+  public function __construct(string $name, array $attributes, array $imports, \Iterator $it) {
+    parent::__construct($imports, $attributes);
+    $this->name = $name;
+    $this->it = $it;
   }
 
   /**
-   * @return array<string, string>
+   * {@inheritdoc}
    */
-  public function getImports(): ?array {
-    return $this->imports;
+  public function getId(): string {
+    return $this->name . '()';
+  }
+
+  /**
+   * @return callable-string
+   */
+  public function getName(): string {
+    return $this->name;
   }
 
 }

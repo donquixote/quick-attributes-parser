@@ -14,7 +14,7 @@ use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfoInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
@@ -61,7 +61,11 @@ class ClassesTest extends TestCase {
     $ymlDir = $this->getYmlDir();
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
     $parser = FileParser::create();
-    $visitor = new SymbolVisitor_CollectInfo();
+    $importss = [];
+    $attributess = [];
+    $visitor = new SymbolVisitor_CollectImportsAndAttributes(
+      $importss,
+      $attributess);
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
       foreach ($parser->parseFile($file, $visitor) as $_) {}
@@ -70,7 +74,6 @@ class ClassesTest extends TestCase {
       $e->setSourceFile($file, \dirname(__DIR__, 2));
       throw $e;
     }
-    $importss = $visitor->getImportss();
     TestUtil::assertFileContentsYml("$ymlDir/$shortname.imports.yml", $importss);
   }
 
