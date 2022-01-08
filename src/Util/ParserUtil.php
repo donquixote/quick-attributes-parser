@@ -125,8 +125,7 @@ class ParserUtil {
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '(', '[' or '{'.
-   *   After (success): Position of the closing ')', ']' or '}'.
-   *   After (failure): Original position.
+   *   After: Position of the closing ')', ']' or '}'.
    *
    * @return void
    *
@@ -140,22 +139,21 @@ class ParserUtil {
         'skipSubtree() was called on an invalid position.');
     }
     $level = 0;
-    for ($i = $pos + 1; ; ++$i) {
-      if (!isset($map[$tokens[$i][0]])) {
+    for (++$pos; ; ++$pos) {
+      if (!isset($map[$tokens[$pos][0]])) {
         // Ignore this token.
         // This is the most frequent case, to be optimized for.
         continue;
       }
-      if ($tokens[$i] === '#') {
+      if ($tokens[$pos] === '#') {
         throw SyntaxException::fromTokenPos(
           $tokens,
-          $i,
+          $pos,
           'Unexpected end of file in nested structure.');
       }
-      $level += $map[$tokens[$i][0]];
+      $level += $map[$tokens[$pos][0]];
       if ($level < 0) {
         // Set new position.
-        $pos = $i;
         return;
       }
     }
@@ -170,25 +168,22 @@ class ParserUtil {
    *   Tokens from token_get_all(), with terminating '#'.
    * @param int $pos
    *   Before: Position of the opening '"'.
-   *   After (success): Position of the closing '"'.
-   *   After (failure): Original position.
+   *   After: Position of the closing '"'.
    *
    * @return void
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   public static function skipDoubleQuotedString(array $tokens, int &$pos): void {
-    $i = $pos;
     while (true) {
-      ++$i;
-      if ($tokens[$i] === '"') {
+      ++$pos;
+      if ($tokens[$pos] === '"') {
         break;
       }
-      if ($tokens[$i] === '#') {
+      if ($tokens[$pos] === '#') {
         throw new SyntaxException('Unexpected EOF in string.');
       }
     }
-    $pos = $i;
   }
 
   /**
@@ -248,21 +243,18 @@ class ParserUtil {
    *   Token id at the new position.
    */
   public static function skipFillerWs(array $tokens, int &$pos) {
-    $i = $pos;
     while (true) {
-      $id = $tokens[$i][0];
+      $id = $tokens[$pos][0];
       if ($id === \T_COMMENT) {
-        if (\PHP_VERSION_ID < 80000 && $tokens[$i][1][1] === '[') {
+        if (\PHP_VERSION_ID < 80000 && $tokens[$pos][1][1] === '[') {
           // Found an attribute.
-          $pos = $i;
           return $id;
         }
       }
       elseif ($id !== \T_DOC_COMMENT && $id !== \T_WHITESPACE) {
-        $pos = $i;
         return $id;
       }
-      ++$i;
+      ++$pos;
     }
   }
 

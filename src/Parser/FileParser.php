@@ -87,8 +87,8 @@ abstract class FileParser implements FileTokenParserInterface {
       throw UnsupportedSyntaxException::fromTokenPos($tokens, 0, 'Only files starting with T_OPEN_TAG are supported.');
     }
 
-    for ($i = 1;; ++$i) {
-      $token = $tokens[$i];
+    for ($pos = 1;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         // Character tokens indicate that file head ends here.
         break;
@@ -115,19 +115,19 @@ abstract class FileParser implements FileTokenParserInterface {
           break 2;
 
         case \T_DECLARE:
-          ++$i;
-          ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
+          ++$pos;
+          ParserUtil::skipFillerWsExpectChar($tokens, $pos, '(');
           // Ignore the declare, for now.
-          ParserUtil::skipSubtree($tokens, $i);
-          ++$i;
-          ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
+          ParserUtil::skipSubtree($tokens, $pos);
+          ++$pos;
+          ParserUtil::skipFillerWsExpectChar($tokens, $pos, ';');
           break;
 
         case \T_NAMESPACE:
-          $namespace = $this->parseNamespace($tokens, $i);
+          $namespace = $this->parseNamespace($tokens, $pos);
           $terminatedNamespace = $namespace . '\\';
-          \assert(ParserAssertUtil::expect($tokens, $i, ';'));
-          ++$i;
+          \assert(ParserAssertUtil::expect($tokens, $pos, ';'));
+          ++$pos;
           break 2;
 
         default:
@@ -137,14 +137,14 @@ abstract class FileParser implements FileTokenParserInterface {
     }
 
     $attrComments = [];
-    for (;; ++$i) {
-      $token = $tokens[$i];
+    for (;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
           case '(':
           case '[':
-            ParserUtil::skipSubtree($tokens, $i);
-            \assert(ParserAssertUtil::expectOneOf($tokens, $i, [')', ']']));
+            ParserUtil::skipSubtree($tokens, $pos);
+            \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [')', ']']));
             break;
 
           case '{':
@@ -152,32 +152,35 @@ abstract class FileParser implements FileTokenParserInterface {
             // interface declaration.
             // This also means that the tokens could be cut off within that
             // subtree.
+            $subtreeStartPos = $pos;
             try {
-              ParserUtil::skipSubtree($tokens, $i);
+              ParserUtil::skipSubtree($tokens, $pos);
             }
             catch (SyntaxException $e) {
               // This could be unexpected end of file, if $tokens only contains
               // the head of a supposed class file.
               // This can be the case if the class is declared within an if ().
               // Load the complete token list, and try again.
-              if ($headFirst) {
-                $tokens = $fileTokens->getAll();
+              if (!$headFirst) {
+                throw $e;
               }
-              \assert(ParserAssertUtil::expect($tokens, $i, '{'));
-              ParserUtil::skipSubtree($tokens, $i);
+              $tokens = $fileTokens->getAll();
+              $pos = $subtreeStartPos;
+              \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
+              ParserUtil::skipSubtree($tokens, $pos);
             }
-            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
+            \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
             break;
 
           case '"':
-            ParserUtil::skipDoubleQuotedString($tokens, $i);
-            \assert(ParserAssertUtil::expect($tokens, $i, '"'));
+            ParserUtil::skipDoubleQuotedString($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, '"'));
             break;
 
           case ')':
           case '}':
           case ']':
-            throw SyntaxException::unexpected($tokens, $i, 'in file scope');
+            throw SyntaxException::unexpected($tokens, $pos, 'in file scope');
 
           case '#':
             // End of file.
@@ -206,13 +209,13 @@ abstract class FileParser implements FileTokenParserInterface {
             continue 2;
 
           case VersionDependentTokens::T_ATTRIBUTE:
-            $attrComments[] = $this->parseNativeAttribute($tokens, $i);
+            $attrComments[] = $this->parseNativeAttribute($tokens, $pos);
             continue 2;
 
           case \T_PRIVATE:
           case \T_PUBLIC:
           case \T_PROTECTED:
-            throw SyntaxException::unexpected($tokens, $i, 'outside of class scope');
+            throw SyntaxException::unexpected($tokens, $pos, 'outside of class scope');
 
           case \T_STATIC:
           case \T_FINAL:
@@ -222,31 +225,31 @@ abstract class FileParser implements FileTokenParserInterface {
 
           case \T_NAMESPACE:
             if ($namespace !== null) {
-              throw SyntaxException::fromTokenPos($tokens, $i, 'Cannot redeclare namespace.');
+              throw SyntaxException::fromTokenPos($tokens, $pos, 'Cannot redeclare namespace.');
             }
-            throw SyntaxException::unexpected($tokens, $i, 'after non-declare statements');
+            throw SyntaxException::unexpected($tokens, $pos, 'after non-declare statements');
 
           case \T_USE:
-            $this->parseImportGroup($tokens, $i, $imports);
+            $this->parseImportGroup($tokens, $pos, $imports);
             break;
 
           case \T_FUNCTION:
-            $shortname = $this->parseFunctionHead($tokens, $i);
-            \assert(ParserAssertUtil::expect($tokens, $i, '('));
+            $shortname = $this->parseFunctionHead($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, '('));
             if ($shortname === null) {
               // Anonymous function. Ignore.
               // Skip the parameter list first.
-              ParserUtil::skipSubtree($tokens, $i);
-              ++$i;
-              $id = ParserUtil::skipFillerWs($tokens, $i);
+              ParserUtil::skipSubtree($tokens, $pos);
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
               if ($id === \T_USE) {
-                ++$i;
-                ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
-                ParserUtil::skipSubtree($tokens, $i);
-                \assert(ParserAssertUtil::expect($tokens, $i, ')'));
+                ++$pos;
+                ParserUtil::skipFillerWsExpectChar($tokens, $pos, '(');
+                ParserUtil::skipSubtree($tokens, $pos);
+                \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
               }
               elseif ($id === '{') {
-                --$i;
+                --$pos;
               }
               // Ignore the rest.
               break;
@@ -262,28 +265,28 @@ abstract class FileParser implements FileTokenParserInterface {
             yield true;
             yield from $this->parseParams(
               $tokens,
-              $i,
+              $pos,
               $paramVisitor,
               $attrCommentMultiParser);
-            \assert(ParserAssertUtil::expect($tokens, $i, ')'));
-            ++$i;
-            $id = ParserUtil::skipFillerWs($tokens, $i);
+            \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             if ($id === ':') {
-              $id = $this->skipReturnType($tokens, $i);
-              \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['{', ';']));
+              $id = $this->skipReturnType($tokens, $pos);
+              \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['{', ';']));
             }
             if ($id !== '{') {
-              throw SyntaxException::expectedButFound($tokens, $i, '{ or ;');
+              throw SyntaxException::expectedButFound($tokens, $pos, '{ or ;');
             }
-            ParserUtil::skipSubtree($tokens, $i);
-            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
+            ParserUtil::skipSubtree($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
             break;
 
           case \T_CLASS:
           case \T_INTERFACE:
           case \T_TRAIT:
-            ++$i;
-            $shortname = ParserUtil::skipFillerWsExpectTString($tokens, $i);
+            ++$pos;
+            $shortname = ParserUtil::skipFillerWsExpectTString($tokens, $pos);
             /** @var class-string $class */
             $class = $terminatedNamespace . $shortname;
             $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
@@ -299,10 +302,10 @@ abstract class FileParser implements FileTokenParserInterface {
               $tokens = $fileTokens->getAll();
             }
 
-            $this->skipClassLikeExtendsImplements($tokens, $i);
-            \assert(ParserAssertUtil::expect($tokens, $i, '{'));
-            yield from $this->parseClassLikeBody($tokens, $i, $memberVisitor, $attrCommentMultiParser);
-            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
+            $this->skipClassLikeExtendsImplements($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
+            yield from $this->parseClassLikeBody($tokens, $pos, $memberVisitor, $attrCommentMultiParser);
+            \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
             $memberVisitor->markAsComplete();
             yield true;
             break;
@@ -345,19 +348,18 @@ abstract class FileParser implements FileTokenParserInterface {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
 
     // Skip all extends and implements.
-    for ($i = $pos + 1;; ++$i) {
-      $token = $tokens[$i];
+    for (++$pos;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
           case ',':
             break;
 
           case '{':
-            $pos = $i;
             return;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'before class body');
+            throw SyntaxException::unexpected($tokens, $pos, 'before class body');
         }
       }
       else {
@@ -372,7 +374,7 @@ abstract class FileParser implements FileTokenParserInterface {
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'before class body');
+            throw SyntaxException::unexpected($tokens, $pos, 'before class body');
         }
       }
     }
@@ -393,13 +395,12 @@ abstract class FileParser implements FileTokenParserInterface {
   private function parseClassLikeBody(array $tokens, int &$pos, ClassMemberVisitorInterface $memberVisitor, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
-    for ($i = $pos + 1;; ++$i) {
-      $token = $tokens[$i];
+    for (++$pos;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
 
           case '}':
-            $pos = $i;
             return;
 
           case '?':
@@ -407,7 +408,7 @@ abstract class FileParser implements FileTokenParserInterface {
             continue 2;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in class body');
+            throw SyntaxException::unexpected($tokens, $pos, 'in class body');
         }
       }
       else {
@@ -429,7 +430,7 @@ abstract class FileParser implements FileTokenParserInterface {
             continue 2;
 
           case VersionDependentTokens::T_ATTRIBUTE:
-            $attributeComments[] = $this->parseNativeAttribute($tokens, $i);
+            $attributeComments[] = $this->parseNativeAttribute($tokens, $pos);
             continue 2;
 
           case \T_PRIVATE:
@@ -445,17 +446,17 @@ abstract class FileParser implements FileTokenParserInterface {
           case \T_INTERFACE:
           case \T_TRAIT:
           case \T_NAMESPACE:
-            throw SyntaxException::unexpected($tokens, $i, 'in class scope.');
+            throw SyntaxException::unexpected($tokens, $pos, 'in class scope.');
 
           case \T_USE:
             // Ignore use traits. Do clear attributes.
             // Traits are already available via native reflection.
-            $this->skipUseTraits($tokens, $i);
-            \assert(ParserAssertUtil::expectOneOf($tokens, $i, [';', '}']));
+            $this->skipUseTraits($tokens, $pos);
+            \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [';', '}']));
             break;
 
           case \T_FUNCTION:
-            $method = $this->parseFunctionHead($tokens, $i, true);
+            $method = $this->parseFunctionHead($tokens, $pos, true);
             \assert($method !== null);
             $paramVisitor = $memberVisitor->addMethod(
               $method,
@@ -463,26 +464,26 @@ abstract class FileParser implements FileTokenParserInterface {
             yield true;
             yield from $this->parseParams(
               $tokens,
-              $i,
+              $pos,
               $paramVisitor,
               $attrCommentMultiParser);
-            \assert(ParserAssertUtil::expect($tokens, $i, ')'));
-            ++$i;
-            $id = ParserUtil::skipFillerWs($tokens, $i);
+            \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             if ($id === ':') {
-              $id = $this->skipReturnType($tokens, $i);
-              \assert(ParserAssertUtil::expectOneOf($tokens, $i, ['{', ';']));
+              $id = $this->skipReturnType($tokens, $pos);
+              \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['{', ';']));
             }
             if ($id === '{') {
-              ParserUtil::skipSubtree($tokens, $i);
+              ParserUtil::skipSubtree($tokens, $pos);
             }
             elseif ($id !== ';') {
-              throw SyntaxException::expectedButFound($tokens, $i, '{ or ;');
+              throw SyntaxException::expectedButFound($tokens, $pos, '{ or ;');
             }
             break;
 
           case \T_VARIABLE:
-            $names = $this->parseClassPropertyGroup($tokens, $i);
+            $names = $this->parseClassPropertyGroup($tokens, $pos);
             foreach ($names as $name) {
               $memberVisitor->addProperty(
                 $name,
@@ -492,7 +493,7 @@ abstract class FileParser implements FileTokenParserInterface {
             break;
 
           case \T_CONST:
-            $names = $this->parseClassConstGroup($tokens, $i);
+            $names = $this->parseClassConstGroup($tokens, $pos);
             foreach ($names as $name) {
               $memberVisitor->addConstant(
                 $name,
@@ -509,7 +510,7 @@ abstract class FileParser implements FileTokenParserInterface {
             continue 2;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in class body');
+            throw SyntaxException::unexpected($tokens, $pos, 'in class body');
         }
       }
       $attributeComments = [];
@@ -532,37 +533,35 @@ abstract class FileParser implements FileTokenParserInterface {
   private function parseFunctionHead(array $tokens, int &$pos, bool $isClassMember = false): ?string {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_FUNCTION));
 
-    $i = $pos + 1;
-    $id = ParserUtil::skipFillerWs($tokens, $i);
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
     if ($id === '&' || $id === VersionDependentTokens::T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG) {
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
     }
 
     if ($id === '(') {
       // Anonymous function.
       if ($isClassMember) {
-        throw SyntaxException::fromTokenPos($tokens, $i, 'Anonymous function in class not allowed.');
+        throw SyntaxException::fromTokenPos($tokens, $pos, 'Anonymous function in class not allowed.');
       }
-      $pos = $i;
       return null;
     }
 
     if ($id !== \T_STRING) {
       if (!$isClassMember) {
-        throw SyntaxException::expectedButFound($tokens, $i, 'method name');
+        throw SyntaxException::expectedButFound($tokens, $pos, 'method name');
       }
-      if (!\is_array($tokens[$i])
-        || !ReservedWordUtil::validMemberName($tokens[$i][1])
+      if (!\is_array($tokens[$pos])
+        || !ReservedWordUtil::validMemberName($tokens[$pos][1])
       ) {
-        throw SyntaxException::expectedButFound($tokens, $i, 'method name');
+        throw SyntaxException::expectedButFound($tokens, $pos, 'method name');
       }
     }
 
-    $shortName = $tokens[$i][1];
-    ++$i;
-    ParserUtil::skipFillerWsExpectChar($tokens, $i, '(');
-    $pos = $i;
+    $shortName = $tokens[$pos][1];
+    ++$pos;
+    ParserUtil::skipFillerWsExpectChar($tokens, $pos, '(');
     return $shortName;
   }
 
@@ -581,17 +580,16 @@ abstract class FileParser implements FileTokenParserInterface {
   private function parseParams(array $tokens, int &$pos, ParamVisitorInterface $paramVisitor, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '('));
     $attributeComments = [];
-    for ($i = $pos + 1;; ++$i) {
-      $token = $tokens[$i];
+    for (++$pos;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
 
           case ')':
-            $pos = $i;
             break 2;
 
           case '#':
-            throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
+            throw SyntaxException::fromTokenPos($tokens, $pos, "Unexpected EOF in parameters.");
 
           case '&':
             // The parameter is by-reference. That's ok.
@@ -602,10 +600,10 @@ abstract class FileParser implements FileTokenParserInterface {
             break;
 
           case '|':
-            throw PhpVersionException::fromTokenPos($tokens, $i, 'Union types are only available in PHP 8.');
+            throw PhpVersionException::fromTokenPos($tokens, $pos, 'Union types are only available in PHP 8.');
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in parameters');
+            throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
         }
       }
       else {
@@ -624,24 +622,23 @@ abstract class FileParser implements FileTokenParserInterface {
               $attrCommentMultiParser->parseMultiple($attributeComments));
             yield true;
             $attributeComments = [];
-            ++$i;
-            $id = ParserUtil::skipFillerWs($tokens, $i);
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             if ($id === '=') {
-              $id = $this->skipVarDefault($tokens, $i, true);
+              $id = $this->skipVarDefault($tokens, $pos, true);
             }
             // Skip until the comma or ')'.
             if ($id === ')') {
-              $pos = $i;
               break 2;
             }
             if ($id !== ',') {
-              throw SyntaxException::unexpected($tokens, $i, 'in parameters');
+              throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
             }
             // Must be ','.
             break;
 
           case VersionDependentTokens::T_ATTRIBUTE:
-            $attributeComments[] = $this->parseNativeAttribute($tokens, $i);
+            $attributeComments[] = $this->parseNativeAttribute($tokens, $pos);
             break;
 
           default:
@@ -667,10 +664,10 @@ abstract class FileParser implements FileTokenParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseNativeAttribute(array $tokens, int &$pos): string {
-    $i = $pos;
-    ParserUtil::skipSubtree($tokens, $i);
-    $snippet = ParserUtil::concatTokens($tokens, $pos, $i + 1);
-    $pos = $i;
+    $begin = $pos;
+    ParserUtil::skipSubtree($tokens, $pos);
+    \assert(ParserAssertUtil::expect($tokens, $pos, ']'));
+    $snippet = ParserUtil::concatTokens($tokens, $begin, $pos + 1);
     \assert(\preg_match('@^#\[.*\]$@', $snippet));
     return $snippet . "\n";
   }
@@ -688,27 +685,26 @@ abstract class FileParser implements FileTokenParserInterface {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_VARIABLE));
     $names = [\substr($tokens[$pos][1], 1)];
 
-    $i = $pos + 1;
-    $id = ParserUtil::skipFillerWs($tokens, $i);
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
     while (true) {
       if ($id === '=') {
-        $id = $this->skipVarDefault($tokens, $i, false);
+        $id = $this->skipVarDefault($tokens, $pos, false);
       }
       if ($id === ';') {
-        $pos = $i;
         break;
       }
       // If it is not a ';', it must be a ',', according to the documented
       // behavior of ->skipVarDefault().
-      \assert(ParserAssertUtil::expect($tokens, $i, ','));
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      \assert(ParserAssertUtil::expect($tokens, $pos, ','));
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id !== \T_VARIABLE) {
-        throw SyntaxException::expectedButFound($tokens, $i, 'T_VARIABLE');
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
       }
-      $names[] = \substr($tokens[$i][1], 1);
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      $names[] = \substr($tokens[$pos][1], 1);
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
     }
 
     return $names;
@@ -726,31 +722,30 @@ abstract class FileParser implements FileTokenParserInterface {
   private function parseClassConstGroup(array $tokens, int &$pos): array {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_CONST));
 
-    $i = $pos + 1;
+    ++$pos;
     $names = [];
-    $names[] = ParserUtil::skipFillerWsExpectMemberName($tokens, $i);
+    $names[] = ParserUtil::skipFillerWsExpectMemberName($tokens, $pos);
 
-    ++$i;
-    $id = ParserUtil::skipFillerWs($tokens, $i);
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
     while (true) {
       if ($id === '=') {
-        $id = $this->skipVarDefault($tokens, $i, false);
+        $id = $this->skipVarDefault($tokens, $pos, false);
       }
       if ($id === ';') {
-        $pos = $i;
         return $names;
       }
       // If it is not a ';', it must be a ',', according to the documented
       // behavior of ->skipVarDefault().
-      \assert(ParserAssertUtil::expect($tokens, $i, ','));
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      \assert(ParserAssertUtil::expect($tokens, $pos, ','));
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id !== \T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
       }
-      $names[] = $tokens[$i][1];
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      $names[] = $tokens[$pos][1];
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
     }
   }  // @codeCoverageIgnore
 
@@ -768,8 +763,8 @@ abstract class FileParser implements FileTokenParserInterface {
    */
   private function skipVarDefault(array $tokens, int &$pos, bool $isParam): string {
     \assert(ParserAssertUtil::expect($tokens, $pos, '='));
-    for ($i = $pos + 1;; ++$i) {
-      $token = $tokens[$i];
+    for (++$pos;; ++$pos) {
+      $token = $tokens[$pos];
       if (!\is_string($token)) {
         // Ignore any non-char tokens.+
         continue;
@@ -779,34 +774,31 @@ abstract class FileParser implements FileTokenParserInterface {
         case '(':
         case '{':
         case '[':
-          ParserUtil::skipSubtree($tokens, $i);
-          \assert(ParserAssertUtil::expectOneOf($tokens, $i, [')', '}', ']']));
+          ParserUtil::skipSubtree($tokens, $pos);
+          \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [')', '}', ']']));
           break;
 
         case ',':
-          $pos = $i;
           return $token;
 
         case ')':
           if (!$isParam) {
-            throw SyntaxException::unexpected($tokens, $i, 'after property or const default value');
+            throw SyntaxException::unexpected($tokens, $pos, 'after property or const default value');
           }
-          $pos = $i;
           return $token;
 
         case ';':
           if ($isParam) {
-            throw SyntaxException::unexpected($tokens, $i, 'after parameter default value');
+            throw SyntaxException::unexpected($tokens, $pos, 'after parameter default value');
           }
-          $pos = $i;
           return $token;
 
         case '}':
         case ']':
-          throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected '$token' in parameters.");
+          throw SyntaxException::fromTokenPos($tokens, $pos, "Unexpected '$token' in parameters.");
 
         case '#':
-          throw SyntaxException::fromTokenPos($tokens, $i, "Unexpected EOF in parameters.");
+          throw SyntaxException::fromTokenPos($tokens, $pos, "Unexpected EOF in parameters.");
 
         default:
           break;
@@ -821,8 +813,7 @@ abstract class FileParser implements FileTokenParserInterface {
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of 'use' statement.
-   *   After (success): Directly on ';'.
-   *   After (failure): Original position.
+   *   After: Directly on ';'.
    * @param array<string, string> $imports
    *   Format: $[$alias] = $qcn.
    *
@@ -845,20 +836,19 @@ abstract class FileParser implements FileTokenParserInterface {
    */
   private function skipReturnType(array $tokens, int &$pos): string {
     \assert(ParserAssertUtil::expect($tokens, $pos, ':'));
-    for ($i = $pos + 1;; ++$i) {
-      $token = $tokens[$i];
+    for (++$pos;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
           case '{':
           case ';':
-            $pos = $i;
             return $token;
 
           case '?':
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+            throw SyntaxException::unexpected($tokens, $pos, 'in return type');
         }
       }
       else {
@@ -873,7 +863,7 @@ abstract class FileParser implements FileTokenParserInterface {
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in return type');
+            throw SyntaxException::unexpected($tokens, $pos, 'in return type');
         }
       }
     }
@@ -889,25 +879,23 @@ abstract class FileParser implements FileTokenParserInterface {
    */
   private function skipUseTraits(array $tokens, int &$pos): void {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_USE));
-    for ($i = $pos + 1;; ++$i) {
-      $token = $tokens[$i];
+    for (++$pos;; ++$pos) {
+      $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
           case '{':
-            ParserUtil::skipSubtree($tokens, $i);
-            \assert(ParserAssertUtil::expect($tokens, $i, '}'));
-            $pos = $i;
+            ParserUtil::skipSubtree($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
             return;
 
           case ';':
-            $pos = $i;
             return;
 
           case ',':
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in use trait statement');
+            throw SyntaxException::unexpected($tokens, $pos, 'in use trait statement');
         }
       }
       else {
@@ -921,7 +909,7 @@ abstract class FileParser implements FileTokenParserInterface {
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $i, 'in use trait statement');
+            throw SyntaxException::unexpected($tokens, $pos, 'in use trait statement');
         }
       }
     }

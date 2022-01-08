@@ -23,27 +23,26 @@ class FileParserPhp7 extends FileParser {
    */
   protected function parseNamespace(array $tokens, int &$pos): string {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_NAMESPACE));
-    $i = $pos + 1;
-    $namespace = ParserUtil::skipFillerWsExpectTString($tokens, $i);
+    ++$pos;
+    $namespace = ParserUtil::skipFillerWsExpectTString($tokens, $pos);
     while (true) {
-      ++$i;
-      if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
         break;
       }
-      ++$i;
-      if ($tokens[$i][0] !== \T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
       }
-      $namespace .= '\\' . $tokens[$i][1];
+      $namespace .= '\\' . $tokens[$pos][1];
     }
-    $id = ParserUtil::skipFillerWs($tokens, $i);
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
     if ($id !== ';') {
       if ($id === '{') {
-        throw UnsupportedSyntaxException::fromTokenPos($tokens, $i, 'Nested namespace syntax is not supported.');
+        throw UnsupportedSyntaxException::fromTokenPos($tokens, $pos, 'Nested namespace syntax is not supported.');
       }
-      throw SyntaxException::expectedButFound($tokens, $i, ';');
+      throw SyntaxException::expectedButFound($tokens, $pos, ';');
     }
-    $pos = $i;
     return $namespace;
   }
 
@@ -51,8 +50,7 @@ class FileParserPhp7 extends FileParser {
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of 'use' statement.
-   *   After (success): Directly on ';'.
-   *   After (failure): Original position.
+   *   After: Directly on ';'.
    * @param array<string, string> $imports
    *   Format: $[$alias] = $qcn.
    *
@@ -62,17 +60,17 @@ class FileParserPhp7 extends FileParser {
    */
   protected function parseImportGroup(array $tokens, int &$pos, array &$imports): void {
     \assert(ParserAssertUtil::expect($tokens, $pos, \T_USE));
-    $i = $pos + 1;
-    $id = ParserUtil::skipFillerWs($tokens, $i);
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
     if ($id === \T_CONST) {
       $type = 'const ';
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
     }
     elseif ($id === \T_FUNCTION) {
       $type = 'function ';
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
     }
     else {
       $type = '';
@@ -83,63 +81,61 @@ class FileParserPhp7 extends FileParser {
       // Read the QN or FQN.
       if ($id === \T_NS_SEPARATOR) {
         // This is a FQN, not a QN. Skip the leading ns separator.
-        ++$i;
+        ++$pos;
         // Don't support whitespace between namespace fragments.
         // Such whitespace is allowed in PHP 7, but not in PHP 8.
-        $id = $tokens[$i][0];
+        $id = $tokens[$pos][0];
       }
       // Read first part of QCN.
       if ($id !== \T_STRING) {
-        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+        throw SyntaxException::unexpected($tokens, $pos, 'in imports');
       }
-      $qcn = $tokens[$i][1];
+      $qcn = $tokens[$pos][1];
       // Iterate over QCN fragments separated by T_NS_SEPARATOR.
       while (true) {
-        \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
+        \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
         \assert(\preg_match('@^\w+(?:\\\\\w+)*$@', $qcn));
-        ++$i;
-        if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
           break;
         }
-        ++$i;
-        if ($tokens[$i][0] !== \T_STRING) {
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_STRING) {
           // This must be a curly group like `N\{A, B}`.
           if (!$first) {
             // A curly group can only exist within a single-element outer group.
-            throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
+            throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
           }
           // The rest of the import statement is a curly group like `N{A, B}`.
-          ParserUtil::skipFillerWsExpectChar($tokens, $i, '{');
-          $this->parseImportCurlyGroup($tokens, $i, $imports, $qcn, $type);
-          \assert(ParserAssertUtil::expect($tokens, $i, '}'));
-          ++$i;
-          ParserUtil::skipFillerWsExpectChar($tokens, $i, ';');
-          $pos = $i;
+          ParserUtil::skipFillerWsExpectChar($tokens, $pos, '{');
+          $this->parseImportCurlyGroup($tokens, $pos, $imports, $qcn, $type);
+          \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
+          ++$pos;
+          ParserUtil::skipFillerWsExpectChar($tokens, $pos, ';');
           return;
         }
-        $qcn .= '\\' . $tokens[$i][1];
+        $qcn .= '\\' . $tokens[$pos][1];
       }
-      $alias = $type . $tokens[$i - 1][1];
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      $alias = $type . $tokens[$pos - 1][1];
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === \T_AS) {
-        ++$i;
-        $alias = $type . ParserUtil::skipFillerWsExpectTString($tokens, $i);
-        ++$i;
-        $id = ParserUtil::skipFillerWs($tokens, $i);
+        ++$pos;
+        $alias = $type . ParserUtil::skipFillerWsExpectTString($tokens, $pos);
+        ++$pos;
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
       }
       if (isset($imports[$alias])) {
-        throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
+        throw SyntaxException::fromTokenPos($tokens, $pos, "Alias '$alias' already in use.");
       }
       $imports[$alias] = $qcn;
       if ($id === ';') {
-        $pos = $i;
         return;
       }
       if ($id !== ',') {
-        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+        throw SyntaxException::unexpected($tokens, $pos, 'in imports');
       }
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
       $first = false;
     }
   }  // @codeCoverageIgnore
@@ -159,75 +155,72 @@ class FileParserPhp7 extends FileParser {
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
   private function parseImportCurlyGroup(array $tokens, int &$pos, array &$imports, string $qcn, string $type): void {
-    $i = $pos;
 
     // Iterate over sub-imports within curly group.
     while (true) {
-      \assert(ParserAssertUtil::expectOneOf($tokens, $i, [',', '{']));
-      ++$i;
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [',', '{']));
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === \T_STRING) {
         $localType = $type;
-        $subQcn = $tokens[$i][1];
+        $subQcn = $tokens[$pos][1];
       }
       elseif ($id === '}') {
         if (!isset($subQcn)) {
-          throw SyntaxException::fromTokenPos($tokens, $i, 'Import group cannot be empty.');
+          throw SyntaxException::fromTokenPos($tokens, $pos, 'Import group cannot be empty.');
         }
-        $pos = $i;
         return;
       }
       elseif ($type !== '') {
-        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+        throw SyntaxException::unexpected($tokens, $pos, 'in imports');
       }
       elseif ($id === \T_CONST) {
         $localType = 'const ';
-        ++$i;
-        $subQcn = ParserUtil::skipFillerWsExpectTString($tokens, $i);
+        ++$pos;
+        $subQcn = ParserUtil::skipFillerWsExpectTString($tokens, $pos);
       }
       elseif ($id === \T_FUNCTION) {
         $localType = 'function ';
-        ++$i;
-        $subQcn = ParserUtil::skipFillerWsExpectTString($tokens, $i);
+        ++$pos;
+        $subQcn = ParserUtil::skipFillerWsExpectTString($tokens, $pos);
       }
       else {
-        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+        throw SyntaxException::unexpected($tokens, $pos, 'in imports');
       }
       \assert(\preg_match('@^\w+$@', $subQcn));
-      \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
+      \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
       \assert(\preg_match('@^\w+$@', $subQcn));
       // Iterate over fragments of QCN, separated by T_NS_SEPARATOR.
       while (true) {
-        \assert(ParserAssertUtil::expect($tokens, $i, \T_STRING));
+        \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
         \assert(\preg_match('@^\w+(?:\\\\\w+)*$@', $subQcn));
-        ++$i;
-        if ($tokens[$i][0] !== \T_NS_SEPARATOR) {
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
           break;
         }
-        ++$i;
-        if ($tokens[$i][0] !== \T_STRING) {
-          throw SyntaxException::unexpected($tokens, $i, 'in imports');
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_STRING) {
+          throw SyntaxException::unexpected($tokens, $pos, 'in imports');
         }
-        $subQcn .= '\\' . $tokens[$i][1];
+        $subQcn .= '\\' . $tokens[$pos][1];
       }
-      $alias = $localType . $tokens[$i - 1][1];
-      $id = ParserUtil::skipFillerWs($tokens, $i);
+      $alias = $localType . $tokens[$pos - 1][1];
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === \T_AS) {
-        ++$i;
-        $alias = $localType . ParserUtil::skipFillerWsExpectTString($tokens, $i);
-        ++$i;
-        $id = ParserUtil::skipFillerWs($tokens, $i);
+        ++$pos;
+        $alias = $localType . ParserUtil::skipFillerWsExpectTString($tokens, $pos);
+        ++$pos;
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
       }
       if (isset($imports[$alias])) {
-        throw SyntaxException::fromTokenPos($tokens, $i, "Alias '$alias' already in use.");
+        throw SyntaxException::fromTokenPos($tokens, $pos, "Alias '$alias' already in use.");
       }
       $imports[$alias] = $qcn . '\\' . $subQcn;
       if ($id === '}') {
-        $pos = $i;
         return;
       }
       if ($id !== ',') {
-        throw SyntaxException::unexpected($tokens, $i, 'in imports');
+        throw SyntaxException::unexpected($tokens, $pos, 'in imports');
       }
     }
   }  // @codeCoverageIgnore
