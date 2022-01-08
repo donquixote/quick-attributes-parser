@@ -39,12 +39,12 @@ abstract class FunctionInfoBase extends SymbolInfoBase {
     return $instance;
   }
 
-  public function getParameter(string $param): ?ParamInfo {
-    \assert(\preg_match('@^\w+$@', $param), $param);
+  public function findParameter(string $name): ?ParamInfo {
+    \assert(\preg_match('@^\w+$@', $name), $name);
     return ParamInfo::create(
       $this->lookup,
-      $param,
-      $this->function . '($' . $param . ')');
+      $name,
+      $this->function . '($' . $name . ')');
   }
 
   /**
