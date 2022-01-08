@@ -6,6 +6,6 @@ namespace Donquixote\QuickAttributes\SymbolInfo\ClassMember;
 
 use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
-class ClassConstInfo extends SymbolInfoBase {
+class ClassConstInfo extends SymbolInfoBase implements ClassConstInfoInterface {
 
 }

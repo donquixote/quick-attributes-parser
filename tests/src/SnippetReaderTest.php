@@ -7,7 +7,7 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\SnippetReader\SnippetReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
@@ -41,7 +41,7 @@ class SnippetReaderTest extends SnippetTest {
           }
           foreach ($element->readMembers() as $member) {
             $attributess[$member->getId()] = $member->getAttributes();
-            if ($member instanceof MethodInfo) {
+            if ($member instanceof MethodInfoInterface) {
               foreach ($member->readParameters() as $param) {
                 $attributess[$param->getId()] = $param->getAttributes();
               }

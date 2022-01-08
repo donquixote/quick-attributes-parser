@@ -6,6 +6,6 @@ namespace Donquixote\QuickAttributes\SymbolInfo\ClassMember;
 
 use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
-class PropertyInfo extends SymbolInfoBase {
+class PropertyInfo extends SymbolInfoBase implements PropertyInfoInterface {
 
 }

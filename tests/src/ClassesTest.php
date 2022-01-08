@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
@@ -96,7 +96,7 @@ class ClassesTest extends TestCase {
     $data[$classInfo->getId()] = TestExportUtil::exportRawAttributes( $classInfo->getAttributes());
     foreach ($classInfo->readMembers() as $member) {
       $data[$member->getId()] = TestExportUtil::exportRawAttributes( $member->getAttributes());
-      if ($member instanceof MethodInfo) {
+      if ($member instanceof MethodInfoInterface) {
         foreach ($member->readParameters() as $parameter) {
           $data[$parameter->getId()] = TestExportUtil::exportRawAttributes( $parameter->getAttributes());
         }

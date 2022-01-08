@@ -9,6 +9,6 @@ use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoBase;
 /**
  * @psalm-suppress PropertyNotSetInConstructor
  */
-class MethodInfo extends FunctionInfoBase {
+class MethodInfo extends FunctionInfoBase implements MethodInfoInterface {
 
 }

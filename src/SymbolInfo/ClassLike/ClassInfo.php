@@ -6,8 +6,11 @@ namespace Donquixote\QuickAttributes\SymbolInfo\ClassLike;
 
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
@@ -59,21 +62,21 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
     return $this->imports;
   }
 
-  public function findConstant(string $name): ?ClassConstInfo {
+  public function findConstant(string $name): ?ClassConstInfoInterface {
     return ClassConstInfo::create(
       $this->lookup,
       $name,
       $this->prefix . $name);
   }
 
-  public function findProperty(string $name): ?PropertyInfo {
+  public function findProperty(string $name): ?PropertyInfoInterface {
     return PropertyInfo::create(
       $this->lookup,
       $name,
       $this->prefix . '$' . $name);
   }
 
-  public function findMethod(string $name): ?MethodInfo {
+  public function findMethod(string $name): ?MethodInfoInterface {
     return MethodInfo::create(
       $this->lookup,
       $name,
@@ -81,7 +84,7 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
   }
 
   /**
-   * @return \Iterator<int, PropertyInfo>
+   * @return \Iterator<int, PropertyInfoInterface>
    */
   public function readProperties(): \Iterator {
     foreach ($this->lookup->keyReadChildNames($this->getName()) as $key) {
@@ -95,7 +98,7 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
   }
 
   /**
-   * @return \Iterator<int, ClassConstInfo>
+   * @return \Iterator<int, ClassConstInfoInterface>
    */
   public function readConstants(): \Iterator {
     foreach ($this->lookup->keyReadChildNames($this->getName()) as $key) {
@@ -109,7 +112,7 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
   }
 
   /**
-   * @return \Iterator<int, MethodInfo>
+   * @return \Iterator<int, MethodInfoInterface>
    */
   public function readMethods(): \Iterator {
     foreach ($this->lookup->keyReadChildNames($this->getName()) as $key) {
@@ -124,7 +127,7 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
 
   /**
    * @return \Iterator<int, \Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoInterface>
-   * @psalm-return \Iterator<int, PropertyInfo|MethodInfo|ClassConstInfo>
+   * @psalm-return \Iterator<int, PropertyInfoInterface|MethodInfoInterface|ClassConstInfoInterface>
    */
   public function readMembers(): \Iterator {
     $offset = 0;

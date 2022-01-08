@@ -8,7 +8,7 @@ use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
-use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfo;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
@@ -549,7 +549,7 @@ class ClassesBench {
         foreach ($element->readMembers() as $member) {
           $attributes = $member->getAttributes();
           unset($attributes);
-          if ($member instanceof MethodInfo) {
+          if ($member instanceof MethodInfoInterface) {
             foreach ($member->readParameters() as $param) {
               $attributes = $param->getAttributes();
               unset($attributes);
