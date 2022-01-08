@@ -86,7 +86,7 @@ class FileParserPhp8 extends FileParser {
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === \T_AS) {
         ++$i;
-        $alias = $type . ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
+        $alias = $type . ParserUtil::skipFillerWsExpectTString($tokens, $i);
         ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }

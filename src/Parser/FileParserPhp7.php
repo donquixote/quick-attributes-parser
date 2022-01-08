@@ -123,7 +123,7 @@ class FileParserPhp7 extends FileParser {
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === \T_AS) {
         ++$i;
-        $alias = $type . ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
+        $alias = $type . ParserUtil::skipFillerWsExpectTString($tokens, $i);
         ++$i;
         $id = ParserUtil::skipFillerWs($tokens, $i);
       }
@@ -183,12 +183,12 @@ class FileParserPhp7 extends FileParser {
       elseif ($id === \T_CONST) {
         $localType = 'const ';
         ++$i;
-        $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
+        $subQcn = ParserUtil::skipFillerWsExpectTString($tokens, $i);
       }
       elseif ($id === \T_FUNCTION) {
         $localType = 'function ';
         ++$i;
-        $subQcn = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
+        $subQcn = ParserUtil::skipFillerWsExpectTString($tokens, $i);
       }
       else {
         throw SyntaxException::unexpected($tokens, $i, 'in imports');

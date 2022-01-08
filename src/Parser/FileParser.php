@@ -283,7 +283,7 @@ abstract class FileParser implements FileTokenParserInterface {
           case \T_INTERFACE:
           case \T_TRAIT:
             ++$i;
-            $shortname = ParserUtil::skipFillerWsExpectToken($tokens, $i, \T_STRING);
+            $shortname = ParserUtil::skipFillerWsExpectTString($tokens, $i);
             /** @var class-string $class */
             $class = $terminatedNamespace . $shortname;
             $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
