@@ -56,6 +56,13 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface, Cla
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getId(): string {
+    return $this->getName();
+  }
+
+  /**
    * @return array<string, string>
    */
   public function getImports(): array {

@@ -39,6 +39,10 @@ class FunctionInfo extends FunctionInfoBase implements GlobalSymbolInfoInterface
     return $instance;
   }
 
+  public function getId(): string {
+    return $this->getName() . '()';
+  }
+
   /**
    * @return array<string, string>
    */
