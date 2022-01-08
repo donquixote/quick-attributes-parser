@@ -625,7 +625,7 @@ abstract class FileParser implements FileTokenParserInterface {
             yield true;
             $attributeComments = [];
             ++$i;
-            $id = ParserUtil::skipHeaderWs($tokens, $i);
+            $id = ParserUtil::skipFillerWs($tokens, $i);
             if ($id === '=') {
               $id = $this->skipVarDefault($tokens, $i, true);
             }
