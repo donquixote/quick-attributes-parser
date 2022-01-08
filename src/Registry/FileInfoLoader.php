@@ -6,6 +6,7 @@ namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
+use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
 
 class FileInfoLoader {
 
@@ -27,11 +28,11 @@ class FileInfoLoader {
   /**
    * @param string $file
    *
-   * @return \Donquixote\QuickAttributes\SymbolInfo\File\FileInfo
+   * @return \Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function loadFile(string $file): FileInfo {
+  public function loadFile(string $file): FileInfoInterface {
     return FileInfo::fromFile($file, $this->parser);
   }
 

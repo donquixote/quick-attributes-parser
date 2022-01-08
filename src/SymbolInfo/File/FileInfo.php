@@ -15,7 +15,7 @@ use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 
-class FileInfo {
+class FileInfo implements FileInfoInterface {
 
   /**
    * @var \Donquixote\QuickAttributes\Lookup\LookupInterface
