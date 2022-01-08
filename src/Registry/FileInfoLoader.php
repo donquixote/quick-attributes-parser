@@ -35,4 +35,15 @@ class FileInfoLoader {
     return FileInfo::fromFile($file, $this->parser);
   }
 
+  /**
+   * @param string $file
+   *
+   * @return FileInfoInterface|null
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public function loadUnknownFile(string $file): ?FileInfoInterface {
+    return FileInfo::fromFile($file, $this->parser);
+  }
+
 }
