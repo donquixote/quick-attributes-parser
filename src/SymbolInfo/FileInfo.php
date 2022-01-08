@@ -42,6 +42,24 @@ class FileInfo {
   }
 
   /**
+   * @param string $file
+   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
+   *
+   * @return self|null
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  public static function fromUnknownFile(string $file, FileParser $parser = null): ?self {
+    $tokens = FileTokens_Common::fromUnknownFile($file);
+    if ($tokens === null) {
+      return null;
+    }
+    return self::fromFileTokens(
+      $tokens,
+      $parser);
+  }
+
+  /**
    * @param string $php
    * @param string|null $expectedClassShortname
    * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser

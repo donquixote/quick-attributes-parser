@@ -36,6 +36,21 @@ class FileTokens_Common implements FileTokensInterface {
    * @return self
    */
   public static function fromFile(string $file, bool $isClassFile = true): self {
+    $instance = self::fromUnknownFile($file, $isClassFile);
+    if ($instance === null) {
+      throw new \RuntimeException('File not found.');
+    }
+    return $instance;
+  }
+
+  /**
+   * @param string $file
+   * @param bool $isClassFile
+   *
+   * @return self|null
+   *   The file info, or NULL if the file does not exist.
+   */
+  public static function fromUnknownFile(string $file, bool $isClassFile = true): ?self {
     if ($isClassFile
       && \preg_match('@([a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*)\.php$@', $file, $m)
     ) {
@@ -43,6 +58,9 @@ class FileTokens_Common implements FileTokensInterface {
     }
     else {
       $shortname = null;
+    }
+    if (!\is_file($file)) {
+      return null;
     }
     return new self(
       \file_get_contents($file),
