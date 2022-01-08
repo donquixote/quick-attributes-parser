@@ -43,15 +43,15 @@ If you disagree with any of these optimization strategies, open an issue!
 
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
-use Donquixote\QuickAttributes\Registry\FileInfoLoader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
 
 /**
  * Analyse a file, e.g. during a discovery operation.
  */
 function processFile(string $file, string $exampleClass, string $exampleFunction) {
-  $fileInfo = FileInfoLoader::create()->loadFile($file);
+  $fileInfo = FileInfo::fromFile($file);
 
   // Find a specific class, if it is in the file.
   // This will only parse until the class head.
