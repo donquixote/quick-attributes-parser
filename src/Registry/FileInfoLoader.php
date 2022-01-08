@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Registry;
 
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
 
 class FileInfoLoader {
 
-  private FileParser $parser;
+  private FileTokenParserInterface $parser;
 
   /**
    * Constructor.
    *
-   * @param \Donquixote\QuickAttributes\Parser\FileParser $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileTokenParserInterface $parser
    */
-  public function __construct(FileParser $parser) {
+  public function __construct(FileTokenParserInterface $parser) {
     $this->parser = $parser;
   }
 

@@ -18,7 +18,7 @@ use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\ReservedWordUtil;
 
-abstract class FileParser {
+abstract class FileParser implements FileTokenParserInterface {
 
   /**
    * @var \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser

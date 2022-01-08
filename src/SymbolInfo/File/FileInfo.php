@@ -9,6 +9,7 @@ use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
 use Donquixote\QuickAttributes\Lookup\Lookup_LazyLoadDecorator;
 use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
@@ -33,13 +34,13 @@ class FileInfo implements FileInfoInterface {
 
   /**
    * @param string $file
-   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileTokenParserInterface|null $parser
    *
    * @return self
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromFile(string $file, FileParser $parser = null): self {
+  public static function fromFile(string $file, FileTokenParserInterface $parser = null): self {
     return self::fromFileTokens(
       FileTokens_Common::fromFile($file),
       $parser);
@@ -47,13 +48,13 @@ class FileInfo implements FileInfoInterface {
 
   /**
    * @param string $file
-   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileTokenParserInterface|null $parser
    *
    * @return self|null
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromUnknownFile(string $file, FileParser $parser = null): ?self {
+  public static function fromUnknownFile(string $file, FileTokenParserInterface $parser = null): ?self {
     $tokens = FileTokens_Common::fromUnknownFile($file);
     if ($tokens === null) {
       return null;
@@ -66,12 +67,12 @@ class FileInfo implements FileInfoInterface {
   /**
    * @param string $php
    * @param string|null $expectedClassShortname
-   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileTokenParserInterface|null $parser
    *
    * @return self
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromPhpSnippet(string $php, string $expectedClassShortname = null, FileParser $parser = null): self {
+  public static function fromPhpSnippet(string $php, string $expectedClassShortname = null, FileTokenParserInterface $parser = null): self {
     return self::fromFileTokens(
       new FileTokens_Common($php, $expectedClassShortname),
       $parser);
@@ -79,13 +80,13 @@ class FileInfo implements FileInfoInterface {
 
   /**
    * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
-   * @param \Donquixote\QuickAttributes\Parser\FileParser|null $parser
+   * @param \Donquixote\QuickAttributes\Parser\FileTokenParserInterface|null $parser
    *
    * @return self
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromFileTokens(FileTokensInterface $fileTokens, FileParser $parser = null): self {
+  public static function fromFileTokens(FileTokensInterface $fileTokens, FileTokenParserInterface $parser = null): self {
     $visitor = new SymbolVisitor_CollectInfo();
     $parser ??= FileParser::create();
     $it = $parser->parseFileTokens($fileTokens, $visitor);
