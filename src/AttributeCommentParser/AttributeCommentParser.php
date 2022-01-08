@@ -290,7 +290,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
       $i = $pos + 1;
       if ($tokens[$i][0] !== \T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+        throw SyntaxException::expectedButFound($tokens, $i, 'T_STRING');
       }
       $qcn = $tokens[$i][1];
       ++$i;
