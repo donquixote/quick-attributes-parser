@@ -8,4 +8,8 @@ use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
 class ClassConstInfo extends SymbolInfoBase implements ClassConstInfoInterface {
 
+  public function getMemberId(): string {
+    return $this->getName();
+  }
+
 }

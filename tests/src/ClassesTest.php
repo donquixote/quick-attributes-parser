@@ -9,8 +9,11 @@ use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
+use Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfoInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
@@ -94,11 +97,21 @@ class ClassesTest extends TestCase {
     /** @var array<string, list<_RawAttributeArray>> $orig */
     $data = [];
     $data[$classInfo->getId()] = TestExportUtil::exportRawAttributes( $classInfo->getAttributes());
+    $prefix = $classInfo->getName() . '::';
+    /**
+     * @var PropertyInfoInterface|ClassConstInfoInterface|MethodInfoInterface $member
+     * @psalm-ignore-var
+     */
     foreach ($classInfo->readMembers() as $member) {
-      $data[$member->getId()] = TestExportUtil::exportRawAttributes( $member->getAttributes());
+      $data[$prefix . $member->getMemberId()] = TestExportUtil::exportRawAttributes( $member->getAttributes());
       if ($member instanceof MethodInfoInterface) {
+        $methodPrefix = $prefix . $member->getName() . '($';
+        /**
+         * @var ParamInfoInterface $parameter
+         * @psalm-ignore-var
+         */
         foreach ($member->readParameters() as $parameter) {
-          $data[$parameter->getId()] = TestExportUtil::exportRawAttributes( $parameter->getAttributes());
+          $data[$methodPrefix . $parameter->getName() . ')'] = TestExportUtil::exportRawAttributes( $parameter->getAttributes());
         }
       }
     }

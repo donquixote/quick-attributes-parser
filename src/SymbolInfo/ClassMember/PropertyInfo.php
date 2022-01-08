@@ -8,4 +8,8 @@ use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
 
 class PropertyInfo extends SymbolInfoBase implements PropertyInfoInterface {
 
+  public function getMemberId(): string {
+    return '$' . $this->getName();
+  }
+
 }

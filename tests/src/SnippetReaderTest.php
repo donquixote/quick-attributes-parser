@@ -7,8 +7,11 @@ namespace Donquixote\QuickAttributes\Tests;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\SnippetReader\SnippetReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfoInterface;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -38,11 +41,21 @@ class SnippetReaderTest extends SnippetTest {
           if (!$secondaryElement instanceof ClassInfoInterface) {
             self::fail();
           }
+          $prefix = $element->getName() . '::';
+          /**
+           * @var PropertyInfoInterface|ClassConstInfoInterface|MethodInfoInterface $member
+           * @psalm-ignore-var
+           */
           foreach ($element->readMembers() as $member) {
-            $attributess[$member->getId()] = $member->getAttributes();
+            $attributess[$prefix . $member->getMemberId()] = $member->getAttributes();
             if ($member instanceof MethodInfoInterface) {
+              $methodPrefix = $prefix . $member->getName() . '($';
+              /**
+               * @var ParamInfoInterface $param
+               * @psalm-ignore-var
+               */
               foreach ($member->readParameters() as $param) {
-                $attributess[$param->getId()] = $param->getAttributes();
+                $attributess[$methodPrefix . $param->getName() . ')'] = $param->getAttributes();
               }
               $m2 = $secondaryElement->findMethod($member->getName());
               self::assertNotNull($m2);

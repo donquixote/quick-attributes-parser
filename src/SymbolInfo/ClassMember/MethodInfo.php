@@ -11,4 +11,8 @@ use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoBase;
  */
 class MethodInfo extends FunctionInfoBase implements MethodInfoInterface {
 
+  public function getMemberId(): string {
+    return $this->getName() . '()';
+  }
+
 }

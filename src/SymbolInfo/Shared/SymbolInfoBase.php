@@ -15,8 +15,6 @@ abstract class SymbolInfoBase implements SymbolInfoInterface {
 
   private string $name = '?';
 
-  private string $id = '?';
-
   final private function __construct() {}
 
   /**
@@ -49,17 +47,12 @@ abstract class SymbolInfoBase implements SymbolInfoInterface {
     }
     $instance = new static();
     $instance->name = $name;
-    $instance->id = $id;
     $instance->attributes = $attributes;
     return $instance;
   }
 
   public function getName(): string {
     return $this->name;
-  }
-
-  public function getId(): string {
-    return $this->id;
   }
 
   public function getAttributes(): array {
