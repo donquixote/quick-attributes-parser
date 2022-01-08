@@ -44,7 +44,7 @@ abstract class FileParser {
    * @param string $file
    * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
    *
-   * @return \Iterator<true>
+   * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -63,7 +63,7 @@ abstract class FileParser {
    * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
    * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
    *
-   * @return \Iterator<true>
+   * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
@@ -383,7 +383,7 @@ abstract class FileParser {
    * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser $attrCommentMultiParser
    *   Attribute comment multi parser, filled with current context.
    *
-   * @return \Iterator<true>
+   * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
