@@ -91,18 +91,18 @@ class FileInfo {
     return new self($lookup);
   }
 
-  public function findClass(string $class): ?ClassInfo {
+  public function findClass(string $name): ?ClassInfo {
     return ClassInfo::create(
       $this->lookup,
-      $class,
-      $class);
+      $name,
+      $name);
   }
 
-  public function findFunction(string $function): ?FunctionInfo {
+  public function findFunction(string $name): ?FunctionInfo {
     return FunctionInfo::create(
       $this->lookup,
-      $function,
-      $function . '()');
+      $name,
+      $name . '()');
   }
 
   /**

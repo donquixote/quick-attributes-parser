@@ -59,25 +59,25 @@ class ClassInfo extends SymbolInfoBase implements GlobalSymbolInfoInterface {
     return $this->imports;
   }
 
-  public function findConstant(string $const): ?ClassConstInfo {
+  public function findConstant(string $name): ?ClassConstInfo {
     return ClassConstInfo::create(
       $this->lookup,
-      $const,
-      $this->prefix . $const);
+      $name,
+      $this->prefix . $name);
   }
 
-  public function findProperty(string $property): ?PropertyInfo {
+  public function findProperty(string $name): ?PropertyInfo {
     return PropertyInfo::create(
       $this->lookup,
-      $property,
-      $this->prefix . '$' . $property);
+      $name,
+      $this->prefix . '$' . $name);
   }
 
-  public function findMethod(string $method): ?MethodInfo {
+  public function findMethod(string $name): ?MethodInfo {
     return MethodInfo::create(
       $this->lookup,
-      $method,
-      $this->prefix . $method . '()');
+      $name,
+      $this->prefix . $name . '()');
   }
 
   /**
