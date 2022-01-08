@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
-use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
-use Donquixote\QuickAttributes\Registry\FileTokensReader;
+use Donquixote\QuickAttributes\SnippetReader\SnippetReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
@@ -22,20 +21,19 @@ class SnippetReaderTest extends SnippetTest {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
-    $fileTokens = new FileTokens_Common($data['php']);
-    $reader = FileTokensReader::create();
+    $loader = SnippetReader::create();
     $attributess = [];
     try {
       unset($data['attributess']);
       unset($data['importss']);
-      $secondaryIterator = $reader->read($fileTokens);
+      $secondaryIterator = $loader->loadPhpSnippet($data['php'])->readElements();
       // Parse all.
-      foreach ($reader->read($fileTokens) as $toplevel => $element) {
+      foreach ($loader->loadPhpSnippet($data['php'])->readElements() as $i => $element) {
         self::assertTrue($secondaryIterator->valid());
-        self::assertSame($toplevel, $secondaryIterator->key());
+        self::assertSame($i, $secondaryIterator->key());
         $secondaryElement = $secondaryIterator->current();
-        $data['importss'][$toplevel] = $element->getImports();
-        $attributess[$toplevel] = $element->getAttributes();
+        $data['importss'][$element->getId()] = $element->getImports();
+        $attributess[$element->getId()] = $element->getAttributes();
         /** @psalm-suppress RedundantCondition */
         if ($element instanceof ClassInfo) {
           if (!$secondaryElement instanceof ClassInfo) {
@@ -54,7 +52,7 @@ class SnippetReaderTest extends SnippetTest {
         }
         elseif ($element instanceof FunctionInfo) {
           self::assertTrue($secondaryElement instanceof FunctionInfo);
-          $function = \substr($toplevel, 0, -2);
+          $function = $element->getName();
           foreach ($element->readParameters() as $param) {
             $attributess[$function . '($' . $param->getName() . ')'] = $param->getAttributes();
           }
