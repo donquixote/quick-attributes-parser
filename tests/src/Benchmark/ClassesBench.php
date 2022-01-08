@@ -513,16 +513,14 @@ class ClassesBench {
    */
   public function benchFileInfoFirstMethod(array $args): void {
     $found = false;
-    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
-      if ($element instanceof ClassInfo) {
-        foreach ($element->readMethods() as $methodInfo) {
-          $attributes = $methodInfo->getAttributes();
-          unset($attributes);
-          $found = true;
-          break;
-        }
+    foreach (FileInfo::fromFile($args[0])->readClasses() as $classInfo) {
+      foreach ($classInfo->readMethods() as $methodInfo) {
+        $attributes = $methodInfo->getAttributes();
+        unset($attributes);
+        $found = true;
         break;
       }
+      break;
     }
     if (!$found) {
       throw new \RuntimeException('First method not found.');
