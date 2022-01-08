@@ -211,6 +211,8 @@ abstract class FileParser implements FileTokenParserInterface {
           case \T_PRIVATE:
           case \T_PUBLIC:
           case \T_PROTECTED:
+            throw SyntaxException::unexpected($tokens, $i, 'outside of class scope');
+
           case \T_STATIC:
           case \T_FINAL:
           case \T_ABSTRACT:
