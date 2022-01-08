@@ -483,21 +483,17 @@ abstract class FileParser implements FileTokenParserInterface {
             break;
 
           case \T_VARIABLE:
-            $names = $this->parseClassPropertyGroup($tokens, $pos);
-            foreach ($names as $name) {
-              $memberVisitor->addProperty(
-                $name,
-                $attrCommentMultiParser->parseMultiple($attributeComments));
+            $attributes = $attrCommentMultiParser->parseMultiple($attributeComments);
+            foreach ($this->parseClassPropertyGroup($tokens, $pos) as $name) {
+              $memberVisitor->addProperty($name, $attributes);
               yield true;
             }
             break;
 
           case \T_CONST:
-            $names = $this->parseClassConstGroup($tokens, $pos);
-            foreach ($names as $name) {
-              $memberVisitor->addConstant(
-                $name,
-                $attrCommentMultiParser->parseMultiple($attributeComments));
+            $attributes = $attrCommentMultiParser->parseMultiple($attributeComments);
+            foreach ($this->parseClassConstGroup($tokens, $pos) as $name) {
+              $memberVisitor->addConstant($name, $attributes);
               yield true;
             }
             break;
