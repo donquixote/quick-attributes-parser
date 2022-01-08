@@ -485,6 +485,33 @@ class ClassesBench {
    * @throws \ReflectionException
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
+  public function benchFileInfoFirstMember(array $args): void {
+    $found = false;
+    foreach (FileInfo::fromFile($args[0])->readClasses() as $classInfo) {
+      foreach ($classInfo->readMembers() as $member) {
+        $attributes = $member->getAttributes();
+        unset($attributes);
+        $found = true;
+        break;
+      }
+      break;
+    }
+    if (!$found) {
+      throw new \RuntimeException('First class member not found.');
+    }
+  }
+
+  /**
+   * @Revs(10)
+   * @Iterations(5)
+   * @ParamProviders("provideClassFiles")
+   * @Groups("head", "read-head")
+   *
+   * @param array{string} $args
+   *
+   * @throws \ReflectionException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
   public function benchFileInfoFirstMethod(array $args): void {
     $found = false;
     foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
