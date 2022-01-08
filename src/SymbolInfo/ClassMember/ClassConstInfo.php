@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\ClassMember;
 
-use Donquixote\QuickAttributes\SymbolInfo\Shared\SymbolInfoBase;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\LocalSymbolInfoBase;
 
-class ClassConstInfo extends SymbolInfoBase implements ClassConstInfoInterface {
+class ClassConstInfo extends LocalSymbolInfoBase implements ClassConstInfoInterface {
 
   public function getMemberId(): string {
     return $this->getName();

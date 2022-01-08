@@ -6,31 +6,11 @@ namespace Donquixote\QuickAttributes\SymbolInfo\File;
 
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
-use Donquixote\QuickAttributes\Lookup\Lookup_LazyLoadDecorator;
-use Donquixote\QuickAttributes\Lookup\LookupInterface;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
-use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
-use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
-use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfo;
-use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorBase;
 
-class FileInfo implements FileInfoInterface {
-
-  /**
-   * @var \Donquixote\QuickAttributes\Lookup\LookupInterface
-   */
-  private LookupInterface $lookup;
-
-  /**
-   * Constructor.
-   *
-   * @param \Donquixote\QuickAttributes\Lookup\LookupInterface $lookup
-   */
-  public function __construct(LookupInterface $lookup) {
-    $this->lookup = $lookup;
-  }
+class FileInfo extends SymbolVisitorBase {
 
   /**
    * @param string $file
@@ -87,70 +67,6 @@ class FileInfo implements FileInfoInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public static function fromFileTokens(FileTokensInterface $fileTokens, FileTokenParserInterface $parser = null): self {
-    $visitor = new SymbolVisitor_CollectInfo();
-    $parser ??= FileParser::create();
-    $it = $parser->parseFileTokens($fileTokens, $visitor);
-    $lookup = new Lookup_LazyLoadDecorator($visitor, $it);
-    return new self($lookup);
+    return new self($parser ?? FileParser::create(), $fileTokens);
   }
-
-  public function findClass(string $name): ?ClassInfoInterface {
-    return ClassInfo::create(
-      $this->lookup,
-      $name,
-      $name);
-  }
-
-  public function findFunction(string $name): ?FunctionInfoInterface {
-    return FunctionInfo::create(
-      $this->lookup,
-      $name,
-      $name . '()');
-  }
-
-  /**
-   * @return \Iterator<int, ClassInfoInterface>
-   */
-  public function readClasses(): \Iterator {
-    foreach ($this->lookup->readToplevelNames() as $name) {
-      if (\substr($name, -2) !== '()') {
-        /** @var class-string $class */
-        $class = $name;
-        yield ClassInfo::createExpected($this->lookup, $class, $class);
-      }
-    }
-  }
-
-  /**
-   * @return \Iterator<int, FunctionInfoInterface>
-   */
-  public function readFunctions(): \Iterator {
-    foreach ($this->lookup->readToplevelNames() as $name) {
-      if (\substr($name, -2) === '()') {
-        $function = \substr($name, 0, -2);
-        yield FunctionInfo::createExpected(
-          $this->lookup,
-          $function,
-          $function . '()');
-      }
-    }
-  }
-
-  /**
-   * @return \Iterator<int, ClassInfoInterface|FunctionInfoInterface>
-   */
-  public function readElements(): \Iterator {
-    foreach ($this->lookup->readToplevelNames() as $name) {
-      if (\substr($name, -2) === '()') {
-        $function = \substr($name, 0, -2);
-        yield FunctionInfo::createExpected($this->lookup, $function, $function . '()');
-      }
-      else {
-        /** @var class-string $class */
-        $class = $name;
-        yield ClassInfo::createExpected($this->lookup, $class, $class);
-      }
-    }
-  }
-
 }

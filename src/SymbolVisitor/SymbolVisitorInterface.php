@@ -4,65 +4,27 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolVisitor;
 
+use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface;
+use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface;
+
 interface SymbolVisitorInterface {
 
   /**
-   * @param class-string $class
+   * @param class-string $name
    * @param array<string, string> $imports
    * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   *
+   * @return \Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface
    */
-  public function addClass(string $class, array $imports, array $attributes): void;
+  public function addClass(string $name, array $imports, array $attributes): ClassMemberVisitorInterface;
 
   /**
-   * @param class-string $class
-   * @param string $property
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   */
-  public function addProperty(string $class, string $property, array $attributes): void;
-
-  /**
-   * @param class-string $class
-   * @param string $constant
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   */
-  public function addClassConstant(string $class, string $constant, array $attributes): void;
-
-  /**
-   * @param class-string $class
-   * @param string $method
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   */
-  public function addMethod(string $class, string $method, array $attributes): void;
-
-  /**
-   * @param class-string $class
-   * @param string $method
-   * @param string $param
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   */
-  public function addMethodParameter(string $class, string $method, string $param, array $attributes): void;
-
-  public function methodComplete(string $class, string $method): void;
-
-  /**
-   * @param class-string $class
-   */
-  public function classComplete(string $class): void;
-
-  /**
-   * @param string $function
+   * @param callable-string $name
    * @param array<string, string> $imports
    * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   *
+   * @return \Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface
    */
-  public function addFunction(string $function, array $imports, array $attributes): void;
-
-  /**
-   * @param string $function
-   * @param string $param
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   */
-  public function addFunctionParameter(string $function, string $param, array $attributes): void;
-
-  public function functionComplete(string $function): void;
+  public function addFunction(string $name, array $imports, array $attributes): ParamVisitorInterface;
 
 }
