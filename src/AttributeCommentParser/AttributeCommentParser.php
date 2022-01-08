@@ -12,6 +12,7 @@ use Donquixote\QuickAttributes\RawAttribute\RawAttribute_NoArgs;
 use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
+use Donquixote\QuickAttributes\Util\VersionDependentTokens;
 
 class AttributeCommentParser implements AttributeCommentParserInterface {
 
@@ -50,11 +51,11 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   public function parse(string $comment): array {
     $tokens = $this->tokenize($comment);
     \assert(\end($tokens) === '#');
-    \assert(ParserAssertUtil::expect($tokens, 0, ParserUtil::T_ATTRIBUTE));
+    \assert(ParserAssertUtil::expect($tokens, 0, VersionDependentTokens::T_ATTRIBUTE));
     $rawAttributes = [];
     $i = 0;
     while (true) {
-      \assert(ParserAssertUtil::expect($tokens, $i, ParserUtil::T_ATTRIBUTE));
+      \assert(ParserAssertUtil::expect($tokens, $i, VersionDependentTokens::T_ATTRIBUTE));
       foreach ($this->parseAttributes($tokens, $i) as $rawAttribute) {
         $rawAttributes[] = $rawAttribute;
       }
@@ -65,7 +66,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         // EOF reached.
         return $rawAttributes;
       }
-      if ($id === ParserUtil::T_ATTRIBUTE) {
+      if ($id === VersionDependentTokens::T_ATTRIBUTE) {
         continue;
       }
       throw UnsupportedSyntaxException::fromTokenPos($tokens, $i, 'Cannot have regular code after an attribute in the same line.');
@@ -89,7 +90,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     $php = '<?php ' . \substr($comment, 2);
     /** @var list<string|array{int, string, int}> $tokens */
     $tokens = \token_get_all($php);
-    $tokens[0] = [ParserUtil::T_ATTRIBUTE, '#[', 0];
+    $tokens[0] = [VersionDependentTokens::T_ATTRIBUTE, '#[', 0];
     /**
      * Tell psalm that $tokens is still a list, after setting $tokens[0].
      *
@@ -110,7 +111,7 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       $php = '<?php ' . \substr($comment, 2);
       /** @var list<string|array{int, string, int}> $moreTokens */
       $moreTokens = \token_get_all($php);
-      $moreTokens[0] = [ParserUtil::T_ATTRIBUTE, '#[', 0];
+      $moreTokens[0] = [VersionDependentTokens::T_ATTRIBUTE, '#[', 0];
       \array_pop($tokens);
       $tokens = [
         ...$tokens,
@@ -133,10 +134,10 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   private function parseAttributes(array $tokens, int &$pos): iterable {
-    \assert(ParserAssertUtil::expect($tokens, $pos, ParserUtil::T_ATTRIBUTE));
+    \assert(ParserAssertUtil::expect($tokens, $pos, VersionDependentTokens::T_ATTRIBUTE));
     $i = $pos;
     while (true) {
-      \assert(ParserAssertUtil::expectOneOf($tokens, $i, [ParserUtil::T_ATTRIBUTE, ',']));
+      \assert(ParserAssertUtil::expectOneOf($tokens, $i, [VersionDependentTokens::T_ATTRIBUTE, ',']));
       ++$i;
       ParserUtil::skipFillerWs($tokens, $i);
       $iBkp0 = $i;

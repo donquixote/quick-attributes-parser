@@ -19,6 +19,7 @@ use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\ReservedWordUtil;
+use Donquixote\QuickAttributes\Util\VersionDependentTokens;
 
 abstract class FileParser implements FileTokenParserInterface {
 
@@ -108,7 +109,7 @@ abstract class FileParser implements FileTokenParserInterface {
           // Ignore.
           break;
 
-        case ParserUtil::T_ATTRIBUTE:
+        case VersionDependentTokens::T_ATTRIBUTE:
           // This is an attribute!
           // Continue with code below.
           break 2;
@@ -204,7 +205,7 @@ abstract class FileParser implements FileTokenParserInterface {
             // Keep attributes.
             continue 2;
 
-          case ParserUtil::T_ATTRIBUTE:
+          case VersionDependentTokens::T_ATTRIBUTE:
             $attrComments[] = $this->parseNativeAttribute($tokens, $i);
             continue 2;
 
@@ -308,7 +309,7 @@ abstract class FileParser implements FileTokenParserInterface {
 
           case \T_STRING:
           case \T_NS_SEPARATOR:
-          case ParserUtil::T_NAME_QUALIFIED:
+          case VersionDependentTokens::T_NAME_QUALIFIED:
             // This could be the start of a method call. Ignore.
             break;
 
@@ -427,7 +428,7 @@ abstract class FileParser implements FileTokenParserInterface {
             // Don't clear attributes.
             continue 2;
 
-          case ParserUtil::T_ATTRIBUTE:
+          case VersionDependentTokens::T_ATTRIBUTE:
             $attributeComments[] = $this->parseNativeAttribute($tokens, $i);
             continue 2;
 
@@ -533,7 +534,7 @@ abstract class FileParser implements FileTokenParserInterface {
 
     $i = $pos + 1;
     $id = ParserUtil::skipFillerWs($tokens, $i);
-    if ($id === '&' || $id === ParserUtil::T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG) {
+    if ($id === '&' || $id === VersionDependentTokens::T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG) {
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
     }
@@ -639,7 +640,7 @@ abstract class FileParser implements FileTokenParserInterface {
             // Must be ','.
             break;
 
-          case ParserUtil::T_ATTRIBUTE:
+          case VersionDependentTokens::T_ATTRIBUTE:
             $attributeComments[] = $this->parseNativeAttribute($tokens, $i);
             break;
 

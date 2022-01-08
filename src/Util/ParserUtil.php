@@ -6,12 +6,12 @@ namespace Donquixote\QuickAttributes\Util;
 
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 
-class ParserUtil extends VersionDependentTokens {
+class ParserUtil {
 
   const SPECIAL_TOKEN_NAMES = [
-    self::T_ATTRIBUTE => 'T_ATTRIBUTE',
-    self::T_NAME_QUALIFIED => 'T_NAME_QUALIFIED',
-    self::T_NAME_FULLY_QUALIFIED => 'T_NAME_FULLY_QUALIFIED',
+    VersionDependentTokens::T_ATTRIBUTE => 'T_ATTRIBUTE',
+    VersionDependentTokens::T_NAME_QUALIFIED => 'T_NAME_QUALIFIED',
+    VersionDependentTokens::T_NAME_FULLY_QUALIFIED => 'T_NAME_FULLY_QUALIFIED',
   ];
 
   const ACCESS_MODIFIERS = [
@@ -27,8 +27,8 @@ class ParserUtil extends VersionDependentTokens {
     ]
     : [
       \T_STRING => true,
-      self::T_NAME_FULLY_QUALIFIED => true,
-      self::T_NAME_QUALIFIED => true,
+      VersionDependentTokens::T_NAME_FULLY_QUALIFIED => true,
+      VersionDependentTokens::T_NAME_QUALIFIED => true,
     ];
 
   const WS_MAPS = [
@@ -79,7 +79,7 @@ class ParserUtil extends VersionDependentTokens {
   /** @var (-1|0|1)[] */
   private const SKIP_SQUARE_MAP = [
     '[' => 1,
-    self::T_ATTRIBUTE => 1,
+    VersionDependentTokens::T_ATTRIBUTE => 1,
     ']' => -1,
     // End of file marker.
     '#' => 0,
@@ -100,7 +100,7 @@ class ParserUtil extends VersionDependentTokens {
     \T_DOLLAR_OPEN_CURLY_BRACES => self::SKIP_CURLY_MAP,
     '(' => self::SKIP_PARENS_MAP,
     '[' => self::SKIP_SQUARE_MAP,
-    self::T_ATTRIBUTE => self::SKIP_SQUARE_MAP,
+    VersionDependentTokens::T_ATTRIBUTE => self::SKIP_SQUARE_MAP,
   ];
 
   /** @var (-1|0|1)[][] */
