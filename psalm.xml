@@ -30,6 +30,7 @@
     <file name="stubs/ReflectionParameter.phpstub"/>
     <file name="stubs/ReflectionProperty.phpstub"/>
     <file name="stubs/ReflectionClassConstant.phpstub"/>
+    <file name="src/Util/VersionDependentTokens.php"/>
   </stubs>
 
   <issueHandlers>
