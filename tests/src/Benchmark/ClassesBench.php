@@ -7,10 +7,10 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Registry\FileInfoLoader;
 use Donquixote\QuickAttributes\Registry\FileReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
+use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
@@ -593,7 +593,7 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchFileInfoAll(array $args): void {
-    foreach (FileInfoLoader::create()->loadFile($args[0])->readElements() as $element) {
+    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();
@@ -635,7 +635,7 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchFileInfoAllMethods(array $args): void {
-    foreach (FileInfoLoader::create()->loadFile($args[0])->readElements() as $element) {
+    foreach (FileInfo::fromFile($args[0])->readElements() as $element) {
       $imports = $element->getImports();
       unset($imports);
       $attributes = $element->getAttributes();

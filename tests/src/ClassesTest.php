@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
-use Donquixote\QuickAttributes\Registry\FileInfoLoader;
+use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectInfo;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
@@ -82,7 +82,7 @@ class ClassesTest extends TestCase {
     $file = ClassFileFinder_ComposerAutoload::create()->find($class);
     self::assertNotNull($file);
     $finder = ClassInfoFinder::create();
-    $fileInfo = FileInfoLoader::create()->loadFile($file);
+    $fileInfo = FileInfo::fromFile($file);
     $found = false;
     foreach ($fileInfo->readClasses() as $c0) {
       self::assertSame($class, $c0->getName());
