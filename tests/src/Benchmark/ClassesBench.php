@@ -7,7 +7,6 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\RawAttributesReader\RawAttributesReader;
 use Donquixote\QuickAttributes\Registry\FileInfoLoader;
 use Donquixote\QuickAttributes\Registry\FileReader;
 use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
