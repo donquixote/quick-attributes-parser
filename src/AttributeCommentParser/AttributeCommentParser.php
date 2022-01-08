@@ -480,14 +480,13 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       }
       $first = null;
       $fqn = $tokens[$pos][1];
-      ++$pos;
     }
     else {
       \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
       $first = $tokens[$pos][1];
       $fqn = '';
-      ++$pos;
     }
+    ++$pos;
     while ($tokens[$pos][0] === \T_NS_SEPARATOR) {
       ++$pos;
       if ($tokens[$pos][0] !== \T_STRING) {
