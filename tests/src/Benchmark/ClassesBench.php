@@ -7,7 +7,6 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Registry\SymbolInfoRegistry;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
@@ -527,41 +526,6 @@ class ClassesBench {
     }
     if (!$found) {
       throw new \RuntimeException('First method not found.');
-    }
-  }
-
-  /**
-   * @Revs(10)
-   * @Iterations(5)
-   * @ParamProviders("provideClasses")
-   * @Groups("full", "registry", "read-full")
-   *
-   * @param array{class-string} $args
-   *
-   * @throws \ReflectionException
-   */
-  public function benchRegistryAllMemberModern(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
-    $registry = SymbolInfoRegistry::create();
-    $classInfo = $registry->classGetInfo($args[0]);
-    if ($classInfo === null) {
-      throw new \RuntimeException('Class not found.');
-    }
-    $imports = $classInfo->getImports();
-    unset($imports);
-    $attributes = $classInfo->getAttributes();
-    unset($attributes);
-    foreach ($classInfo->readMembers() as $member) {
-      $attributes = $member->getAttributes();
-      unset($attributes);
-      if ($member instanceof MethodInfo) {
-        foreach ($member->readParameters() as $param) {
-          $attributes = $param->getAttributes();
-          unset($attributes);
-        }
-      }
     }
   }
 
