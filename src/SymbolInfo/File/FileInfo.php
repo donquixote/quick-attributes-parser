@@ -106,12 +106,10 @@ class FileInfo {
   }
 
   /**
-   * @param int $offset
-   *
    * @return \Iterator<int, ClassInfo>
    */
-  public function readClasses(int &$offset = 0): \Iterator {
-    foreach ($this->lookup->readToplevelNames($offset) as $name) {
+  public function readClasses(): \Iterator {
+    foreach ($this->lookup->readToplevelNames() as $name) {
       if (\substr($name, -2) !== '()') {
         /** @var class-string $class */
         $class = $name;
@@ -121,12 +119,10 @@ class FileInfo {
   }
 
   /**
-   * @param int $offset
-   *
    * @return \Iterator<int, FunctionInfo>
    */
-  public function readFunctions(int &$offset = 0): \Iterator {
-    foreach ($this->lookup->readToplevelNames($offset) as $name) {
+  public function readFunctions(): \Iterator {
+    foreach ($this->lookup->readToplevelNames() as $name) {
       if (\substr($name, -2) === '()') {
         $function = \substr($name, 0, -2);
         yield FunctionInfo::createExpected(
@@ -138,12 +134,10 @@ class FileInfo {
   }
 
   /**
-   * @param int $offset
-   *
    * @return \Iterator<int, ClassInfo|FunctionInfo>
    */
-  public function readElements(int &$offset = 0): \Iterator {
-    foreach ($this->lookup->readToplevelNames($offset) as $name) {
+  public function readElements(): \Iterator {
+    foreach ($this->lookup->readToplevelNames() as $name) {
       if (\substr($name, -2) === '()') {
         $function = \substr($name, 0, -2);
         yield FunctionInfo::createExpected($this->lookup, $function, $function . '()');
