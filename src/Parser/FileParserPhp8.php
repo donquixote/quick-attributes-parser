@@ -65,12 +65,8 @@ class FileParserPhp8 extends FileParser {
       }
       ++$pos;
       $id = ParserUtil::skipFillerWs($tokens, $pos);
-      if ($id === \T_NS_SEPARATOR) {
+      if ($id === \T_NS_SEPARATOR && $first) {
         // This must be a curly group like `N\{A, B}`.
-        if (!$first) {
-          // A curly group can only exist within a single-element outer group.
-          throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
-        }
         ++$pos;
         $id = ParserUtil::skipFillerWs($tokens, $pos);
         if ($id !== '{') {
@@ -81,7 +77,6 @@ class FileParserPhp8 extends FileParser {
         ParserUtil::skipFillerWsExpectChar($tokens, $pos, ';');
         return;
       }
-      $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === \T_AS) {
         ++$pos;
         $alias = $type . ParserUtil::skipFillerWsExpectTString($tokens, $pos);
