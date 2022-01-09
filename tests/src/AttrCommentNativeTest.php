@@ -6,6 +6,7 @@ namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -13,6 +14,20 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *   See https://github.com/sebastianbergmann/phpunit/pull/4795
  */
 class AttrCommentNativeTest extends AttrCommentParserTest {
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function processDataByVersion(array &$data, string $name): void {
+    $orig = $data;
+    unset($data['attributes.php8']);
+    parent::processDataByVersion($data, $name);
+    if (\array_key_exists('attributes.php8', $orig)) {
+      $data['attributes.php8'] = $orig['attributes.php8'];
+    }
+    $keys = $this->getKnownKeys();
+    TestArrayUtil::normalizeKeys($data, $keys);
+  }
 
   /**
    * {@inheritdoc}
@@ -82,6 +97,12 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
     }
     catch (\Throwable $e) {
       $data['exception.native'] = TestExportUtil::exportException($e);
+      if (isset($data['attributes'])) {
+        $data['attributes.native'] = null;
+      }
+      else {
+        unset($data['attributes.native']);
+      }
       return;
     }
     finally {
