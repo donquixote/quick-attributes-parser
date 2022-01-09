@@ -19,6 +19,7 @@ use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\Yaml\Yaml;
 
 /**
  * @psalm-suppress PropertyNotSetInConstructor
@@ -121,6 +122,71 @@ class ClassesTest extends TestCase {
     $ymlDir = $this->getYmlDir();
     $ymlfile = "$ymlDir/$shortname.raw-attributes.yml";
     TestUtil::assertFileContentsYml($ymlfile, $data);
+  }
+
+  /**
+   * @dataProvider providerTestClasses()
+   *
+   * @param string $shortname
+   *
+   * @throws \ReflectionException
+   */
+  public function testNativeReflectionAttributes(string $shortname): void {
+    if (\PHP_VERSION_ID < 80000) {
+      self::assertTrue(true);
+      return;
+    }
+    /** @var class-string $class */
+    $class = $this->getClassesNamespace() . '\\' . $shortname;
+    $rc = new \ReflectionClass($class);
+    $raaa = [];
+    /** @psalm-suppress MixedAssignment, UndefinedMethod */
+    $raaa[$class] = $rc->getAttributes();
+    foreach ($rc->getMethods() as $rm) {
+      if ($rc->getFileName() !== $rm->getFileName()) {
+        // Method is from a base class, trait or interface.
+        continue;
+      }
+      $raaa[$class . '::' . $rm->getName() . '()'] = $rm->getAttributes();
+      foreach ($rm->getParameters() as $rp) {
+        $raaa[$class . '::' . $rm->getName() . '($' . $rp->getName() . ')'] = $rp->getAttributes();
+      }
+    }
+    foreach ($rc->getProperties() as $rp) {
+      if ($rp->getDeclaringClass()->getName() !== $rc->getName()) {
+        // Property is from a base class or interface.
+        continue;
+      }
+      /** @psalm-suppress MixedAssignment, UndefinedMethod */
+      $raaa[$class . '::$' . $rp->getName()] = $rp->getAttributes();
+    }
+    foreach ($rc->getReflectionConstants() as $rconst) {
+      if ($rconst->getDeclaringClass()->getName() !== $rc->getName()) {
+        // Constant is from a base class or interface.
+        continue;
+      }
+      /** @psalm-suppress MixedAssignment, UndefinedMethod */
+      $raaa[$class . '::' . $rconst->getName()] = $rconst->getAttributes();
+    }
+
+    /** @var array<string, list<\ReflectionAttribute>> $raaa */
+    $attributess = [];
+    foreach ($raaa as $k => $raa) {
+      $attributess[$k] = [];
+      foreach ($raa as $ra) {
+        $attributess[$k][] = [
+          'name' => $ra->getName(),
+          'arguments' => $ra->getArguments(),
+        ];
+      }
+    }
+    $ymlDir = $this->getYmlDir();
+    $ymlfile = "$ymlDir/$shortname.raw-attributes.yml";
+    /** @var array<string, list<_RawAttributeArray>> $data */
+    $data = Yaml::parseFile($ymlfile);
+    $data = \array_intersect_key($data, $attributess);
+    $data = \array_replace($data, $attributess);
+    TestUtil::assertFileContentsYml($ymlfile, $data, false);
   }
 
   public function testNoOrphanYmlFiles(): void {
