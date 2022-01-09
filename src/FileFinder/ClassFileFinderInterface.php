@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\ClassFileFinder;
+namespace Donquixote\QuickAttributes\FileFinder;
 
 interface ClassFileFinderInterface {
 
