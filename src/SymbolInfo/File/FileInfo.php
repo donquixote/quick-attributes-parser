@@ -6,7 +6,7 @@ namespace Donquixote\QuickAttributes\SymbolInfo\File;
 
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
-use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\Parser\FileTokenParser;
 use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorBase;
 
@@ -67,6 +67,6 @@ class FileInfo extends SymbolVisitorBase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public static function fromFileTokens(FileTokensInterface $fileTokens, FileTokenParserInterface $parser = null): self {
-    return new self($parser ?? FileParser::create(), $fileTokens);
+    return new self($parser ?? FileTokenParser::create(), $fileTokens);
   }
 }

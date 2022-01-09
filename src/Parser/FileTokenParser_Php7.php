@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 
-class FileParserPhp7 extends FileParser {
+class FileTokenParser_Php7 extends FileTokenParser {
 
   /**
    * @param list<string|array{int, string, int}> $tokens
