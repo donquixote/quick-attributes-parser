@@ -6,6 +6,11 @@ namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
 class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+attributes.native:
+  -
+    name: N\M\A
+    arguments:
+      x: 5
 exception:
   class: InvalidArgumentException
   message: |-
@@ -14,9 +19,4 @@ exception:
     )]
 
     '
-attributes.native:
-  -
-    name: N\M\A
-    arguments:
-      x: 5
 mismatch: true
