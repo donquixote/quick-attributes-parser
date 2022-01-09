@@ -49,7 +49,6 @@ class RewriteArgumentsTest extends YmlTestBase {
   protected function processData(array &$data, string $name): void {
     $this->processCommon($data);
     $this->processPhp8($data);
-    /** @psalm-suppress PossiblyUndefinedStringArrayOffset, MixedAssignment */
     foreach ($data['calls'] as &$call) {
       /** @var array $call */
       TestArrayUtil::normalizeKeys(
