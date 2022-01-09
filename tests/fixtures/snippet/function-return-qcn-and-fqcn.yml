@@ -1,0 +1,20 @@
+php: |
+  <?php
+
+  namespace N;
+
+  function fFqcn(): \A\B {}
+  function fQcn(): U\V {}
+importss:
+  N\fFqcn(): {  }
+  N\fQcn(): {  }
+importss.php8:
+  N\fFqcn(): {  }
+attributess:
+  N\fFqcn(): {  }
+  N\fQcn(): {  }
+attributess.php8:
+  N\fFqcn(): {  }
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 5:19: Unexpected T_NAME_FULLY_QUALIFIED / ''\\A\\B'' in return type.'

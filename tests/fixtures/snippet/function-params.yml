@@ -1,0 +1,17 @@
+php: |
+  <?php
+
+  function fCompact(float&$x,&$y,int&...$args) {}
+  function fSpacedOut(float &   $x, & $y, int & ...  $args) {}
+importss:
+  fCompact(): {  }
+  fSpacedOut(): {  }
+attributess:
+  fCompact(): {  }
+  fCompact($x): {  }
+  fCompact($y): {  }
+  fCompact($args): {  }
+  fSpacedOut(): {  }
+  fSpacedOut($x): {  }
+  fSpacedOut($y): {  }
+  fSpacedOut($args): {  }

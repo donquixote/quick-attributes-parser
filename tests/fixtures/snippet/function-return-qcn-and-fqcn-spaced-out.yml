@@ -1,0 +1,14 @@
+php: |
+  <?php
+
+  namespace N;
+
+  function fFqcn(): \ A \ B { }
+  function fQcn ( ) : U \
+  V { }
+importss:
+  N\fFqcn(): {  }
+  N\fQcn(): {  }
+attributess:
+  N\fFqcn(): {  }
+  N\fQcn(): {  }

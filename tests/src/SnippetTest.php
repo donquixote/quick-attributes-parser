@@ -18,7 +18,12 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *   php: string,
  *   php_version_ids?: list<int>,
  *   importss: array<string, array<string, string>>,
+ *   'importss.php8'?: array<string, array<string, string>>,
  *   attributess: array<string, array{
+ *     imports?: array<string, string>,
+ *     'attr-comments'?: list<string>,
+ *   }>,
+ *   'attributess.php8'?: array<string, array{
  *     imports?: array<string, string>,
  *     'attr-comments'?: list<string>,
  *   }>,
@@ -67,7 +72,9 @@ class SnippetTest extends YmlTestBase {
       'php',
       'php_version_ids',
       'importss',
+      'importss.php8',
       'attributess',
+      'attributess.php8',
       'tokenizer_split',
       'exception',
       'exception.php8',

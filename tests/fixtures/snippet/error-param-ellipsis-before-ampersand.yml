@@ -1,0 +1,9 @@
+php: |
+  <?php
+
+  function f(...&$x) {}
+importss:
+  f(): {  }
+attributess:
+  f(): {  }
+  f($x): {  }
