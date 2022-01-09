@@ -19,5 +19,5 @@ attributes.php8:
     name: N\M\A
     arguments:
       x: 5
-mismatch: true
 exception.php8: null
+mismatch: true

@@ -11,15 +11,9 @@ class TestArrayUtil {
    * @param list<string> $keys
    */
   public static function normalizeKeys(array &$data, array $keys): void {
-    $normalized = [];
-    foreach ($keys as $key) {
-      if (isset($data[$key])) {
-        /** @psalm-suppress MixedAssignment */
-        $normalized[$key] = $data[$key];
-      }
-    }
-    $normalized += $data;
-    $data = $normalized;
+    $keymap = \array_fill_keys($keys, true);
+    $keymap = \array_intersect_key($keymap, $data);
+    $data = \array_replace($keymap, $data);
   }
 
 }
