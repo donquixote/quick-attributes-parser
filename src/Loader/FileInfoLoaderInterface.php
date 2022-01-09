@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\Registry;
+namespace Donquixote\QuickAttributes\Loader;
 
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
 
