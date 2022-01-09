@@ -18,6 +18,17 @@ abstract class YmlTestBase extends TestCase {
    * @dataProvider provider()
    */
   public function test(string $name): void {
+    $data = $this->loadData($name);
+    $this->processDataByVersion($data, $name);
+    $file = $this->getFile($name);
+    TestUtil::assertFileContentsYml($file, $data, $this->writeEnabled());
+  }
+
+  /**
+   * @param T $data
+   * @param string $name
+   */
+  protected function processDataByVersion(array &$data, string $name): void {
     $keys = $this->getKnownKeys();
     $vdkeys = [];
     foreach ($keys as $key) {
@@ -27,7 +38,6 @@ abstract class YmlTestBase extends TestCase {
         }
       }
     }
-    $data = $this->loadData($name);
     $orig = $data;
     foreach ($vdkeys as $basekey => $versions) {
       foreach ($versions as $versionId => $key) {
@@ -75,9 +85,7 @@ abstract class YmlTestBase extends TestCase {
         }
       }
     }
-    $file = $this->getFile($name);
     TestArrayUtil::normalizeKeys($data, $keys);
-    TestUtil::assertFileContentsYml($file, $data, $this->writeEnabled());
   }
 
   /**
