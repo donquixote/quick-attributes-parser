@@ -63,10 +63,6 @@ class AttrCommentParserTest extends YmlTestBase {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
-    if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(true);
-      return;
-    }
 
     $parser = new AttributeCommentParser();
     $parser = $parser->withContext(

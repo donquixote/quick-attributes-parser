@@ -5,6 +5,12 @@ exception:
   previous:
     class: ParseError
     message: 'syntax error, unexpected ''*'''
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'syntax error, unexpected token "*"'
+  previous:
+    class: ParseError
+    message: 'syntax error, unexpected token "*"'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "*"'

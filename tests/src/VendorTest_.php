@@ -113,10 +113,6 @@ class VendorTest_ extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testClassFileParser(string $file): void {
-    if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(true);
-      return;
-    }
     $parser = FileParser::create();
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */

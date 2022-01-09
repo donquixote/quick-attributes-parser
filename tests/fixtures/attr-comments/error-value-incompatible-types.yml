@@ -2,6 +2,12 @@ comment: '#[A(5 * "hello")]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Eval: A non-numeric value encountered'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Unsupported operand types: int * string'
+  previous:
+    class: TypeError
+    message: 'Unsupported operand types: int * string'
 exception.native:
   class: TypeError
   message: 'Unsupported operand types: int * string'

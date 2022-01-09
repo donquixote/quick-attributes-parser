@@ -3,3 +3,7 @@ attributes:
   -
     name: N\M\A
     arguments: {  }
+attributes.php8: null
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:2: Expected QCN or FQCN, but found T_NAME_FULLY_QUALIFIED / ''\\N\\M\\A''.'

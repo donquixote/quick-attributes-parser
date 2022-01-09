@@ -55,10 +55,6 @@ class ClassesTest extends TestCase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function testParser(string $shortname): void {
-    if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(true, 'Skip test in PHP 8+.');
-      return;
-    }
     $ymlDir = $this->getYmlDir();
     $file = $this->getClassesDir() . '/' . $shortname . '.php';
     $parser = FileParser::create();
