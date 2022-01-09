@@ -33,15 +33,22 @@ use Donquixote\QuickAttributes\Util\ArgumentsUtil;
  */
 class RewriteArgumentsTest extends YmlTestBase {
 
+  protected function getKnownKeys(): array {
+    return [
+      'parameters',
+      'php',
+      'exception',
+      'error.php8',
+      'calls',
+    ];
+  }
+
   /**
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
     $this->processCommon($data);
     $this->processPhp8($data);
-    TestArrayUtil::normalizeKeys(
-      $data,
-      ['parameters', 'php', 'exception', 'error.php8', 'calls']);
     /** @psalm-suppress PossiblyUndefinedStringArrayOffset, MixedAssignment */
     foreach ($data['calls'] as &$call) {
       /** @var array $call */

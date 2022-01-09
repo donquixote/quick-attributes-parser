@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
+use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Yaml\Yaml;
@@ -17,10 +18,66 @@ abstract class YmlTestBase extends TestCase {
    * @dataProvider provider()
    */
   public function test(string $name): void {
+    $keys = $this->getKnownKeys();
+    $vdkeys = [];
+    foreach ($keys as $key) {
+      if (\preg_match('/^(\w+)\.php(\d{5})0*$/', $key . '0000', $m)) {
+        if (\in_array($m[1], $keys)) {
+          $vdkeys[$m[1]][$m[2]] = $key;
+        }
+      }
+    }
     $data = $this->loadData($name);
+    $orig = $data;
+    foreach ($vdkeys as $basekey => $versions) {
+      foreach ($versions as $versionId => $key) {
+        if (\PHP_VERSION_ID < $versionId) {
+          break;
+        }
+        if (isset($data[$key])) {
+          /** @psalm-suppress MixedAssignment */
+          $data[$basekey] = $data[$key];
+        }
+        elseif (\array_key_exists($key, $data)) {
+          unset($data[$basekey]);
+        }
+      }
+    }
+    /** @psalm-suppress PossiblyInvalidArgument */
     $this->processData($data, $name);
+    foreach ($vdkeys as $basekey => $versions) {
+      $prevkey = $basekey;
+      $lastkey = $basekey;
+      foreach ($versions as $versionId => $key) {
+        if (\PHP_VERSION_ID < $versionId) {
+          break;
+        }
+        if (\array_key_exists($lastkey, $data)) {
+          $prevkey = $lastkey;
+        }
+        $lastkey = $key;
+      }
+      if ($lastkey !== $basekey) {
+        \assert($prevkey !== $lastkey);
+        if (($data[$basekey] ?? null) === ($orig[$prevkey] ?? null)) {
+          unset($data[$lastkey]);
+        }
+        else {
+          /** @psalm-suppress MixedAssignment */
+          $data[$lastkey] = $data[$basekey] ?? null;
+        }
+        if (isset($orig[$basekey])) {
+          /** @psalm-suppress MixedAssignment */
+          $data[$basekey] = $orig[$basekey];
+        }
+        else {
+          unset($data[$basekey]);
+        }
+      }
+    }
     $file = $this->getFile($name);
-    TestUtil::assertFileContentsYml($file, $data);
+    TestArrayUtil::normalizeKeys($data, $keys);
+    TestUtil::assertFileContentsYml($file, $data, $this->writeEnabled());
   }
 
   /**
@@ -48,6 +105,15 @@ abstract class YmlTestBase extends TestCase {
    * @param string $name
    */
   abstract protected function processData(array &$data, string $name): void;
+
+  /**
+   * @return list<string>
+   */
+  abstract protected function getKnownKeys(): array;
+
+  protected function writeEnabled(): bool {
+    return true;
+  }
 
   /**
    * @return iterable<string, array{string}>

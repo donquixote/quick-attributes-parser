@@ -20,3 +20,4 @@ attributes.php8:
     name: Donquixote\QuickAttributes\Tests\Fixture\B
     arguments: {  }
 mismatch: true
+exception.php8: null

@@ -89,4 +89,8 @@ class SnippetTokenizerTest extends SnippetTest {
     return 'snippet';
   }
 
+  protected function writeEnabled(): bool {
+    return false;
+  }
+
 }

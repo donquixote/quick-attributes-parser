@@ -37,6 +37,21 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  */
 class AttrCommentParserTest extends YmlTestBase {
 
+  protected function getKnownKeys(): array {
+    return [
+      'comment',
+      'namespace',
+      'imports',
+      'class',
+      'fatal',
+      'attributes',
+      'exception',
+      'attributes.php8',
+      'exception.php8',
+      'mismatch',
+    ];
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -47,20 +62,6 @@ class AttrCommentParserTest extends YmlTestBase {
     else {
       $this->processPhp8($data);
     }
-    TestArrayUtil::normalizeKeys(
-      $data,
-      [
-        'comment',
-        'namespace',
-        'imports',
-        'class',
-        'fatal',
-        'attributes',
-        'exception',
-        'attributes.php8',
-        'exception.php8',
-        'mismatch',
-      ]);
   }
 
   /**
@@ -124,6 +125,7 @@ class AttrCommentParserTest extends YmlTestBase {
       . "\n  $comment"
       . "\n  function () {};"
       . "\n";
+    unset($data['attributes']);
     try {
       \set_error_handler(static function (int $code, string $message): bool {
         $core_constants = \get_defined_constants(true)['Core'] ?? [];
@@ -138,40 +140,20 @@ class AttrCommentParserTest extends YmlTestBase {
       $f = self::doEval($php);
       $rf = new \ReflectionFunction($f);
       /** @var list<array{name: class-string, arguments: array}> $attributes */
-      $attributes = [];
       foreach ($rf->getAttributes() as $ra) {
-        $attributes[] = [
+        $data['attributes'][] = [
           'name' => $ra->getName(),
           'arguments' => $ra->getArguments(),
         ];
       }
+      unset($data['exception']);
     }
     catch (\Throwable $e) {
-      $data['exception.php8'] = TestExportUtil::exportException($e);
-      unset($data['attributes.php8']);
-      if (!isset($data['exception'])) {
-        $data['mismatch'] = true;
-      }
-      else {
-        unset($data['mismatch']);
-      }
+      $data['exception'] = TestExportUtil::exportException($e);
       return;
     }
     finally {
       \restore_error_handler();
-    }
-    unset($data['exception.php8']);
-    /**
-     * Suppression, see https://youtrack.jetbrains.com/issue/WI-25588.
-     * @noinspection PhpUndefinedVariableInspection
-     */
-    if ($attributes !== ($data['attributes'] ?? [])) {
-      $data['attributes.php8'] = $attributes;
-      $data['mismatch'] = true;
-    }
-    else {
-      unset($data['attributes.php8']);
-      unset($data['mismatch']);
     }
   }
 

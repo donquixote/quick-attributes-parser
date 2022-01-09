@@ -10,7 +10,6 @@ use Donquixote\QuickAttributes\Registry\FileTokensReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionInfo;
 use Donquixote\QuickAttributes\SymbolInfo\MethodInfo;
-use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -25,7 +24,6 @@ class SnippetReaderTest extends SnippetTest {
   protected function processData(array &$data, string $name): void {
     $fileTokens = new FileTokens_Common($data['php']);
     $reader = FileTokensReader::create();
-    $data7 = $data;
     $attributess = [];
     try {
       unset($data['attributess']);
@@ -74,34 +72,14 @@ class SnippetReaderTest extends SnippetTest {
     foreach ($attributess as $key => $attributes) {
       $data['attributess'][$key] = TestExportUtil::exportRawAttributes($attributes);
     }
-    if (\PHP_VERSION_ID >= 80000) {
-      // PHP 8.
-      // Currently, exceptions are the only point where the fixtures differ.
-      if (($data['exception'] ?? null) === ($data7['exception'] ?? null)) {
-        unset($data['exception.php8']);
-      }
-      else {
-        $data['exception.php8'] = $data['exception'] ?? null;
-        if (isset($data7['exception'])) {
-          $data['exception'] = $data7['exception'];
-        }
-        else {
-          unset($data['exception']);
-        }
-      }
-    }
-    TestArrayUtil::normalizeKeys($data, [
-      'php',
-      'importss',
-      'attributess',
-      'tokenizer_split',
-      'exception',
-      'exception.php8',
-    ]);
   }
 
   protected function getYmlSubdir(): string {
     return 'snippet';
+  }
+
+  protected function writeEnabled(): bool {
+    return false;
   }
 
 }
