@@ -5,6 +5,6 @@ exception:
   previous:
     class: ParseError
     message: 'syntax error, unexpected ''*'''
-exception.php8:
+exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "*"'

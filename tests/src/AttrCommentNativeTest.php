@@ -51,7 +51,7 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
       . "\n  $comment"
       . "\n  function () {};"
       . "\n";
-    unset($data['attributes']);
+    $attributes = [];
     try {
       \set_error_handler(static function (int $code, string $message): bool {
         $core_constants = \get_defined_constants(true)['Core'] ?? [];
@@ -67,15 +67,21 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
       $rf = new \ReflectionFunction($f);
       /** @var list<array{name: class-string, arguments: array}> $attributes */
       foreach ($rf->getAttributes() as $ra) {
-        $data['attributes'][] = [
+        $attributes[] = [
           'name' => $ra->getName(),
           'arguments' => $ra->getArguments(),
         ];
       }
-      unset($data['exception']);
+      if (($data['attributes'] ?? []) === $attributes) {
+        unset($data['attributes.native']);
+      }
+      else {
+        $data['attributes.native'] = $attributes ?: null;
+      }
+      unset($data['exception.native']);
     }
     catch (\Throwable $e) {
-      $data['exception'] = TestExportUtil::exportException($e);
+      $data['exception.native'] = TestExportUtil::exportException($e);
       return;
     }
     finally {
