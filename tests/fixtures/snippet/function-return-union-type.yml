@@ -7,5 +7,5 @@ importss:
 attributess:
   f(): {  }
 exception:
-  class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 3:18: Unexpected ''|'' in return type.'
+  class: Donquixote\QuickAttributes\Exception\PhpVersionException
+  message: 'Line 3:18: Union types are only available in PHP 8.'

@@ -12,6 +12,8 @@ class VersionDependentTokens {
 
   const T_NAME_FULLY_QUALIFIED = 10312;
 
+  const T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG = 10403;
+
   const T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG = 10404;
 
   const T_STRING_7 = 70262;

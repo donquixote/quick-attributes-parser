@@ -6,4 +6,9 @@ importss:
   f(): {  }
 attributess:
   f(): {  }
-  f($x): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:14: Expected T_VARIABLE, but found T_STRING / ''int''.'
+exception.php801:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:12: Unexpected T_AMPERSAND_NOT_FOLLOWED_BY_VAR_OR_VARARG / ''&'' in parameters.'
