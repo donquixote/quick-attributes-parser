@@ -20,10 +20,6 @@ class SnippetTokenizerTest extends SnippetTest {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
-    if (\PHP_VERSION_ID >= 80000) {
-      self::assertTrue(true);
-      return;
-    }
     $tokensExpected = @\token_get_all($data['php']);
     $fileTokens = new FileTokens_Common($data['php']);
     try {

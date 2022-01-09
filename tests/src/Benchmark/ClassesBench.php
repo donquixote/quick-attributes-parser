@@ -61,9 +61,6 @@ class ClassesBench {
    * @Groups("init")
    */
   public function benchInitParser(): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
     FileTokenParser::create();
   }
 
@@ -332,9 +329,6 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchParseClassFileStart(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
     $file = $args[0];
     $parser = FileParser::create();
     $parser->parseFile($file, new SymbolVisitor_NoOp());
@@ -371,9 +365,6 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchParseClassHead(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
     $file = $args[0];
     $parser = FileParser::create();
     $visitor = new SymbolVisitor_CollectClassHeadsOnly();
@@ -395,9 +386,6 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchParseClassFull(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
     $file = $args[0];
     $parser = FileParser::create();
     foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
@@ -416,9 +404,6 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchParseTokensFull(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
     $fileTokens = $args[0];
     $parser = FileTokenParser::create();
     foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
@@ -437,9 +422,6 @@ class ClassesBench {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public function benchParseClassFirstMember(array $args): void {
-    if (\PHP_VERSION_ID > 80000) {
-      return;
-    }
     $file = $args[0];
     $parser = FileParser::create();
     $it = $parser->parseFile($file, new SymbolVisitor_NoOp());

@@ -2,6 +2,9 @@ comment: '#[A(N\M\C::)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:11: Expected T_STRING or T_CLASS, but found '')''.'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:4: Unexpected T_NAME_QUALIFIED / ''N\\M\\C'' in const value expression.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token ")"'

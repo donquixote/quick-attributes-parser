@@ -2,6 +2,12 @@ comment: '#[A(x: 5 / 0)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Eval: Division by zero'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Division by zero'
+  previous:
+    class: DivisionByZeroError
+    message: 'Division by zero'
 exception.native:
   class: DivisionByZeroError
   message: 'Division by zero'

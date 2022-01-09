@@ -11,3 +11,7 @@ attributes:
       - u
       - u
       - Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+attributes.php8: null
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:26: Unexpected T_NAME_FULLY_QUALIFIED / ''\\Donquixote\\QuickAttributes\\Tests\\Fixture\\CMinimal'' in const value expression.'

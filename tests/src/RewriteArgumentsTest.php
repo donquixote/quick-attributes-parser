@@ -90,7 +90,7 @@ class RewriteArgumentsTest extends YmlTestBase {
    */
   private function processPhp8(array &$data): void {
 
-    if (\PHP_VERSION_ID <= 80000) {
+    if (\PHP_VERSION_ID < 80000) {
       self::assertTrue(true);
       return;
     }

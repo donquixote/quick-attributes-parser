@@ -4,3 +4,7 @@ attributes:
     name: A
     arguments:
       x: N\M\C
+attributes.php8: null
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:7: Unexpected T_NAME_FULLY_QUALIFIED / ''\\N\\M\\C'' in const value expression.'
