@@ -8,7 +8,7 @@ use Donquixote\QuickAttributes\FileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\FileFinder\ClassFileFinderInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 
-class ClassInfoFinder {
+class ClassInfoFinder implements ClassInfoFinderInterface {
 
   /**
    * @var \Donquixote\QuickAttributes\Registry\FileInfoLoaderInterface
