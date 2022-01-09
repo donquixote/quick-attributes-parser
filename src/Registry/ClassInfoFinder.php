@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Registry;
 
-use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinder_ComposerAutoload;
-use Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinderInterface;
+use Donquixote\QuickAttributes\FileFinder\ClassFileFinder_ComposerAutoload;
+use Donquixote\QuickAttributes\FileFinder\ClassFileFinderInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 
 class ClassInfoFinder {
@@ -16,7 +16,7 @@ class ClassInfoFinder {
   private FileInfoLoader $fileInfoLoader;
 
   /**
-   * @var \Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinderInterface
+   * @var \Donquixote\QuickAttributes\FileFinder\ClassFileFinderInterface
    */
   private ClassFileFinderInterface $classFileFinder;
 
@@ -24,7 +24,7 @@ class ClassInfoFinder {
    * Constructor.
    *
    * @param \Donquixote\QuickAttributes\Registry\FileInfoLoader $fileInfoLoader
-   * @param \Donquixote\QuickAttributes\ClassFileFinder\ClassFileFinderInterface $classFileFinder
+   * @param \Donquixote\QuickAttributes\FileFinder\ClassFileFinderInterface $classFileFinder
    */
   public function __construct(FileInfoLoader $fileInfoLoader, ClassFileFinderInterface $classFileFinder) {
     $this->fileInfoLoader = $fileInfoLoader;

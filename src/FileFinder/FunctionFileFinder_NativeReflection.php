@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\FunctionFileFinder;
+namespace Donquixote\QuickAttributes\FileFinder;
 
 class FunctionFileFinder_NativeReflection implements FunctionFileFinderInterface {
 
