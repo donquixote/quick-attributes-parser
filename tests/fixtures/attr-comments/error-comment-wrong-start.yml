@@ -6,4 +6,3 @@ class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
 exception:
   class: InvalidArgumentException
   message: 'Comment must begin with #[.'
-exception.php8: null

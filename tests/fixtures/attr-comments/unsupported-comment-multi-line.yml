@@ -12,12 +12,11 @@ exception:
     #[B]
 
     '
-attributes.php8:
+attributes.native:
   -
     name: N\M\A
     arguments: {  }
   -
     name: Donquixote\QuickAttributes\Tests\Fixture\B
     arguments: {  }
-exception.php8: null
 mismatch: true

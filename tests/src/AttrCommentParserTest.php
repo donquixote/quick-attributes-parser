@@ -27,6 +27,11 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *     arguments?: array,
  *     exception?: array,
  *   }>,
+ *   'attributes.native'?: list<array{
+ *     name: class-string,
+ *     arguments?: array,
+ *     exception?: array,
+ *   }>,
  *   exception?: array,
  *   'exception.php8'?: array,
  *   'exception.native'?: array,
@@ -47,7 +52,9 @@ class AttrCommentParserTest extends YmlTestBase {
       'attributes',
       'exception',
       'attributes.php8',
+      'attributes.native',
       'exception.php8',
+      'exception.native',
       'mismatch',
     ];
   }

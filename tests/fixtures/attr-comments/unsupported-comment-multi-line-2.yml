@@ -14,10 +14,9 @@ exception:
     )]
 
     '
-attributes.php8:
+attributes.native:
   -
     name: N\M\A
     arguments:
       x: 5
-exception.php8: null
 mismatch: true

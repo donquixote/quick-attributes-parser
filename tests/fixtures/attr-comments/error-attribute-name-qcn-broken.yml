@@ -2,6 +2,6 @@ comment: '#[N\M\()]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:6: Expected T_STRING, but found ''(''.'
-exception.php8:
+exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "\", expecting "]"'

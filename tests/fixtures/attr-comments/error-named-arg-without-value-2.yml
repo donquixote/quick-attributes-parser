@@ -2,6 +2,6 @@ comment: '#[A(x:, 7)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:6: Expected value expression, but found '',''.'
-exception.php8:
+exception.native:
   class: ParseError
   message: 'syntax error, unexpected token ","'

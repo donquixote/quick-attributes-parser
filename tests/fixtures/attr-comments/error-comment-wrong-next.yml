@@ -6,6 +6,6 @@ class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
 exception:
   class: Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException
   message: 'Line 0:5: Cannot have regular code after an attribute in the same line.'
-exception.php8:
+exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "class", expecting "function" or "fn" or "static" or "#["'
