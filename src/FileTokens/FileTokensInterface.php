@@ -13,7 +13,6 @@ namespace Donquixote\QuickAttributes\FileTokens;
 interface FileTokensInterface {
 
   /**
-   *
    * @return _TokenList|null
    *   Token list, terminated with '#', until opening '{' of class, OR
    *   NULL, if not a class file, or unexpected format.
