@@ -7,6 +7,9 @@ namespace Donquixote\QuickAttributes\FileTokens;
 use Donquixote\QuickAttributes\Exception\TokenizerException;
 use Donquixote\QuickAttributes\Util\TokenizerUtil;
 
+/**
+ * Uses a regular expression to split the head from a class file.
+ */
 class FileTokens_Common implements FileTokensInterface {
 
   /**
