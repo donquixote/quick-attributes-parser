@@ -849,8 +849,10 @@ abstract class FileParser implements FileTokenParserInterface {
       }
       else {
         switch ($token[0]) {
-          case \T_NS_SEPARATOR:
           case \T_STRING:
+          case \T_NS_SEPARATOR:
+          case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
+          case VersionDependentTokens::T_NAME_QUALIFIED:
           case \T_WHITESPACE:
           case \T_COMMENT:
           case \T_DOC_COMMENT:
