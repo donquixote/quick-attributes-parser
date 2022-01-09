@@ -6,4 +6,9 @@ importss:
   f(): {  }
 attributess:
   f(): {  }
-  f($x): {  }
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:15: Expected T_VARIABLE, but found ''&''.'
+exception.php801:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:15: Expected T_VARIABLE, but found T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG / ''&''.'

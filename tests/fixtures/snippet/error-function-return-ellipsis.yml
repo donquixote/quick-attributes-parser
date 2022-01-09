@@ -8,4 +8,4 @@ attributess:
   f(): {  }
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 3:18: Unexpected T_ELLIPSIS / ''...'' in return type.'
+  message: 'Line 3:18: Expected { or ;, but found T_ELLIPSIS / ''...''.'

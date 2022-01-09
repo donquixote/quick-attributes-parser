@@ -272,8 +272,7 @@ abstract class FileParser implements FileTokenParserInterface {
             ++$pos;
             $id = ParserUtil::skipFillerWs($tokens, $pos);
             if ($id === ':') {
-              $id = $this->skipReturnType($tokens, $pos);
-              \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['{', ';']));
+              $id = $this->skipType($tokens, $pos, 'in return type');
             }
             if ($id !== '{') {
               throw SyntaxException::expectedButFound($tokens, $pos, '{ or ;');
@@ -404,7 +403,13 @@ abstract class FileParser implements FileTokenParserInterface {
             return;
 
           case '?':
-            // This is part of a type of a property or constant. Ignore.
+            // This is a nullable property type.
+            $id = $this->skipType($tokens, $pos, 'in property type');
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
+            }
+            // Let the next cycle handle the property.
+            --$pos;
             continue 2;
 
           default:
@@ -471,8 +476,7 @@ abstract class FileParser implements FileTokenParserInterface {
             ++$pos;
             $id = ParserUtil::skipFillerWs($tokens, $pos);
             if ($id === ':') {
-              $id = $this->skipReturnType($tokens, $pos);
-              \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['{', ';']));
+              $id = $this->skipType($tokens, $pos, 'in return type');
             }
             if ($id === '{') {
               ParserUtil::skipSubtree($tokens, $pos);
@@ -481,6 +485,21 @@ abstract class FileParser implements FileTokenParserInterface {
               throw SyntaxException::expectedButFound($tokens, $pos, '{ or ;');
             }
             break;
+
+          case \T_STRING:
+          case \T_NS_SEPARATOR:
+          case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
+          case VersionDependentTokens::T_NAME_QUALIFIED:
+          case \T_ARRAY:
+          case \T_CALLABLE:
+            // This is a property type.
+            $id = $this->skipType($tokens, $pos, 'in property type');
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
+            }
+            // Let the next cycle handle the property.
+            --$pos;
+            continue 2;
 
           case \T_VARIABLE:
             $attributes = $attrCommentMultiParser->parseMultiple($attributeComments);
@@ -497,13 +516,6 @@ abstract class FileParser implements FileTokenParserInterface {
             }
             yield true;
             break;
-
-          case \T_STRING:
-          case \T_NS_SEPARATOR:
-          case \T_ARRAY:
-          case \T_CALLABLE:
-            // This is part of a type of a property or constant. Ignore.
-            continue 2;
 
           default:
             throw SyntaxException::unexpected($tokens, $pos, 'in class body');
@@ -577,9 +589,8 @@ abstract class FileParser implements FileTokenParserInterface {
     \assert(ParserAssertUtil::expect($tokens, $pos, '('));
     $attributeComments = [];
     for (++$pos;; ++$pos) {
-      $token = $tokens[$pos];
-      if (\is_string($token)) {
-        switch ($token) {
+      if (\is_string($tokens[$pos])) {
+        switch ($tokens[$pos]) {
 
           case ')':
             break 2;
@@ -587,61 +598,134 @@ abstract class FileParser implements FileTokenParserInterface {
           case '#':
             throw SyntaxException::fromTokenPos($tokens, $pos, "Unexpected EOF in parameters.");
 
-          case '&':
-            // The parameter is by-reference. That's ok.
-            break;
-
           case '?':
-            // Found an optional type. Ignore.
+            // Found a nullable parameter type.
+            $id = $this->skipType($tokens, $pos, 'in parameter type');
+            if ($id === '&') {
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
+            }
+            if ($id === \T_ELLIPSIS) {
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
+            }
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
+            }
             break;
 
-          case '|':
-            throw PhpVersionException::fromTokenPos($tokens, $pos, 'Union types are only available in PHP 8.');
+          case '&':
+            // Start a by-reference parameter.
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            if ($id === \T_ELLIPSIS) {
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
+            }
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
+            }
+            break;
 
           default:
             throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
         }
       }
       else {
-        switch ($token[0]) {
+        switch ($tokens[$pos][0]) {
+          case \T_WHITESPACE:
+          case \T_DOC_COMMENT:
+            continue 2;
+
           case \T_COMMENT:
-            if (\substr($token[1], 0, 2) === '#[') {
+            if (\substr($tokens[$pos][1], 0, 2) === '#[') {
               // This is an attribute!
-              $attributeComments[] = $token[1];
+              $attributeComments[] = $tokens[$pos][1];
+            }
+            continue 2;
+
+          case VersionDependentTokens::T_ATTRIBUTE:
+            $attributeComments[] = $this->parseNativeAttribute($tokens, $pos);
+            continue 2;
+
+          case \T_PRIVATE:
+          case \T_PROTECTED:
+          case \T_PUBLIC:
+            // This only works in PHP 8.
+            // @todo Complain, if not available in PHP version.
+            continue 2;
+
+          case \T_STRING:
+          case \T_NS_SEPARATOR:
+          case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
+          case VersionDependentTokens::T_NAME_QUALIFIED:
+          case \T_ARRAY:
+          case \T_CALLABLE:
+            // Found a parameter type.
+            $id = $this->skipType($tokens, $pos, 'in parameter type');
+            if ($id === '&') {
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
+            }
+            if ($id === \T_ELLIPSIS) {
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
+            }
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
+            }
+            break;
+
+          case VersionDependentTokens::T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG:
+            // Start a by-reference parameter.
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            if ($id === \T_ELLIPSIS) {
+              ++$pos;
+              $id = ParserUtil::skipFillerWs($tokens, $pos);
+            }
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
+            }
+            break;
+
+          case \T_ELLIPSIS:
+            // Found a parameter type.
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            if ($id !== \T_VARIABLE) {
+              throw SyntaxException::expectedButFound($tokens, $pos, 'T_VARIABLE');
             }
             break;
 
           case \T_VARIABLE:
-            $name = \substr($token[1], 1);
-            $paramVisitor->addParameter(
-              $name,
-              $attrCommentMultiParser->parseMultiple($attributeComments));
-            yield true;
-            $attributeComments = [];
-            ++$pos;
-            $id = ParserUtil::skipFillerWs($tokens, $pos);
-            if ($id === '=') {
-              $id = $this->skipVarDefault($tokens, $pos, true);
-            }
-            // Skip until the comma or ')'.
-            if ($id === ')') {
-              break 2;
-            }
-            if ($id !== ',') {
-              throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
-            }
-            // Must be ','.
-            break;
-
-          case VersionDependentTokens::T_ATTRIBUTE:
-            $attributeComments[] = $this->parseNativeAttribute($tokens, $pos);
             break;
 
           default:
-            // Ignore.
-            break;
+            throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
         }
+        \assert(ParserAssertUtil::expect($tokens, $pos, \T_VARIABLE));
       }
+      \assert(ParserAssertUtil::expect($tokens, $pos, \T_VARIABLE));
+      $name = \substr($tokens[$pos][1], 1);
+      $paramVisitor->addParameter(
+        $name,
+        $attrCommentMultiParser->parseMultiple($attributeComments));
+      yield true;
+      $attributeComments = [];
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
+      if ($id === '=') {
+        $id = $this->skipVarDefault($tokens, $pos, true);
+      }
+      // Skip until the comma or ')'.
+      if ($id === ')') {
+        break;
+      }
+      if ($id === ',') {
+        continue;
+      }
+      throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
     }
 
     $paramVisitor->markAsComplete();
@@ -820,31 +904,44 @@ abstract class FileParser implements FileTokenParserInterface {
   abstract protected function parseImportGroup(array $tokens, int &$pos, array &$imports): void;
 
   /**
+   * Skips the type before a property or parameter, or after a function head.
+   *
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   *   Before: Position of ':'.
-   *   After: Position of '{' or ';'.
+   *   Before: Before the first non-verified token of type declaration.
+   *   After: Position of '{' or ';' or T_VARIABLE or &.
    *
-   * @return string
+   * @return string|int
    *   One of '{' or ';'.
    *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @psalm-suppress InvalidNullableReturnType
+   *   Psalm gets confused with non-breaking loops.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function skipReturnType(array $tokens, int &$pos): string {
-    \assert(ParserAssertUtil::expect($tokens, $pos, ':'));
+  private function skipType(array $tokens, int &$pos, string $where) {
     for (++$pos;; ++$pos) {
       $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
           case '{':
           case ';':
+            // Seems like a function type.
             return $token;
+
+          case '&':
+            // Seems like a type for a by-reference parameter.
+            return $token;
+
+          case '|':
+            // @todo Make this configurable, or dependent on php version.
+            throw PhpVersionException::fromTokenPos($tokens, $pos, 'Union types are only available in PHP 8.');
 
           case '?':
             break;
 
           default:
-            throw SyntaxException::unexpected($tokens, $pos, 'in return type');
+            throw SyntaxException::unexpected($tokens, $pos, $where);
         }
       }
       else {
@@ -860,8 +957,20 @@ abstract class FileParser implements FileTokenParserInterface {
           case \T_CALLABLE:
             break;
 
+          case \T_VARIABLE:
+            // Seems like a property or parameter type.
+            return \T_VARIABLE;
+
+          case VersionDependentTokens::T_AMPERSAND_FOLLOWED_BY_VAR_OR_VARARG:
+            // Allow calling code ot handle this like in PHP 7.
+            return '&';
+
+          case \T_ELLIPSIS:
+            // Seems like a variadic parameter.
+            return \T_ELLIPSIS;
+
           default:
-            throw SyntaxException::unexpected($tokens, $pos, 'in return type');
+            throw SyntaxException::unexpected($tokens, $pos, $where);
         }
       }
     }
