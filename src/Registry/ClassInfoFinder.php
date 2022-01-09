@@ -11,9 +11,9 @@ use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 class ClassInfoFinder {
 
   /**
-   * @var \Donquixote\QuickAttributes\Registry\FileInfoLoader
+   * @var \Donquixote\QuickAttributes\Registry\FileInfoLoaderInterface
    */
-  private FileInfoLoader $fileInfoLoader;
+  private FileInfoLoaderInterface $fileInfoLoader;
 
   /**
    * @var \Donquixote\QuickAttributes\FileFinder\ClassFileFinderInterface
@@ -23,10 +23,10 @@ class ClassInfoFinder {
   /**
    * Constructor.
    *
-   * @param \Donquixote\QuickAttributes\Registry\FileInfoLoader $fileInfoLoader
+   * @param \Donquixote\QuickAttributes\Registry\FileInfoLoaderInterface $fileInfoLoader
    * @param \Donquixote\QuickAttributes\FileFinder\ClassFileFinderInterface $classFileFinder
    */
-  public function __construct(FileInfoLoader $fileInfoLoader, ClassFileFinderInterface $classFileFinder) {
+  public function __construct(FileInfoLoaderInterface $fileInfoLoader, ClassFileFinderInterface $classFileFinder) {
     $this->fileInfoLoader = $fileInfoLoader;
     $this->classFileFinder = $classFileFinder;
   }

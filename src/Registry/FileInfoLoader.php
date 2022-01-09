@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
 
-class FileInfoLoader {
+class FileInfoLoader implements FileInfoLoaderInterface {
 
   private FileTokenParserInterface $parser;
 
