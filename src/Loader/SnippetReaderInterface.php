@@ -6,7 +6,7 @@
 
 declare(strict_types=1);
 
-namespace Donquixote\QuickAttributes\SnippetReader;
+namespace Donquixote\QuickAttributes\Loader;
 
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
 

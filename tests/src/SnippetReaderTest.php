@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
-use Donquixote\QuickAttributes\SnippetReader\SnippetReader;
+use Donquixote\QuickAttributes\Loader\SnippetReader;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;

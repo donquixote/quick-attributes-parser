@@ -42,7 +42,7 @@ If you disagree with any of these optimization strategies, open an issue!
 <?php
 
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute;
-use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\Loader\ClassInfoFinder;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;

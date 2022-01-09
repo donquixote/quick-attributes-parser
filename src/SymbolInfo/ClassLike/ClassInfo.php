@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\ClassLike;
 
-use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\Loader\ClassInfoFinder;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoBase;
 use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorAndInfoTrait;
 use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface;

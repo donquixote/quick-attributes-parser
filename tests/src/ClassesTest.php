@@ -8,7 +8,7 @@ use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
-use Donquixote\QuickAttributes\Registry\ClassInfoFinder;
+use Donquixote\QuickAttributes\Loader\ClassInfoFinder;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
