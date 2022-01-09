@@ -6,7 +6,7 @@ namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
-use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\Parser\FileTokenParser;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
@@ -37,7 +37,7 @@ class SnippetTest extends YmlTestBase {
    */
   protected function processData(array &$data, string $name): void {
     $fileTokens = new FileTokens_Common($data['php']);
-    $parser = FileParser::create();
+    $parser = FileTokenParser::create();
     $importss = [];
     $attributess = [];
     try {

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
-use Donquixote\QuickAttributes\FileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\FileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Registry\ClassInfoFinder;

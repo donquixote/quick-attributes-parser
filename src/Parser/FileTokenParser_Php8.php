@@ -9,7 +9,7 @@ use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 
-class FileParserPhp8 extends FileParser {
+class FileTokenParser_Php8 extends FileTokenParser {
 
   /**
    * @inheritDoc

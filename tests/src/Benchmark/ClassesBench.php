@@ -7,6 +7,7 @@ namespace Donquixote\QuickAttributes\Tests\Benchmark;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
+use Donquixote\QuickAttributes\Parser\FileTokenParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
@@ -63,7 +64,7 @@ class ClassesBench {
     if (\PHP_VERSION_ID > 80000) {
       return;
     }
-    FileParser::create();
+    FileTokenParser::create();
   }
 
   /**
@@ -419,7 +420,7 @@ class ClassesBench {
       return;
     }
     $fileTokens = $args[0];
-    $parser = FileParser::create();
+    $parser = FileTokenParser::create();
     foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
       unset($_);
     }
