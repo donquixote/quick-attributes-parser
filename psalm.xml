@@ -39,6 +39,11 @@
         <referencedClass name="Reflection_Attribute"/>
       </errorLevel>
     </UndefinedClass>
+    <DuplicateConstant>
+      <errorLevel type="suppress">
+        <directory name="src"/>
+      </errorLevel>
+    </DuplicateConstant>
   </issueHandlers>
 
   <ignoreExceptions>
