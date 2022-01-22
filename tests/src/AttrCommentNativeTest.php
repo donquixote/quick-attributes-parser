@@ -53,19 +53,22 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
         $php .= "use $qcn as $alias;\n";
       }
     }
-    $comment = $data['comment'];
-    if (isset($data['class'])) {
-      $comment = \preg_replace(
-        '@([^\w\\\\]|^)self::@i',
-        '$1\\' . $data['class'] . '::',
-        $comment);
-    }
-    $php .= 'return'
-      . "\n  $comment"
-      . "\n  function () {};"
-      . "\n";
     $attributes = [];
     try {
+      $comment = $data['comment'];
+      if (isset($data['class'])) {
+        $comment = \preg_replace(
+          '@([^\w\\\\]|^)self::@i',
+          '$1\\' . $data['class'] . '::',
+          $comment);
+      }
+      elseif (\preg_match('@([^\w\\\\]|^)self::@i', $comment)) {
+        throw new \Exception("Unexpected 'self::' outside of class context.");
+      }
+      $php .= 'return'
+        . "\n  $comment"
+        . "\n  function () {};"
+        . "\n";
       \set_error_handler(static function (int $code, string $message): bool {
         $core_constants = \get_defined_constants(true)['Core'] ?? [];
         $error_const_names = \preg_grep('@^E_.*@', \array_keys($core_constants));

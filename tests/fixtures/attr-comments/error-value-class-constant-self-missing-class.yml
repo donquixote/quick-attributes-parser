@@ -6,5 +6,5 @@ exception.php8:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:4: Unexpected T_STRING / ''self'' outside of class context.'
 exception.native:
-  class: Error
-  message: 'Undefined constant self::U'
+  class: Exception
+  message: 'Unexpected ''self::'' outside of class context.'
