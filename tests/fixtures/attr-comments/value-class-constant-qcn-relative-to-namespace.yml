@@ -5,7 +5,3 @@ attributes:
     name: Donquixote\QuickAttributes\A
     arguments:
       - u
-attributes.php8: null
-exception.php8:
-  class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:4: Unexpected T_NAME_QUALIFIED / ''Tests\\Fixture\\CAdvanced'' in const value expression.'

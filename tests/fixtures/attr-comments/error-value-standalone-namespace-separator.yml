@@ -2,6 +2,9 @@ comment: '#[A(5 + \)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:9: Expected T_STRING, but found '')''.'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:8: Unexpected T_NS_SEPARATOR / ''\\'' in const value expression.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "\"'

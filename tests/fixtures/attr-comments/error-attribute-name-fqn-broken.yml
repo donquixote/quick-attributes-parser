@@ -2,6 +2,9 @@ comment: '#[\ ()]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:3: Expected T_STRING, but found T_WHITESPACE / '' ''.'
+exception.php8:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 0:2: Expected QCN or FQCN, but found T_NS_SEPARATOR / ''\\''.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "\"'

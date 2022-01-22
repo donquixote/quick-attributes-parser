@@ -140,7 +140,12 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       ++$pos;
       ParserUtil::skipFillerWs($tokens, $pos);
       $iBkp0 = $pos;
-      $qcn = $this->parseAttributeName($tokens, $pos);
+      if (\PHP_VERSION_ID < 80000) {
+        $qcn = $this->parseAttributeNamePhp7($tokens, $pos);
+      }
+      else {
+        $qcn = $this->parseAttributeNamePhp8($tokens, $pos);
+      }
       \assert($pos > $iBkp0);
       $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === '(') {
@@ -271,9 +276,11 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   }
 
   /**
+   * Attribute name, as QCN or FQCN.
+   *
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   *   Before: Position of first T_STRING.
+   *   Before: Position of first T_STRING or T_NAMESPACE_SEPARATOR.
    *   After: Position after last T_STRING.
    *
    * @return class-string
@@ -281,7 +288,8 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    *
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseAttributeName(array $tokens, int &$pos): string {
+  private function parseAttributeNamePhp7(array $tokens, int &$pos): string {
+    \assert(\PHP_VERSION_ID < 80000);
     if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
       ++$pos;
       if ($tokens[$pos][0] !== \T_STRING) {
@@ -315,6 +323,51 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         return $qcn;
       }
     }
+  }  // @codeCoverageIgnore
+
+  /**
+   * Attribute name, as QCN or FQCN.
+   *
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before (good): Position of first T_STRING, T_NAME_QUALIFIED or
+   *     T_NAME_FULLY_QUALIFIED.
+   *   Before (bad): Anything else leads to a SyntaxException.
+   *   After: Position after last T_STRING.
+   *
+   * @return class-string
+   *   Resolved QCN.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  private function parseAttributeNamePhp8(array $tokens, int &$pos): string {
+    \assert(\PHP_VERSION_ID >= 80000);
+    if ($tokens[$pos][0] === \T_NAME_FULLY_QUALIFIED) {
+      $fqcn = $tokens[$pos][1];
+      ++$pos;
+      /** @psalm-var class-string */
+      return \substr($fqcn, 1);
+    }
+    if ($tokens[$pos][0] === \T_NAME_QUALIFIED) {
+      $qcn = $tokens[$pos][1];
+      ++$pos;
+      $nspos = \strpos($qcn, '\\');
+      \assert($nspos !== 0 && $nspos !== false);
+      $alias = \substr($qcn, 0, $nspos);
+      if (isset($this->imports[$alias])) {
+        /** @psalm-var class-string */
+        return $this->imports[$alias] . \substr($qcn, $nspos);
+      }
+      /** @psalm-var class-string */
+      return $this->terminatedNamespace . $qcn;
+    }
+    if ($tokens[$pos][0] === \T_STRING) {
+      $name = $tokens[$pos][1];
+      ++$pos;
+      /** @psalm-var class-string */
+      return $this->imports[$name] ?? $this->terminatedNamespace . $name;
+    }
+    throw SyntaxException::expectedButFound($tokens, $pos, 'QCN or FQCN');
   }  // @codeCoverageIgnore
 
   /**
@@ -383,9 +436,16 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
             $php .= ' ';
             break;
 
-          case \T_NS_SEPARATOR:
-          case \T_STRING:
-            $php .= $this->parseConstRef($tokens, $pos);
+          case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
+          case VersionDependentTokens::T_NAME_QUALIFIED:
+          case VersionDependentTokens::T_STRING_8:
+            $php .= $this->parseConstRefPhp8($tokens, $pos);
+            // Continue, but don't increment $i.
+            continue 2;
+
+          case VersionDependentTokens::T_NS_SEPARATOR_7:
+          case VersionDependentTokens::T_STRING_7:
+            $php .= $this->parseConstRefPhp7($tokens, $pos);
             // Continue, but don't increment $i.
             continue 2;
 
@@ -463,16 +523,20 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   }
 
   /**
+   * Expression referencing a global or class constant or *::class.
+   *
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of first T_STRING or T_NS_SEPARATOR.
    *   After: Position after last T_STRING or T_CLASS.
    *
    * @return string
+   *   Fully-qualified name, with possible '::class' or '::$name' appended.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseConstRef(array $tokens, int &$pos): string {
+  private function parseConstRefPhp7(array $tokens, int &$pos): string {
+    \assert(\PHP_VERSION_ID < 80000);
     if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
       ++$pos;
       if ($tokens[$pos][0] !== \T_STRING) {
@@ -551,6 +615,88 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
     }
     // Fqn refers to a class constant.
     return $fqn;
+  }
+
+  /**
+   * Expression referencing a global or class constant or *::class.
+   *
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of first T_STRING, T_NAME_QUALIFIED or
+   *     T_NAME_FULLY_QUALIFIED.
+   *   After: Position of next non-whitespace token after the const reference.
+   *
+   * @return string
+   *   Fully-qualified name, with possible '::class' or '::$name' appended.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseConstRefPhp8(array $tokens, int &$pos): string {
+    \assert(\PHP_VERSION_ID >= 80000);
+    $posFirst = $pos;
+    $tkFirst = $tokens[$posFirst];
+    $idFirst = $tkFirst[0];
+    ++$pos;
+    $idNext = ParserUtil::skipFillerWs($tokens, $pos);
+    if ($idNext === '(') {
+      // Function call.
+      throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
+    }
+    if ($idFirst === \T_NAME_FULLY_QUALIFIED) {
+      $fqn = $tkFirst[1];
+    }
+    elseif ($idFirst === \T_NAME_QUALIFIED) {
+      $qn = $tkFirst[1];
+      $nspos = \strpos($qn, '\\');
+      \assert($nspos !== 0 && $nspos !== false);
+      $alias = \substr($qn, 0, $nspos);
+      if (!isset($this->imports[$alias])) {
+        $fqn = '\\' . $this->terminatedNamespace . $qn;
+      }
+      else {
+        $fqn = '\\' . ($this->imports[$alias] . \substr($qn, $nspos));
+      }
+    }
+    else {
+      \assert($idFirst === \T_STRING);
+      $alias = $tkFirst[1];
+      if ($idNext !== \T_DOUBLE_COLON) {
+        // Global constant.
+        return '\\' . ($this->imports["const $alias"] ?? $this->terminatedNamespace . $alias);
+      }
+      // Class constant or ::class expression.
+      if (\strtolower($alias) === 'self') {
+        if ($this->class === null) {
+          throw SyntaxException::unexpected($tokens, $posFirst, 'outside of class context');
+        }
+        $fqn = '\\' .$this->class;
+      }
+      else {
+        $fqn = '\\' . ($this->imports[$alias] ?? $this->terminatedNamespace . $alias);
+      }
+    }
+    if ($idNext !== \T_DOUBLE_COLON) {
+      // Global constant.
+      return $fqn;
+    }
+    // Fqn refers to a class.
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
+    if ($id === \T_CLASS) {
+      $expr = $fqn . '::class';
+    }
+    elseif ($id === \T_STRING) {
+      $expr = $fqn . '::' . $tokens[$pos][1];
+    }
+    else {
+      throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING or T_CLASS');
+    }
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
+    if ($id === '(') {
+      throw SyntaxException::fromTokenPos($tokens, $pos, 'Method call not allowed in constant expression.');
+    }
+    return $expr;
   }
 
 }

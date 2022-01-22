@@ -4,7 +4,3 @@ attributes:
     name: A
     arguments:
       - 2048
-attributes.php8: null
-exception.php8:
-  class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:4: Unexpected T_NAME_FULLY_QUALIFIED / ''\\E_STRICT'' in const value expression.'
