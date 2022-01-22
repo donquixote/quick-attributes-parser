@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
-use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
-use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Tests\Util\TestArrayUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
