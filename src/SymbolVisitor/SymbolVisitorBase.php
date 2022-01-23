@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolVisitor;
 
-use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
-use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfoInterface;
@@ -42,13 +40,14 @@ class SymbolVisitorBase implements SymbolVisitorInterface, FileInfoInterface {
    * This constructor is not "pure", it actually starts the parsing process.
    * This is why it is protected.
    *
-   * @param FileTokenParserInterface $parser
-   * @param FileTokensInterface $fileTokens
+   * @param callable(SymbolVisitorInterface): \Iterator<int, true> $start
+   *   Callback to start the parser iterator.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   *   Failure to start the iterator.
    */
-  protected function __construct(FileTokenParserInterface $parser, FileTokensInterface $fileTokens) {
-    $this->it = $parser->parseFileTokens($fileTokens, $this);
+  protected function __construct(callable $start) {
+    $this->it = $start($this);
   }
 
   /**

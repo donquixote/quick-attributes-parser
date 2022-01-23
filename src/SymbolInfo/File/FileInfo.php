@@ -9,6 +9,7 @@ use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
 use Donquixote\QuickAttributes\Parser\FileTokenParser;
 use Donquixote\QuickAttributes\Parser\FileTokenParserInterface;
 use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorBase;
+use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface;
 
 class FileInfo extends SymbolVisitorBase {
 
@@ -67,6 +68,10 @@ class FileInfo extends SymbolVisitorBase {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public static function fromFileTokens(FileTokensInterface $fileTokens, FileTokenParserInterface $parser = null): self {
-    return new self($parser ?? FileTokenParser::create(), $fileTokens);
+    $parser ??= FileTokenParser::create();
+    return new self(
+      static function (SymbolVisitorInterface $visitor) use ($parser, $fileTokens): \Iterator {
+        return $parser->parseFileTokens($fileTokens, $visitor);
+      });
   }
 }
