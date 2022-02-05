@@ -8,6 +8,8 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\AttributeCommentParser;
 
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface;
+
 interface AttributeCommentParserInterface {
 
   /**
@@ -20,12 +22,11 @@ interface AttributeCommentParserInterface {
   public function withContext(?string $namespace, array $imports, ?string $class): self;
 
   /**
+   * @param \Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface $builder
    * @param string $comment
-   *
-   * @return list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parse(string $comment): array;
+  public function parse(AttributesBuilderInterface $builder, string $comment): void;
 
 }

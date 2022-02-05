@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\AttributeCommentParser;
 
-use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\Builder\Arguments\ArgumentsBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Value\ArrayBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
-use Donquixote\QuickAttributes\RawAttribute\RawAttribute_Fixed;
-use Donquixote\QuickAttributes\RawAttribute\RawAttribute_NoArgs;
-use Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\VersionDependentTokens;
@@ -48,23 +48,20 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   /**
    * {@inheritdoc}
    */
-  public function parse(string $comment): array {
+  public function parse(AttributesBuilderInterface $builder, string $comment): void {
     $tokens = $this->tokenize($comment);
     \assert(\end($tokens) === '#');
     \assert(ParserAssertUtil::expect($tokens, 0, VersionDependentTokens::T_ATTRIBUTE));
-    $rawAttributes = [];
     $i = 0;
     while (true) {
       \assert(ParserAssertUtil::expect($tokens, $i, VersionDependentTokens::T_ATTRIBUTE));
-      foreach ($this->parseAttributes($tokens, $i) as $rawAttribute) {
-        $rawAttributes[] = $rawAttribute;
-      }
+      $this->parseAttributes($builder, $tokens, $i);
       \assert(ParserAssertUtil::expect($tokens, $i, ']'));
       ++$i;
       $id = ParserUtil::skipFillerWs($tokens, $i);
       if ($id === '#') {
         // EOF reached.
-        return $rawAttributes;
+        return;
       }
       if ($id === VersionDependentTokens::T_ATTRIBUTE) {
         continue;
@@ -124,16 +121,15 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   }
 
   /**
+   * @param \Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface $builder
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of '#[' / T_ATTRIBUTE.
    *   After: Position of ']'.
    *
-   * @return iterable<int, RawAttributeInterface>
-   *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseAttributes(array $tokens, int &$pos): iterable {
+  private function parseAttributes(AttributesBuilderInterface $builder, array $tokens, int &$pos): void {
     \assert(ParserAssertUtil::expect($tokens, $pos, VersionDependentTokens::T_ATTRIBUTE));
     while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [VersionDependentTokens::T_ATTRIBUTE, ',']));
@@ -147,16 +143,13 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
         $qcn = $this->parseAttributeNamePhp8($tokens, $pos);
       }
       \assert($pos > $iBkp0);
+      $args = $builder->addAttribute($qcn);
       $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === '(') {
-        yield $this->parseArgsGetRawAttribute($tokens, $pos, $qcn);
-        \assert($tokens[$pos] === ')');
+        $this->parseArgs($args, $tokens, $pos);
         \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
         ++$pos;
         $id = ParserUtil::skipFillerWs($tokens, $pos);
-      }
-      else {
-        yield new RawAttribute_NoArgs($qcn);
       }
       if ($id === ']') {
         return;
@@ -168,20 +161,16 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   }  // @codeCoverageIgnore
 
   /**
+   * @param \Donquixote\QuickAttributes\Builder\Arguments\ArgumentsBuilderInterface $builder
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of '('.
    *   After: Position of ')'.
-   * @param class-string $qcn
-   *
-   * @return \Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface
-   *   Raw attribute.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseArgsGetRawAttribute(array $tokens, int &$pos, string $qcn): RawAttributeInterface {
+  private function parseArgs(ArgumentsBuilderInterface $builder, array $tokens, int &$pos): void {
     \assert(ParserAssertUtil::expect($tokens, $pos, '('));
-    $php = '';
     $namedPart = false;
     while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', ',']));
@@ -201,78 +190,26 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
           $key = $tokens[$pos][1];
           $pos = $iNamed + 1;
           ParserUtil::skipFillerWs($tokens, $pos);
+          $namedPart = true;
         }
       }
-      // Parse a value expression.
-      $valuePhp = $this->parseValueExpression($tokens, $pos);
-      \assert($valuePhp !== '');
-      $id = $tokens[$pos][0];
-      if ($key !== null) {
-        $php .= '  ' . \var_export($key, true) . ' => ' . $valuePhp . ",  // value\n";
-        $namedPart = true;
-      }
-      elseif ($namedPart) {
+      if ($key === null && $namedPart) {
         throw SyntaxException::fromTokenPos($tokens, $pos, 'Cannot use positional argument after named argument');
       }
-      else {
-        \assert(!\preg_match('@^\w+\:[^\:]@', $valuePhp));
-        $php .= '  ' . $valuePhp . ",  // key => value\n";
-      }
+      $id = $this->parseValueExpression(
+        $builder->addArgument($key),
+        $tokens,
+        $pos);
       if ($id === ')') {
         break;
       }
-      \assert(ParserAssertUtil::expect($tokens, $pos, ','));
+      if ($id === ',') {
+        continue;
+      }
+      throw SyntaxException::expectedButFound($tokens, $pos, ', or )');
     }
 
     \assert($tokens[$pos] === ')');
-
-    if ($php === '') {
-      return new RawAttribute_NoArgs($qcn);
-    }
-
-    $php = "[\n" . $php . ']';
-
-    try {
-      \set_error_handler([self::class, 'error']);
-      /** @var array $args */
-      $args = self::doEval($php);
-    }
-    catch (ParserException $e) {
-      throw $e;
-    }
-    catch (\Throwable $e) {
-      throw new SyntaxException($e->getMessage(), 0, $e);
-    }
-    finally {
-      \restore_error_handler();
-    }
-
-    return new RawAttribute_Fixed($qcn, $args);
-  }
-
-  /**
-   * @param int $code
-   * @param string $message
-   * @param string $file
-   * @param int $line
-   *
-   * @return bool
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
-   */
-  public static function error(int $code, string $message, string $file = 'unknown', int $line = -1): bool {
-    throw new SyntaxException('Eval: ' . $message);
-  }
-
-  /**
-   * @param string $php
-   *
-   * @return mixed
-   *
-   * @throws \Throwable
-   */
-  private static function doEval(string $php) {
-    return eval("return $php;");
   }
 
   /**
@@ -371,48 +308,46 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
   }  // @codeCoverageIgnore
 
   /**
+   * @param \Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface $result
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: First token of value expression.
    *   After: Position of ')' or ',' or '}' or ']'.
    *
-   * @return string
+   * @return string|int
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseValueExpression(array $tokens, int &$pos): string {
-    $iStart = $pos;
-    $php = '';
+  private function parseValueExpression(ValueBuilderInterface $result, array $tokens, int &$pos) {
+    $unary = '';
+    $operand = $result;
     while (true) {
       $token = $tokens[$pos];
       if (\is_string($token)) {
         switch ($token) {
           case '-':
-          case '+':
-          case '*':
-          case '/':
-          case '.':
-          case '&':
-          case '|':
-            $php .= $token;
-            break;
+          case '!':
+            $unary .= $token;
+            ++$pos;
+            ParserUtil::skipFillerWs($tokens, $pos);
+            continue 2;
 
           case '(':
             ++$pos;
-            $php .= '(' . $this->parseValueExpression($tokens, $pos) . ')';
+            ParserUtil::skipFillerWs($tokens, $pos);
+            $id = $this->parseValueExpression($operand, $tokens, $pos);
+            // @todo Close the value.
             \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             break;
 
           case '[':
-            $php .= $this->parseArray($tokens, $pos, ']');
+            $this->parseArray($operand->startArray(), $tokens, $pos, ']');
             \assert($tokens[$pos] === ']');
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             break;
-
-          case ')':
-          case ']':
-          case ',':
-            // End of value expression.
-            break 2;
 
           default:
             throw SyntaxException::unexpected($tokens, $pos, 'in const value expression');
@@ -423,57 +358,85 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
           case \T_ARRAY:
             ++$pos;
             ParserUtil::skipFillerWsExpectChar($tokens, $pos, '(');
-            $php .= $this->parseArray($tokens, $pos, ')');
+            $this->parseArray($operand->startArray(), $tokens, $pos, ')');
+            \assert($tokens[$pos] === ')');
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             break;
 
           case \T_LNUMBER:
           case \T_CONSTANT_ENCAPSED_STRING:
-            $php .= $token[1];
-            break;
-
-          case \T_COMMENT:
-            // Attribute-like comments are already cleared out by tokenizer.
-            $php .= ' ';
+            $operand->setFixedValue(eval('return ' . $token[1] . ';'));
+            ++$pos;
+            /** @var string|int $id */
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
             break;
 
           case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
           case VersionDependentTokens::T_NAME_QUALIFIED:
           case VersionDependentTokens::T_STRING_8:
-            $php .= $this->parseConstRefPhp8($tokens, $pos);
-            // Continue, but don't increment $i.
-            continue 2;
-
-          case VersionDependentTokens::T_NS_SEPARATOR_7:
-          case VersionDependentTokens::T_STRING_7:
-            $php .= $this->parseConstRefPhp7($tokens, $pos);
-            // Continue, but don't increment $i.
-            continue 2;
-
-          case \T_DOC_COMMENT:
-          case \T_WHITESPACE:
-            $php .= ' ';
+            $id = $this->parseConstRefPhp8($operand, $tokens, $pos);
             break;
 
-          case \T_DOUBLE_ARROW:
+          case VersionDependentTokens::T_STRING_7:
+          case VersionDependentTokens::T_NS_SEPARATOR_7:
+            $id = $this->parseConstRefPhp7($operand, $tokens, $pos);
+            break;
+
+          default:
+            throw SyntaxException::expectedButFound($tokens, $pos, 'const value expression');
+        }
+      }
+      if ($unary !== '') {
+        $operand->applyUnaryOperator($unary);
+      }
+      \assert($id === $tokens[$pos][0]);
+      if (\is_string($id)) {
+        switch ($id) {
+          case '-':
+          case '+':
+          case '*':
+          case '/':
+          case '.':
+          case '&':
+          case '|':
+            // Binary operator.
+            $operand = $result->appendBinaryOperator($id);
+            ++$pos;
+            ParserUtil::skipFillerWs($tokens, $pos);
+            continue 2;
+
+          case '[':
+            // Array offset.
+            // @todo Implement array offset.
+            throw new \RuntimeException('Array offset not implemented.');
+
+          case ')':
+          case ']':
+          case ',':
             // End of value expression.
-            break 2;
+            return $id;
 
           default:
             throw SyntaxException::unexpected($tokens, $pos, 'in const value expression');
         }
       }
-      ++$pos;
-    }
+      else {
+        switch ($id) {
 
-    if ($pos === $iStart) {
-      throw SyntaxException::expectedButFound($tokens, $pos, 'value expression');
+          case \T_DOUBLE_ARROW:
+            // End of value expression.
+            return $id;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $pos, 'after value expression');
+        }
+      }
     }
-    \assert($php !== '');
-    \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [',', ';', ')', '}', ']', \T_DOUBLE_ARROW]));
-    return $php;
   }
 
   /**
+   * @param \Donquixote\QuickAttributes\Builder\Value\ArrayBuilderInterface $builder
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of '(' or '['.
@@ -481,160 +444,169 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
    * @param string $endchar
    *   Expected end character. One of ')' or ']'.
    *
-   * @return string
-   *   New PHP expression.
-   *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseArray(array $tokens, int &$pos, string $endchar): string {
+  private function parseArray(ArrayBuilderInterface $builder, array $tokens, int &$pos, string $endchar): void {
     \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', '[']));
-    $php = '';
     while (true) {
       \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', '[', ',']));
       ++$pos;
       $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === $endchar) {
-        break;
+        return;
       }
-      $php .= '  ' . $this->parseValueExpression($tokens, $pos);
-      $id = $tokens[$pos][0];
+      $id = $this->parseValueExpression($builder->add(), $tokens, $pos);
       if ($id === \T_DOUBLE_ARROW) {
         ++$pos;
         ParserUtil::skipFillerWs($tokens, $pos);
-        $php .= ' => ' . $this->parseValueExpression($tokens, $pos);
-        $id = $tokens[$pos][0];
+        $id = $this->parseValueExpression($builder->mapTo(), $tokens, $pos);
       }
-      $php .= ",\n";
       if ($id === $endchar) {
-        break;
+        return;
       }
       if ($id !== ',') {
         throw SyntaxException::expectedButFound($tokens, $pos, "$endchar or ,");
       }
     }
-
-    \assert($tokens[$pos] === $endchar);
-
-    if ($php === '') {
-      return '[]';
-    }
-
-    return "[\n" . $php . ']';
   }
 
   /**
    * Expression referencing a global or class constant or *::class.
    *
+   * @param \Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface $builder
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of first T_STRING or T_NS_SEPARATOR.
-   *   After: Position after last T_STRING or T_CLASS.
+   *   After: Non-whitespace position after last T_STRING or T_CLASS.
    *
-   * @return string
-   *   Fully-qualified name, with possible '::class' or '::$name' appended.
+   * @return string|int
+   *   Token id following the constant expression.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseConstRefPhp7(array $tokens, int &$pos): string {
+  private function parseConstRefPhp7(ValueBuilderInterface $builder, array $tokens, int &$pos) {
     \assert(\PHP_VERSION_ID < 80000);
-    if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
+    $startpos = $pos;
+    if ($tokens[$pos][0] === \T_STRING) {
+      $alias = $tokens[$pos][1];
       ++$pos;
-      if ($tokens[$pos][0] !== \T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
-      }
-      $first = null;
-      $fqn = $tokens[$pos][1];
-    }
-    else {
-      \assert(ParserAssertUtil::expect($tokens, $pos, \T_STRING));
-      $first = $tokens[$pos][1];
-      $fqn = '';
-    }
-    ++$pos;
-    while ($tokens[$pos][0] === \T_NS_SEPARATOR) {
-      ++$pos;
-      if ($tokens[$pos][0] !== \T_STRING) {
-        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
-      }
-      $fqn .= '\\' . $tokens[$pos][1];
-      ++$pos;
-    }
-    $iAfterName = $pos;
-    $id = ParserUtil::skipFillerWs($tokens, $pos);
-    if ($id === '(') {
-      throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
-    }
-    if ($id !== \T_DOUBLE_COLON) {
-      // Fqn refers to a global constant.
-      if ($first !== null) {
-        // Allow PHP to do a fallback lookup for the constant, if not imported.
-        // A namespace declaration must be prepended to eval'd code.
-        $qn = $this->imports["const $first"] ?? null;
-        if ($qn !== null) {
-          $fqn = '\\' . $qn . $fqn;
+      if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
+        // Resolve namespace alias.
+        $qn = $this->imports[$alias] ?? ($this->terminatedNamespace . $alias);
+        unset($alias);
+        while (true) {
+          ++$pos;
+          if ($tokens[$pos][0] !== \T_STRING) {
+            throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+          }
+          $qn .= '\\' . $tokens[$pos][1];
+          ++$pos;
+          if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+            break;
+          }
         }
-        else {
-          $fqn = \vsprintf('(defined(%s) ? %s : %s)', [
-            \var_export($this->terminatedNamespace . $first . $fqn, true),
-            '\\' . $this->terminatedNamespace . $first . $fqn,
-            '\\' . $first . $fqn,
-          ]);
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
+        if ($id === '(') {
+          throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
         }
-      }
-      $pos = $iAfterName;
-      return $fqn;
-    }
-    // Fqn refers to a class.
-    if ($first !== null) {
-      if ($fqn === '' && \strtolower($first) === 'self') {
-        if ($this->class === null) {
-          throw SyntaxException::unexpected($tokens, $pos, 'outside of class context');
+        if ($id !== \T_DOUBLE_COLON) {
+          $builder->setConstant($qn);
+          return $id;
         }
-        $fqn = '\\' . $this->class;
       }
       else {
-        $fqn = '\\' . ($this->imports[$first] ?? $this->terminatedNamespace . $first) . $fqn;
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
+        if ($id === '(') {
+          throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
+        }
+        if ($id !== \T_DOUBLE_COLON) {
+          if (isset($this->imports["const $alias"])) {
+            $qn = $this->imports["const $alias"];
+            $builder->setConstant($qn);
+          }
+          else {
+            $builder->setConstant($this->terminatedNamespace . $alias, $alias);
+          }
+          return $id;
+        }
+
+        // Class constant or ::class expression.
+        if (\strtolower($alias) === 'self') {
+          if ($this->class === null) {
+            throw SyntaxException::unexpected($tokens, $startpos, 'outside of class context');
+          }
+          $qn = $this->class;
+        }
+        else {
+          $qn = $this->imports[$alias] ?? $this->terminatedNamespace . $alias;
+        }
+
+        unset($alias);
       }
     }
+    else {
+      \assert($tokens[$pos][0] === \T_NS_SEPARATOR);
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+      $qn = $tokens[$pos][1];
+      while (true) {
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+          break;
+        }
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_STRING) {
+          throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+        }
+        $qn .= '\\' . $tokens[$pos][1];
+      }
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
+    }
+
+    /** @var string|int $id */
+    if ($id !== \T_DOUBLE_COLON) {
+      // Global constant.
+      $builder->setConstant($qn);
+      return $id;
+    }
+
+    // Fqn refers to a class.
     ++$pos;
     $id = ParserUtil::skipFillerWs($tokens, $pos);
     if ($id === \T_CLASS) {
-      $fqn .= '::class';
-      ++$pos;
-      return $fqn;
+      $builder->setFixedValue($qn);
     }
-    if ($id !== \T_STRING) {
+    elseif ($id === \T_STRING) {
+      $builder->setConstant($qn . '::' . $tokens[$pos][1]);
+    }
+    else {
       throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING or T_CLASS');
     }
-    $fqn .= '::' . $tokens[$pos][1];
     ++$pos;
-    $forwardPos = $pos;
-    $id = ParserUtil::skipFillerWs($tokens, $forwardPos);
-    if ($id === '(') {
-      throw SyntaxException::fromTokenPos($tokens, $forwardPos, 'Method call not allowed in constant expression.');
-    }
-    // Fqn refers to a class constant.
-    return $fqn;
+    return ParserUtil::skipFillerWs($tokens, $pos);
   }
 
   /**
    * Expression referencing a global or class constant or *::class.
    *
+   * @param \Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface $builder
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    *   Before: Position of first T_STRING, T_NAME_QUALIFIED or
    *     T_NAME_FULLY_QUALIFIED.
    *   After: Position of next non-whitespace token after the const reference.
    *
-   * @return string
-   *   Fully-qualified name, with possible '::class' or '::$name' appended.
+   * @return string|int
+   *   Token id at new position.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseConstRefPhp8(array $tokens, int &$pos): string {
+  private function parseConstRefPhp8(ValueBuilderInterface $builder, array $tokens, int &$pos) {
     \assert(\PHP_VERSION_ID >= 80000);
-    $posFirst = $pos;
-    $tkFirst = $tokens[$posFirst];
+    $startpos = $pos;
+    $tkFirst = $tokens[$startpos];
     $idFirst = $tkFirst[0];
     ++$pos;
     $idNext = ParserUtil::skipFillerWs($tokens, $pos);
@@ -643,60 +615,64 @@ class AttributeCommentParser implements AttributeCommentParserInterface {
       throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
     }
     if ($idFirst === \T_NAME_FULLY_QUALIFIED) {
-      $fqn = $tkFirst[1];
+      $qn = \substr($tkFirst[1], 1);
     }
     elseif ($idFirst === \T_NAME_QUALIFIED) {
-      $qn = $tkFirst[1];
-      $nspos = \strpos($qn, '\\');
+      $qnAlias = $tkFirst[1];
+      $nspos = \strpos($qnAlias, '\\');
       \assert($nspos !== 0 && $nspos !== false);
-      $alias = \substr($qn, 0, $nspos);
-      if (!isset($this->imports[$alias])) {
-        $fqn = '\\' . $this->terminatedNamespace . $qn;
-      }
-      else {
-        $fqn = '\\' . ($this->imports[$alias] . \substr($qn, $nspos));
-      }
+      $alias = \substr($qnAlias, 0, $nspos);
+      $qn = isset($this->imports[$alias])
+        ? $this->imports[$alias] . \substr($qnAlias, $nspos)
+        : $this->terminatedNamespace . $qnAlias;
     }
     else {
       \assert($idFirst === \T_STRING);
       $alias = $tkFirst[1];
       if ($idNext !== \T_DOUBLE_COLON) {
         // Global constant.
-        return '\\' . ($this->imports["const $alias"] ?? $this->terminatedNamespace . $alias);
+        if (isset($this->imports["const $alias"])) {
+          $qn = $this->imports["const $alias"];
+          $builder->setConstant($qn);
+        }
+        else {
+          $builder->setConstant($this->terminatedNamespace . $alias, $alias);
+        }
+        return $idNext;
       }
+
       // Class constant or ::class expression.
       if (\strtolower($alias) === 'self') {
         if ($this->class === null) {
-          throw SyntaxException::unexpected($tokens, $posFirst, 'outside of class context');
+          throw SyntaxException::unexpected($tokens, $startpos, 'outside of class context');
         }
-        $fqn = '\\' .$this->class;
+        $qn = $this->class;
       }
       else {
-        $fqn = '\\' . ($this->imports[$alias] ?? $this->terminatedNamespace . $alias);
+        $qn = $this->imports[$alias] ?? $this->terminatedNamespace . $alias;
       }
     }
+
     if ($idNext !== \T_DOUBLE_COLON) {
       // Global constant.
-      return $fqn;
+      $builder->setConstant($qn);
+      return $idNext;
     }
+
     // Fqn refers to a class.
     ++$pos;
     $id = ParserUtil::skipFillerWs($tokens, $pos);
     if ($id === \T_CLASS) {
-      $expr = $fqn . '::class';
+      $builder->setFixedValue($qn);
     }
     elseif ($id === \T_STRING) {
-      $expr = $fqn . '::' . $tokens[$pos][1];
+      $builder->setConstant($qn . '::' . $tokens[$pos][1]);
     }
     else {
       throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING or T_CLASS');
     }
     ++$pos;
-    $id = ParserUtil::skipFillerWs($tokens, $pos);
-    if ($id === '(') {
-      throw SyntaxException::fromTokenPos($tokens, $pos, 'Method call not allowed in constant expression.');
-    }
-    return $expr;
+    return ParserUtil::skipFillerWs($tokens, $pos);
   }
 
 }

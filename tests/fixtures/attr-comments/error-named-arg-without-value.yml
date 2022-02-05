@@ -1,7 +1,7 @@
 comment: '#[A(x:)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:6: Expected value expression, but found '')''.'
+  message: 'Line 0:6: Unexpected '')'' in const value expression.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token ")"'

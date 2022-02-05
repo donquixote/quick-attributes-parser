@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
+use Donquixote\QuickAttributes\Builder\File\FileBuilder_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileFinder\ClassFileFinder_ComposerAutoload;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
-use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\Loader\ClassInfoFinder;
+use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\ClassConstInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\PropertyInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\Parameter\ParamInfoInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 use Donquixote\QuickAttributes\Tests\Util\TestUtil;
@@ -60,12 +60,12 @@ class ClassesTest extends TestCase {
     $parser = FileParser::create();
     $importss = [];
     $attributess = [];
-    $visitor = new SymbolVisitor_CollectImportsAndAttributes(
+    $builder = new FileBuilder_CollectImportsAndAttributes(
       $importss,
       $attributess);
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
-      foreach ($parser->parseFile($file, $visitor) as $_) {}
+      foreach ($parser->parseFile($file, $builder) as $_) {}
     }
     catch (ParserException $e) {
       $e->setSourceFile($file, \dirname(__DIR__, 2));

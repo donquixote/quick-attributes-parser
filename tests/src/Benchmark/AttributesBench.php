@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests\Benchmark;
 
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilder;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use PhpBench\Benchmark\Metadata\Annotations\Groups;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
@@ -41,7 +42,9 @@ class AttributesBench {
       '#[A()]',
       '#[A(self::V, CMinimal::U, \Donquixote\QuickAttributes\Tests\Fixture\CMinimal::U, CMinimal::class)]',
     ] as $comment) {
-      foreach ($attrCommentParser->parse($comment . "\n") as $rawAttr) {
+      $builder = new AttributesBuilder();
+      $attrCommentParser->parse($builder, $comment . "\n");
+      foreach ($builder->getAttributes() as $rawAttr) {
         $rawAttr->getArguments();
       }
     }

@@ -1,7 +1,7 @@
 comment: '#[A(x: #[A])]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:7: Unexpected T_ATTRIBUTE / ''#['' in const value expression.'
+  message: 'Line 0:7: Expected const value expression, but found T_ATTRIBUTE / ''#[''.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token ")", expecting "function" or "fn" or "static" or "#["'

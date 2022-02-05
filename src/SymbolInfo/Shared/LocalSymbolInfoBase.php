@@ -12,9 +12,9 @@ abstract class LocalSymbolInfoBase extends SymbolInfoBase {
    * Constructor.
    *
    * @param string $name
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   * @param \Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface $attributes
    */
-  public function __construct(string $name, array $attributes) {
+  public function __construct(string $name, AttributesInfoInterface $attributes) {
     parent::__construct($attributes);
     $this->name = $name;
   }

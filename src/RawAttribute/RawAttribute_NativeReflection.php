@@ -20,6 +20,8 @@ class RawAttribute_NativeReflection implements RawAttributeInterface {
    * Constructor.
    *
    * @param \ReflectionAttribute<T> $attribute
+   *
+   * @noinspection InterfacesAsConstructorDependenciesInspection
    */
   public function __construct(\ReflectionAttribute $attribute) {
     if (\PHP_VERSION_ID < 80000) {

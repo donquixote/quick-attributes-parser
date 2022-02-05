@@ -5,18 +5,31 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\SymbolInfo\ClassLike;
 
 use Donquixote\QuickAttributes\Loader\ClassInfoFinder;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoBase;
-use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorAndInfoTrait;
-use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface;
 
-class ClassInfo extends GlobalSymbolInfoBase implements ClassInfoInterface, ClassMemberVisitorInterface {
+class ClassInfo extends GlobalSymbolInfoBase implements ClassInfoInterface {
 
-  use ClassMemberVisitorAndInfoTrait;
+  use ClassBodyInfoDecoratorTrait;
 
   /**
    * @var class-string
    */
   private string $name;
+
+  /**
+   * Constructor.
+   *
+   * @param class-string $name
+   * @param array<string, string> $imports
+   * @param \Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface $attributes
+   * @param \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassBodyInfoInterface $body
+   */
+  public function __construct(string $name, array $imports, AttributesInfoInterface $attributes, ClassBodyInfoInterface $body) {
+    parent::__construct($imports, $attributes);
+    $this->name = $name;
+    $this->body = $body;
+  }
 
   /**
    * @param class-string $class
@@ -36,20 +49,6 @@ class ClassInfo extends GlobalSymbolInfoBase implements ClassInfoInterface, Clas
    */
   public static function fromExpectedClass(string $class): ClassInfoInterface {
     return ClassInfoFinder::create()->requireClass($class);
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param class-string $name
-   * @param array<string, string> $imports
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   * @param \Iterator<int, true> $it
-   */
-  public function __construct(string $name, array $imports, array $attributes, \Iterator $it) {
-    parent::__construct($imports, $attributes);
-    $this->name = $name;
-    $this->it = $it;
   }
 
   /**

@@ -4,7 +4,7 @@ exception:
   message: 'Line 0:6: Expected T_STRING, but found T_DOUBLE_COLON / ''::''.'
 exception.php8:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:5: Unexpected T_NS_SEPARATOR / ''\\'' in const value expression.'
+  message: 'Line 0:5: Unexpected T_NS_SEPARATOR / ''\\'' after value expression.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "\", expecting ")"'

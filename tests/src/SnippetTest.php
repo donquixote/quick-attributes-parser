@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
+use Donquixote\QuickAttributes\Builder\File\FileBuilder_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\Parser\FileTokenParser;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectImportsAndAttributes;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -39,16 +39,21 @@ class SnippetTest extends YmlTestBase {
     $fileTokens = new FileTokens_Common($data['php']);
     $parser = FileTokenParser::create();
     $importss = [];
+    $importssRef = [];
     $attributess = [];
+    $attributessRef = [];
     try {
       unset($data['attributess']);
       unset($data['importss']);
-      $visitor = new SymbolVisitor_CollectImportsAndAttributes(
-        $importss,
-        $attributess);
+      $builder = new FileBuilder_CollectImportsAndAttributes(
+        $importssRef,
+        $attributessRef);
       // Parse all.
       /** @noinspection PhpUnusedLocalVariableInspection */
-      foreach ($parser->parseFileTokens($fileTokens, $visitor) as $_) {}
+      foreach ($parser->parseFileTokens($fileTokens, $builder) as $_) {
+        $importss = $importssRef;
+        $attributess = $attributessRef;
+      }
       unset($data['exception']);
     }
     catch (ParserException $e) {

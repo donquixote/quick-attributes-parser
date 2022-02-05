@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\Builder\File\FileBuilderInterface;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface;
 
 class FileParser {
 
@@ -33,16 +33,16 @@ class FileParser {
 
   /**
    * @param string $file
-   * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
+   * @param \Donquixote\QuickAttributes\Builder\File\FileBuilderInterface $builder
    *
    * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseFile(string $file, SymbolVisitorInterface $visitor): \Iterator {
+  public function parseFile(string $file, FileBuilderInterface $builder): \Iterator {
     try {
       $fileTokens = FileTokens_Common::fromFile($file);
-      yield from $this->fileTokenParser->parseFileTokens($fileTokens, $visitor);
+      yield from $this->fileTokenParser->parseFileTokens($fileTokens, $builder);
     }
     catch (ParserException $e) {  // @codeCoverageIgnore
       $e->setSourceFile($file);  // @codeCoverageIgnore

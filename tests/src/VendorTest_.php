@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
+use Donquixote\QuickAttributes\Builder\File\FileBuilder_NoOp;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Parser\FileParser;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Infection\ExtensionInstaller\Plugin;
 use PhpBench\Attributes\AbstractMethodsAttribute;
 use PhpBench\Attributes\AfterClassMethods;
@@ -116,7 +116,7 @@ class VendorTest_ extends TestCase {
     $parser = FileParser::create();
     try {
       /** @noinspection PhpUnusedLocalVariableInspection */
-      foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {}
+      foreach ($parser->parseFile($file, new FileBuilder_NoOp()) as $_) {}
     }
     catch (PhpVersionException $e) {
       // Ignore language features from PHP 8.

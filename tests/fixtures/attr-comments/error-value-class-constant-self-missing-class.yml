@@ -1,9 +1,6 @@
 comment: '#[A(self::U)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:8: Unexpected T_DOUBLE_COLON / ''::'' outside of class context.'
-exception.php8:
-  class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 0:4: Unexpected T_STRING / ''self'' outside of class context.'
 exception.native:
   class: Exception

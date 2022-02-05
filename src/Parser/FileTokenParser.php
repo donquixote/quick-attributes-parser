@@ -7,13 +7,13 @@ namespace Donquixote\QuickAttributes\Parser;
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser;
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface;
+use Donquixote\QuickAttributes\Builder\ClassBody\ClassBodyBuilderInterface;
+use Donquixote\QuickAttributes\Builder\File\FileBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Parameters\ParametersBuilderInterface;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\ReservedWordUtil;
@@ -43,13 +43,13 @@ abstract class FileTokenParser implements FileTokenParserInterface {
 
   /**
    * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
-   * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
+   * @param \Donquixote\QuickAttributes\Builder\File\FileBuilderInterface $fileBuilder
    *
    * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseFileTokens(FileTokensInterface $fileTokens, SymbolVisitorInterface $visitor): \Iterator {
+  public function parseFileTokens(FileTokensInterface $fileTokens, FileBuilderInterface $fileBuilder): \Iterator {
 
     $headFirst = true;
     $tokens = $fileTokens->getClassFileHead();
@@ -239,13 +239,15 @@ abstract class FileTokenParser implements FileTokenParserInterface {
               $namespace,
               $imports,
               null);
-            $attributes = $attrCommentMultiParser->parseMultiple($attrComments);
-            $paramVisitor = $visitor->addFunction($functionQcn, $imports, $attributes);
+            $functionBuilder = $fileBuilder->addFunction($functionQcn, $imports);
+            $attrCommentMultiParser->parseMultiple(
+              $functionBuilder->buildAttributes(),
+              $attrComments);
             yield true;
             yield from $this->parseParams(
               $tokens,
               $pos,
-              $paramVisitor,
+              $functionBuilder->buildParameters(),
               $attrCommentMultiParser);
             \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
             ++$pos;
@@ -271,8 +273,10 @@ abstract class FileTokenParser implements FileTokenParserInterface {
               $namespace,
               $imports,
               $class);
-            $attributes = $attrCommentMultiParser->parseMultiple($attrComments);
-            $memberVisitor = $visitor->addClass($class, $imports, $attributes);
+            $classBuilder = $fileBuilder->addClass($class, $imports);
+            $attrCommentMultiParser->parseMultiple(
+              $classBuilder->buildAttributes(),
+              $attrComments);
             yield true;
 
             // Get the full version of the tokens now.
@@ -282,9 +286,12 @@ abstract class FileTokenParser implements FileTokenParserInterface {
 
             $this->skipClassLikeExtendsImplements($tokens, $pos);
             \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
-            yield from $this->parseClassLikeBody($tokens, $pos, $memberVisitor, $attrCommentMultiParser);
+            yield from $this->parseClassLikeBody(
+              $tokens, 
+              $pos,
+              $classBuilder->buildClassBody(),
+              $attrCommentMultiParser);
             \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
-            $memberVisitor->markAsComplete();
             yield true;
             break;
 
@@ -361,7 +368,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   * @param \Donquixote\QuickAttributes\SymbolVisitor\ClassLike\ClassMemberVisitorInterface $memberVisitor
+   * @param \Donquixote\QuickAttributes\Builder\ClassBody\ClassBodyBuilderInterface $classBodyBuilder
    * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser $attrCommentMultiParser
    *   Attribute comment multi parser, filled with current context.
    *
@@ -370,7 +377,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseClassLikeBody(array $tokens, int &$pos, ClassMemberVisitorInterface $memberVisitor, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
+  private function parseClassLikeBody(array $tokens, int &$pos, ClassBodyBuilderInterface $classBodyBuilder, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
     $attributeComments = [];
     for (++$pos;; ++$pos) {
@@ -379,6 +386,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
         switch ($token) {
 
           case '}':
+            $classBodyBuilder->markAsComplete();
             return;
 
           case '?':
@@ -442,14 +450,15 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case \T_FUNCTION:
             $method = $this->parseFunctionHead($tokens, $pos, true);
             \assert($method !== null);
-            $paramVisitor = $memberVisitor->addMethod(
-              $method,
-              $attrCommentMultiParser->parseMultiple($attributeComments));
+            $methodBuilder = $classBodyBuilder->addMethod($method);
+            $attrCommentMultiParser->parseMultiple(
+              $methodBuilder->buildAttributes(),
+              $attributeComments);
             yield true;
             yield from $this->parseParams(
               $tokens,
               $pos,
-              $paramVisitor,
+              $methodBuilder->buildParameters(),
               $attrCommentMultiParser);
             \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
             ++$pos;
@@ -481,17 +490,21 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             continue 2;
 
           case \T_VARIABLE:
-            $attributes = $attrCommentMultiParser->parseMultiple($attributeComments);
             foreach ($this->parseClassPropertyGroup($tokens, $pos) as $name) {
-              $memberVisitor->addProperty($name, $attributes);
+              $propertyBuilder = $classBodyBuilder->addProperty($name);
+              $attrCommentMultiParser->parseMultiple(
+                $propertyBuilder,
+                $attributeComments);
             }
             yield true;
             break;
 
           case \T_CONST:
-            $attributes = $attrCommentMultiParser->parseMultiple($attributeComments);
             foreach ($this->parseClassConstGroup($tokens, $pos) as $name) {
-              $memberVisitor->addConstant($name, $attributes);
+              $constBuilder = $classBodyBuilder->addConstant($name);
+              $attrCommentMultiParser->parseMultiple(
+                $constBuilder,
+                $attributeComments);
             }
             yield true;
             break;
@@ -557,14 +570,14 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    * @param int $pos
    *   Before: Position at '(' before the parameters.
    *   After: Position at ')' after the parameters.
-   * @param \Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface $paramVisitor
+   * @param \Donquixote\QuickAttributes\Builder\Parameters\ParametersBuilderInterface $parametersBuilder
    * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser $attrCommentMultiParser
    *
    * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseParams(array $tokens, int &$pos, ParamVisitorInterface $paramVisitor, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
+  private function parseParams(array $tokens, int &$pos, ParametersBuilderInterface $parametersBuilder, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '('));
     $attributeComments = [];
     for (++$pos;; ++$pos) {
@@ -687,9 +700,10 @@ abstract class FileTokenParser implements FileTokenParserInterface {
       }
       \assert(ParserAssertUtil::expect($tokens, $pos, \T_VARIABLE));
       $name = \substr($tokens[$pos][1], 1);
-      $paramVisitor->addParameter(
-        $name,
-        $attrCommentMultiParser->parseMultiple($attributeComments));
+      $attributesBuilder = $parametersBuilder->addParameter($name);
+      $attrCommentMultiParser->parseMultiple(
+        $attributesBuilder,
+        $attributeComments);
       yield true;
       $attributeComments = [];
       ++$pos;
@@ -707,7 +721,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
       throw SyntaxException::unexpected($tokens, $pos, 'in parameters');
     }
 
-    $paramVisitor->markAsComplete();
+    $parametersBuilder->markAsComplete();
     yield true;
   }
 

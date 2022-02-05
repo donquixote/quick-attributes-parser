@@ -18,9 +18,9 @@ abstract class GlobalSymbolInfoBase extends SymbolInfoBase implements GlobalSymb
    * Constructor.
    *
    * @param array<string, string> $imports
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   * @param \Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface $attributes
    */
-  public function __construct(array $imports, array $attributes) {
+  public function __construct(array $imports, AttributesInfoInterface $attributes) {
     parent::__construct($attributes);
     $this->imports = $imports;
   }

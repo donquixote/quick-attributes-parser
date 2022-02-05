@@ -4,24 +4,25 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\ClassMember;
 
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\ParametersInfoDecoratorTrait;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\ParametersInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\LocalSymbolInfoBase;
-use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorAndInfoTrait;
-use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface;
 
-class MethodInfo extends LocalSymbolInfoBase implements MethodInfoInterface, ParamVisitorInterface {
+class MethodInfo extends LocalSymbolInfoBase implements MethodInfoInterface {
 
-  use ParamVisitorAndInfoTrait;
+  use ParametersInfoDecoratorTrait;
 
   /**
    * Constructor.
    *
    * @param string $name
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
-   * @param \Iterator<int, true> $it
+   * @param \Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface $attributes
+   * @param \Donquixote\QuickAttributes\SymbolInfo\FunctionLike\ParametersInfoInterface $parameters
    */
-  public function __construct(string $name, array $attributes, \Iterator $it) {
+  public function __construct(string $name, AttributesInfoInterface $attributes, ParametersInfoInterface $parameters) {
     parent::__construct($name, $attributes);
-    $this->it = $it;
+    $this->parameters = $parameters;
   }
 
   public function getMemberId(): string {

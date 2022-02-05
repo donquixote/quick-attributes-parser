@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests\Benchmark;
 
+use Donquixote\QuickAttributes\Builder\File\FileBuilder_CollectClassHeadsOnly;
+use Donquixote\QuickAttributes\Builder\File\FileBuilder_NoOp;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_Common;
 use Donquixote\QuickAttributes\FileTokens\FileTokens_PreComputed;
 use Donquixote\QuickAttributes\Parser\FileParser;
@@ -12,8 +14,6 @@ use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\ClassMember\MethodInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_CollectClassHeadsOnly;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitor_NoOp;
 use Donquixote\QuickAttributes\Tests\Alternatives\StaticReflectionParserBenchmarkEquivalent;
 use Donquixote\QuickAttributes\Tests\Fixture\CMinimal;
 use PhpBench\Benchmark\Metadata\Annotations\Groups;
@@ -331,7 +331,7 @@ class ClassesBench {
   public function benchParseClassFileStart(array $args): void {
     $file = $args[0];
     $parser = FileParser::create();
-    $parser->parseFile($file, new SymbolVisitor_NoOp());
+    $parser->parseFile($file, new FileBuilder_NoOp());
   }
 
   /**
@@ -367,10 +367,10 @@ class ClassesBench {
   public function benchParseClassHead(array $args): void {
     $file = $args[0];
     $parser = FileParser::create();
-    $visitor = new SymbolVisitor_CollectClassHeadsOnly();
+    $builder = new FileBuilder_CollectClassHeadsOnly();
     // Force reading of first symbol.
-    $parser->parseFile($file, $visitor)->valid();
-    if ($visitor->getClasses() === []) {
+    $parser->parseFile($file, $builder)->valid();
+    if ($builder->getClasses() === []) {
       throw new \RuntimeException('Unexpected non-class symbol above class.');
     }
   }
@@ -388,7 +388,7 @@ class ClassesBench {
   public function benchParseClassFull(array $args): void {
     $file = $args[0];
     $parser = FileParser::create();
-    foreach ($parser->parseFile($file, new SymbolVisitor_NoOp()) as $_) {
+    foreach ($parser->parseFile($file, new FileBuilder_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -406,7 +406,7 @@ class ClassesBench {
   public function benchParseTokensFull(array $args): void {
     $fileTokens = $args[0];
     $parser = FileTokenParser::create();
-    foreach ($parser->parseFileTokens($fileTokens, new SymbolVisitor_NoOp()) as $_) {
+    foreach ($parser->parseFileTokens($fileTokens, new FileBuilder_NoOp()) as $_) {
       unset($_);
     }
   }
@@ -424,7 +424,7 @@ class ClassesBench {
   public function benchParseClassFirstMember(array $args): void {
     $file = $args[0];
     $parser = FileParser::create();
-    $it = $parser->parseFile($file, new SymbolVisitor_NoOp());
+    $it = $parser->parseFile($file, new FileBuilder_NoOp());
     $it->current();
     $it->next();
     $it->current();

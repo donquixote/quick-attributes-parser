@@ -8,19 +8,19 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\Builder\File\FileBuilderInterface;
 use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
-use Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface;
 
 interface FileTokenParserInterface {
 
   /**
    * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
-   * @param \Donquixote\QuickAttributes\SymbolVisitor\SymbolVisitorInterface $visitor
+   * @param \Donquixote\QuickAttributes\Builder\File\FileBuilderInterface $fileBuilder
    *
    * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseFileTokens(FileTokensInterface $fileTokens, SymbolVisitorInterface $visitor): \Iterator;
+  public function parseFileTokens(FileTokensInterface $fileTokens, FileBuilderInterface $fileBuilder): \Iterator;
 
 }

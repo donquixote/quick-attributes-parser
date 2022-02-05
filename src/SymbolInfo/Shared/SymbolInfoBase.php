@@ -6,22 +6,15 @@ namespace Donquixote\QuickAttributes\SymbolInfo\Shared;
 
 abstract class SymbolInfoBase implements SymbolInfoInterface {
 
-  /**
-   * @var list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
-   */
-  private array $attributes;
+  use AttributesInfoDecoratorTrait;
 
   /**
    * Constructor.
    *
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
+   * @param \Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface $attributes
    */
-  public function __construct(array $attributes) {
+  public function __construct(AttributesInfoInterface $attributes) {
     $this->attributes = $attributes;
-  }
-
-  public function getAttributes(): array {
-    return $this->attributes;
   }
 
 }

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\SymbolInfo\FunctionLike;
 
+use Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\Shared\GlobalSymbolInfoBase;
-use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorAndInfoTrait;
-use Donquixote\QuickAttributes\SymbolVisitor\FunctionLike\ParamVisitorInterface;
 
-class FunctionInfo extends GlobalSymbolInfoBase implements FunctionInfoInterface, ParamVisitorInterface {
+class FunctionInfo extends GlobalSymbolInfoBase implements FunctionInfoInterface {
 
-  use ParamVisitorAndInfoTrait;
+  use ParametersInfoDecoratorTrait;
 
   /**
    * @var callable-string
@@ -21,14 +20,14 @@ class FunctionInfo extends GlobalSymbolInfoBase implements FunctionInfoInterface
    * Constructor.
    *
    * @param callable-string $name
-   * @param list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface> $attributes
    * @param array<string, string> $imports
-   * @param \Iterator<int, true> $it
+   * @param \Donquixote\QuickAttributes\SymbolInfo\Shared\AttributesInfoInterface $attributes
+   * @param \Donquixote\QuickAttributes\SymbolInfo\FunctionLike\ParametersInfoInterface $parameters
    */
-  public function __construct(string $name, array $attributes, array $imports, \Iterator $it) {
+  public function __construct(string $name, array $imports, AttributesInfoInterface $attributes, ParametersInfoInterface $parameters) {
     parent::__construct($imports, $attributes);
     $this->name = $name;
-    $this->it = $it;
+    $this->parameters = $parameters;
   }
 
   /**

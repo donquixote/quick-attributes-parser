@@ -18,6 +18,8 @@ class ClassFileFinder_ComposerAutoload implements ClassFileFinderInterface {
    * Constructor.
    *
    * @param \Composer\Autoload\ClassLoader $classLoader
+   *
+   * @noinspection InterfacesAsConstructorDependenciesInspection
    */
   public function __construct(ClassLoader $classLoader) {
     $this->classLoader = $classLoader;

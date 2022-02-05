@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Donquixote\QuickAttributes\Tests;
 
 use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilder;
 use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
@@ -71,7 +72,9 @@ class AttrCommentParserTest extends YmlTestBase {
       $data['class'] ?? null);
 
     try {
-      $attributes = $parser->parse($data['comment'] . "\n");
+      $builder = new AttributesBuilder();
+      $parser->parse($builder, $data['comment'] . "\n");
+      $attributes = $builder->getAttributes();
     }
     catch (ParserException|\InvalidArgumentException $e) {
       unset($data['attributes']);

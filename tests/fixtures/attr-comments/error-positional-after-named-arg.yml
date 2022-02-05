@@ -2,4 +2,4 @@ comment: '#[A(x: 5, 7)]'
 fatal: true
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:11: Cannot use positional argument after named argument'
+  message: 'Line 0:10: Cannot use positional argument after named argument'

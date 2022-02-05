@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\AttributeCommentParser;
 
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface;
+
 /**
  * Wrapper to parse multiple comments at once.
  */
@@ -37,20 +39,15 @@ class AttributeCommentMultiParser {
   }
 
   /**
+   * @param \Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface $builder
    * @param list<string> $attrComments
-   *
-   * @return list<\Donquixote\QuickAttributes\RawAttribute\RawAttributeInterface>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public function parseMultiple(array $attrComments): array {
-    $attributes = [];
+  public function parseMultiple(AttributesBuilderInterface $builder, array $attrComments): void {
     foreach ($attrComments as $attrComment) {
-      foreach ($this->attrCommentParser->parse($attrComment) as $attribute) {
-        $attributes[] = $attribute;
-      }
+      $this->attrCommentParser->parse($builder, $attrComment);
     }
-    return $attributes;
   }
 
 }
