@@ -27,6 +27,8 @@ abstract class YmlTestBase extends TestCase {
   /**
    * @param T $data
    * @param string $name
+   *
+   * @psalm-suppress ReferenceConstraintViolation
    */
   protected function processDataByVersion(array &$data, string $name): void {
     $keys = $this->getKnownKeys();
