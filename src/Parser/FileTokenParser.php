@@ -1364,9 +1364,6 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
           case VersionDependentTokens::T_NAME_QUALIFIED:
           case VersionDependentTokens::T_STRING_8:
-            $id = $this->parseConstRef($operand, $tokens, $pos);
-            break;
-
           case VersionDependentTokens::T_STRING_7:
           case VersionDependentTokens::T_NS_SEPARATOR_7:
             $id = $this->parseConstRef($operand, $tokens, $pos);
