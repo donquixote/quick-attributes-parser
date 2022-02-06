@@ -1,0 +1,7 @@
+comment: '#[A(5 class)]'
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 1:7: Unexpected T_CLASS / ''class'' after value expression.'
+exception.native:
+  class: ParseError
+  message: 'syntax error, unexpected token "class", expecting ")"'
