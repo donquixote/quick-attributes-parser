@@ -18,11 +18,13 @@ The parser only looks for information that is _not_ already available from nativ
 It requires at least PHP 7.4. The idea is that most projects will be able to upgrade to PHP 7.4, but it will take more time to go to PHP 8.0+.
 
 ## Limitations
-The parser does NOT reliably find errors in the code. 
+The parser does NOT reliably find all errors in the code.
 
 The parser does NOT retrieve all the info in the file, only what is needed to get attributes and imports.
 
 ## Performance
+This package includes benchmarks that parse a complete file around 10 times faster than nikic/php-parser, or around 100 times faster when only parsing the file head (the nikic/php-parser always has to parse the complete file).
+
 The parser is optimized using the following techniques:
 
 - Lazy / incremental parsing: It only goes as far into the file as needed to find the desired symbol(s). Once another symbol from the same file is requested, the iterator (generator) for that file will continue to run, until that other symbol is found.
@@ -32,9 +34,8 @@ The parser is optimized using the following techniques:
 - Low-level operations: The parser uses integer indices and array index lookups instead of object methods or `foreach ()`, to get to the next token.
 - No token preprocessing: The parser operates directly on the result of `token_get_all()`, only one terminating `'#'` is appended to mark the EOF.
 - No / lazy array copy or array slicing: The array of tokens remains unmodified throughout the parsing process, and no (or very few) other arrays are created.
-- No complex AST: The parser iterates, yielding `true` values, and writes data to a visitor.
 
-If you disagree with any of these optimization strategies, open an issue!
+Feel free to share your thoughts about any of these points, using the issue tracker!
 
 ## Usage
 
@@ -134,7 +135,7 @@ Related popular packages:
   - it is designed for completeness and maintainability before performance.
 - [spiral/attributes](https://packagist.org/packages/spiral/attributes):
   - discovers annotations and attributes.
-  - uses nikic/php-parser.
+  - uses nikic/php-parser for php < 8.
 - [roave/better-reflection](https://packagist.org/packages/roave/better-reflection)
   - discovers everything that you would get with native reflection (`\ReflectionClass` and friends).
   - uses nikic/php-parser.
