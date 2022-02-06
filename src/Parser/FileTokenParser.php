@@ -1304,6 +1304,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    *   After: Position of ')' or ',' or '}' or ']'.
    *
    * @return string|int
+   *   Token id after the expression.
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
