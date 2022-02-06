@@ -5,7 +5,7 @@ comment: |
 namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
-class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+class: CMinimal
 attributes.native:
   -
     name: N\M\A

@@ -1,5 +1,5 @@
 comment: '#[self()]'
-class: N\M\C
+class: C
 attributes:
   -
     name: self

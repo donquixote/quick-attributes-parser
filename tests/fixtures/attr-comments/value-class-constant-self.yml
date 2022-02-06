@@ -1,5 +1,6 @@
-comment: '#[A(self::U)]'
-class: Donquixote\QuickAttributes\Tests\Fixture\CAdvanced
+comment: '#[\A(self::U)]'
+namespace: Donquixote\QuickAttributes\Tests\Fixture
+class: CAdvanced
 attributes:
   -
     name: A

@@ -1,5 +1,5 @@
 comment: '#[A(self::foo())]'
-class: Donquixote\QuickAttributes\Tests\Fixture\CAdvanced
+class: CAdvanced
 fatal: true
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException

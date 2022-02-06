@@ -1,7 +1,7 @@
 comment: '#[A(5)] #[B(7, x: A::class), C(Other::class, [array(5 => 7, 9)])]'
 imports:
   A: N\M\A
-class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+class: CMinimal
 attributes:
   -
     name: N\M\A

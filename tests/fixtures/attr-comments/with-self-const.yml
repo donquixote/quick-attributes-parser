@@ -2,7 +2,7 @@ comment: '#[A(self::V, CMinimal::U, \Donquixote\QuickAttributes\Tests\Fixture\CM
 namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
-class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+class: CMinimal
 attributes:
   -
     name: N\M\A

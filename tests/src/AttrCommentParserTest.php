@@ -17,7 +17,7 @@ use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
  *   comment: string,
  *   namespace?: string,
  *   imports?: array<string, string>,
- *   class?: class-string,
+ *   class?: string,
  *   attributes?: list<array{
  *     name: class-string,
  *     arguments?: array,
@@ -64,12 +64,24 @@ class AttrCommentParserTest extends YmlTestBase {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
+    $namespace = $data['namespace'] ?? null;
+    if (null !== $class = $data['class'] ?? null) {
+      if (false !== $nspos = \strrpos($class, '\\')) {
+        // Class should only be the shortname in these fixtures.
+        // The rest should be in the namespace key.
+        $class = $data['class'] = \substr($class, $nspos + 1);
+      }
+      if ($namespace !== null) {
+        $class = $namespace . '\\' . $class;
+      }
+    }
 
     $parser = new AttributeCommentParser();
+    /** @var class-string $class */
     $parser = $parser->withContext(
-      $data['namespace'] ?? null,
+      $namespace,
       $data['imports'] ?? [],
-      $data['class'] ?? null);
+      $class);
 
     try {
       $builder = new AttributesBuilder();

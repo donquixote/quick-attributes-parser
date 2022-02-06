@@ -2,7 +2,7 @@ comment: '#[A] class C {}'
 namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
-class: Donquixote\QuickAttributes\Tests\Fixture\CMinimal
+class: CMinimal
 exception:
   class: Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException
   message: 'Line 1:6: Cannot have regular code after an attribute in the same line.'

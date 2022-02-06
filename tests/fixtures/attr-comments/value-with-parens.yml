@@ -2,7 +2,7 @@ comment: '#[A(5 + (3 * 2))]'
 namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
-class: N\M\A\C
+class: C
 attributes:
   -
     name: N\M\A

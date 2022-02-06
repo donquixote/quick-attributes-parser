@@ -39,8 +39,10 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
       return;
     }
     $php = '';
+    $tns = '';
     if (isset($data['namespace'])) {
       $php .= "namespace $data[namespace];\n";
+      $tns = $data['namespace'] . '\\';
     }
     foreach ($data['imports'] ?? [] as $alias => $qcn) {
       // Optimize for the more common case where the alias has no space.
@@ -59,7 +61,7 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
       if (isset($data['class'])) {
         $comment = \preg_replace(
           '@([^\w\\\\]|^)self::@i',
-          '$1\\' . $data['class'] . '::',
+          '$1\\' . $tns . $data['class'] . '::',
           $comment);
       }
       elseif (\preg_match('@([^\w\\\\]|^)self::@i', $comment)) {
