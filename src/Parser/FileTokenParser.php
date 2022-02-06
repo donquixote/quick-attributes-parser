@@ -1420,7 +1420,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
         }
       }
     }
-  }
+  }  // @codeCoverageIgnore
 
   /**
    * @param \Donquixote\QuickAttributes\Builder\Value\ArrayBuilderInterface $builder
