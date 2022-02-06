@@ -1,0 +1,5 @@
+comment: '#[A(N\foo())]'
+fatal: true
+exception:
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 1:10: Function call not allowed in constant expression.'

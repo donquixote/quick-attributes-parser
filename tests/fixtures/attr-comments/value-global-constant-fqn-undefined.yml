@@ -1,0 +1,11 @@
+comment: '#[A(\N\X)]'
+attributes:
+  -
+    name: A
+    exception:
+      class: ReflectionException
+      message: 'Undefined constant ''N\X''.'
+attributes.native: null
+exception.native:
+  class: Error
+  message: 'Undefined constant "N\X"'
