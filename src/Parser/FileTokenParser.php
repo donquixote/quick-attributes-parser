@@ -1266,6 +1266,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
         $builder->addArgument($key),
         $tokens,
         $pos);
+      \assert($tokens[$pos] === $id);
       if ($id === ')') {
         break;
       }
