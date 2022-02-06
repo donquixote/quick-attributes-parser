@@ -27,6 +27,9 @@ class ValueExpression_Constant implements ValueExpressionInterface {
    * {@inheritdoc}
    */
   public function getValue() {
+    if (!\defined($this->name)) {
+      throw new \ReflectionException("Undefined constant '$this->name'.");
+    }
     return \constant($this->name);
   }
 
