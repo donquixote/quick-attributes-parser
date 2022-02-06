@@ -3,6 +3,4 @@ namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
 class: CMinimal
-exception:
-  class: InvalidArgumentException
-  message: 'Comment must begin with #[.'
+attributes: {  }

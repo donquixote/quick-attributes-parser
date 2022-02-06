@@ -5,4 +5,4 @@ php: |
   function f() {}
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 1:9: Expected '']'' or '','', but found ''+''.'
+  message: 'Line 3:9: Expected '']'' or '','', but found ''+''.'

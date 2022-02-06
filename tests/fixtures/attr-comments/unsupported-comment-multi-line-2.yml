@@ -6,17 +6,18 @@ namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
 class: CMinimal
+attributes.php8:
+  -
+    name: N\M\A
+    arguments:
+      x: 5
 attributes.native:
   -
     name: N\M\A
     arguments:
       x: 5
 exception:
-  class: InvalidArgumentException
-  message: |-
-    Comment must be single-line and end with line break.'#[A(
-      x: 5,
-    )]
-
-    '
+  class: Donquixote\QuickAttributes\Exception\SyntaxException
+  message: 'Line 3:1: Unexpected '')'' in file scope.'
+exception.php8: null
 mismatch: true

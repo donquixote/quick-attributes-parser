@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
@@ -173,5 +174,113 @@ class FileTokenParser_Php8 extends FileTokenParser {
       }
     }
   }  // @codeCoverageIgnore
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function parseAttributeName(array $tokens, int &$pos): string {
+    \assert(\PHP_VERSION_ID >= 80000);
+    if ($tokens[$pos][0] === \T_NAME_FULLY_QUALIFIED) {
+      $fqcn = $tokens[$pos][1];
+      ++$pos;
+      /** @psalm-var class-string */
+      return \substr($fqcn, 1);
+    }
+    if ($tokens[$pos][0] === \T_NAME_QUALIFIED) {
+      $qcn = $tokens[$pos][1];
+      ++$pos;
+      $nspos = \strpos($qcn, '\\');
+      \assert($nspos !== 0 && $nspos !== false);
+      $alias = \substr($qcn, 0, $nspos);
+      if (isset($this->imports[$alias])) {
+        /** @psalm-var class-string */
+        return $this->imports[$alias] . \substr($qcn, $nspos);
+      }
+      /** @psalm-var class-string */
+      return $this->terminatedNamespace . $qcn;
+    }
+    if ($tokens[$pos][0] === \T_STRING) {
+      $name = $tokens[$pos][1];
+      ++$pos;
+      /** @psalm-var class-string */
+      return $this->imports[$name] ?? $this->terminatedNamespace . $name;
+    }
+    throw SyntaxException::expectedButFound($tokens, $pos, 'QCN or FQCN');
+  }  // @codeCoverageIgnore
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function parseConstRef(ValueBuilderInterface $builder, array $tokens, int &$pos) {
+    \assert(\PHP_VERSION_ID >= 80000);
+    $startpos = $pos;
+    $tkFirst = $tokens[$startpos];
+    $idFirst = $tkFirst[0];
+    ++$pos;
+    $idNext = ParserUtil::skipFillerWs($tokens, $pos);
+    if ($idNext === '(') {
+      // Function call.
+      throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
+    }
+    if ($idFirst === \T_NAME_FULLY_QUALIFIED) {
+      $qn = \substr($tkFirst[1], 1);
+    }
+    elseif ($idFirst === \T_NAME_QUALIFIED) {
+      $qnAlias = $tkFirst[1];
+      $nspos = \strpos($qnAlias, '\\');
+      \assert($nspos !== 0 && $nspos !== false);
+      $alias = \substr($qnAlias, 0, $nspos);
+      $qn = isset($this->imports[$alias])
+        ? $this->imports[$alias] . \substr($qnAlias, $nspos)
+        : $this->terminatedNamespace . $qnAlias;
+    }
+    else {
+      \assert($idFirst === \T_STRING);
+      $alias = $tkFirst[1];
+      if ($idNext !== \T_DOUBLE_COLON) {
+        // Global constant.
+        if (isset($this->imports["const $alias"])) {
+          $qn = $this->imports["const $alias"];
+          $builder->setConstant($qn);
+        }
+        else {
+          $builder->setConstant($this->terminatedNamespace . $alias, $alias);
+        }
+        return $idNext;
+      }
+
+      // Class constant or ::class expression.
+      if (\strtolower($alias) === 'self') {
+        if ($this->class === null) {
+          throw SyntaxException::unexpected($tokens, $startpos, 'outside of class context');
+        }
+        $qn = $this->class;
+      }
+      else {
+        $qn = $this->imports[$alias] ?? $this->terminatedNamespace . $alias;
+      }
+    }
+
+    if ($idNext !== \T_DOUBLE_COLON) {
+      // Global constant.
+      $builder->setConstant($qn);
+      return $idNext;
+    }
+
+    // Fqn refers to a class.
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
+    if ($id === \T_CLASS) {
+      $builder->setFixedValue($qn);
+    }
+    elseif ($id === \T_STRING) {
+      $builder->setConstant($qn . '::' . $tokens[$pos][1]);
+    }
+    else {
+      throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING or T_CLASS');
+    }
+    ++$pos;
+    return ParserUtil::skipFillerWs($tokens, $pos);
+  }
 
 }

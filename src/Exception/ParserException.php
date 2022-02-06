@@ -26,16 +26,18 @@ class ParserException extends \Exception {
   /**
    * Prepends source file name to the message.
    *
-   * @param string $file
+   * @param string|null $file
    * @param string|null $basedir
    * @param int $startLine
    * @param int $indent
    */
-  public function setSourceFile(string $file, string $basedir = null, int $startLine = 0, int $indent = 0): void {
-    if ($basedir !== null && \preg_match(
-      '@^' . \preg_quote($basedir  . '/', '@') . '(.*)$@',
-      $file,
-      $m)
+  public function setSourceFile(?string $file, string $basedir = null, int $startLine = 0, int $indent = 0): void {
+    if ($basedir !== null
+      && $file !== null
+      && \preg_match(
+        '@^' . \preg_quote($basedir  . '/', '@') . '(.*)$@',
+        $file,
+        $m)
     ) {
       $file = $m[1];
     }
@@ -43,10 +45,17 @@ class ParserException extends \Exception {
       $line = (int) $m[1] + $startLine;
       $pos = (int) $m[2] + $indent;
       $message = $m[3];
-      $this->message = "In $file:$line:$pos: $message";
+      if ($file !== null) {
+        $this->message = "In $file:$line:$pos: $message";
+      }
+      else {
+        $this->message = "Line $line:$pos: $message";
+      }
     }
     else {
-      $this->message .= "\nParsed source file: $file.";
+      if ($file !== null) {
+        $this->message .= "\nParsed source file: $file.";
+      }
     }
   }
 

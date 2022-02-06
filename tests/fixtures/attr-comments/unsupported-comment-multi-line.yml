@@ -5,18 +5,11 @@ namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
 class: CMinimal
-attributes.native:
+attributes:
   -
     name: N\M\A
     arguments: {  }
   -
     name: Donquixote\QuickAttributes\Tests\Fixture\B
     arguments: {  }
-exception:
-  class: InvalidArgumentException
-  message: |-
-    Comment must be single-line and end with line break.'#[A]
-    #[B]
-
-    '
 mismatch: true

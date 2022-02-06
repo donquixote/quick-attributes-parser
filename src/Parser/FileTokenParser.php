@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
-use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser;
-use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
-use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface;
+use Donquixote\QuickAttributes\Builder\Arguments\ArgumentsBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilder_NoOp;
+use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface;
 use Donquixote\QuickAttributes\Builder\ClassBody\ClassBodyBuilderInterface;
 use Donquixote\QuickAttributes\Builder\File\FileBuilderInterface;
 use Donquixote\QuickAttributes\Builder\Parameters\ParametersBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Value\ArrayBuilderInterface;
+use Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface;
+use Donquixote\QuickAttributes\Exception\ParserException;
 use Donquixote\QuickAttributes\Exception\PhpVersionException;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
@@ -17,6 +20,7 @@ use Donquixote\QuickAttributes\FileTokens\FileTokensInterface;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
 use Donquixote\QuickAttributes\Util\ParserUtil;
 use Donquixote\QuickAttributes\Util\ReservedWordUtil;
+use Donquixote\QuickAttributes\Util\TokenPositionUtil;
 use Donquixote\QuickAttributes\Util\VersionDependentTokens;
 
 abstract class FileTokenParser implements FileTokenParserInterface {
@@ -24,31 +28,22 @@ abstract class FileTokenParser implements FileTokenParserInterface {
   /**
    * @var string
    */
-  private string $terminatedNamespace = '';
+  protected string $terminatedNamespace = '';
 
   /**
-   * @var string|null
+   * @var array<string, string>
    */
-  private ?string $namespace = null;
+  protected array $imports = [];
 
   /**
-   * @var \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser
+   * @var class-string|null
    */
-  private AttributeCommentMultiParser $attrCommentMultiParser;
+  protected ?string $class = null;
 
   public static function create(): self {
     return \PHP_VERSION_ID < 80000
-      ? new FileTokenParser_Php7(new AttributeCommentParser())
-      : new FileTokenParser_Php8(new AttributeCommentParser());
-  }
-
-  /**
-   * Constructor.
-   *
-   * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParserInterface $attrCommentParser
-   */
-  public function __construct(AttributeCommentParserInterface $attrCommentParser) {
-    $this->attrCommentMultiParser = new AttributeCommentMultiParser($attrCommentParser);
+      ? new FileTokenParser_Php7()
+      : new FileTokenParser_Php8();
   }
 
   /**
@@ -58,10 +53,31 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    */
   private function withNamespace(?string $namespace): self {
     $clone = clone $this;
-    $clone->namespace = $namespace;
     $clone->terminatedNamespace = ($namespace !== null)
       ? $namespace . '\\'
       : '';
+    return $clone;
+  }
+
+  /**
+   * @param array<string, string> $imports
+   *
+   * @return static
+   */
+  private function withImports(array $imports): self {
+    $clone = clone $this;
+    $clone->imports = $imports;
+    return $clone;
+  }
+
+  /**
+   * @param class-string $class
+   *
+   * @return static
+   */
+  private function withClass(string $class): self {
+    $clone = clone $this;
+    $clone->class = $class;
     return $clone;
   }
 
@@ -170,7 +186,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    */
   private function parseNamespaceContents(array $tokens, ?FileTokensInterface $remainingFileTokens, int $pos, FileBuilderInterface $fileBuilder): \Iterator {
     $imports = [];
-    $attrComments = [];
+    $attrPositions = [];
     for (;; ++$pos) {
       $token = $tokens[$pos];
       if (\is_string($token)) {
@@ -238,13 +254,17 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case \T_COMMENT:
             if (\substr($token[1], 0, 2) === '#[') {
               // This is an attribute!
-              $attrComments[] = $token[1];
+              $attrPositions[] = $pos;
             }
             // Keep attributes.
             continue 2;
 
           case VersionDependentTokens::T_ATTRIBUTE:
-            $attrComments[] = $this->parseNativeAttribute($tokens, $pos);
+            // It is too early to parse the attribute, because we don't have the
+            // builder object, and we don't know yet if it is part of a class.
+            $attrPositions[] = $pos;
+            $this->skipNativeAttribute($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, ']'));
             continue 2;
 
           case \T_PRIVATE:
@@ -291,20 +311,17 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             }
             /** @var callable-string $functionQcn */
             $functionQcn = $this->terminatedNamespace . $shortname;
-            $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
-              $this->namespace,
-              $imports,
-              null);
+            $functionParser = $this->withImports($imports);
             $functionBuilder = $fileBuilder->addFunction($functionQcn, $imports);
-            $attrCommentMultiParser->parseMultiple(
+            $functionParser->parseAttrPositions(
               $functionBuilder->buildAttributes(),
-              $attrComments);
+              $tokens,
+              $attrPositions);
             yield true;
-            yield from $this->parseParams(
+            yield from $functionParser->parseParams(
               $tokens,
               $pos,
-              $functionBuilder->buildParameters(),
-              $attrCommentMultiParser);
+              $functionBuilder->buildParameters());
             \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
             ++$pos;
             $id = ParserUtil::skipFillerWs($tokens, $pos);
@@ -325,14 +342,12 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             $shortname = ParserUtil::skipFillerWsExpectTString($tokens, $pos);
             /** @var class-string $class */
             $class = $this->terminatedNamespace . $shortname;
-            $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
-              $this->namespace,
-              $imports,
-              $class);
+            $classParser = $this->withImports($imports)->withClass($class);
             $classBuilder = $fileBuilder->addClass($class, $imports);
-            $attrCommentMultiParser->parseMultiple(
+            $classParser->parseAttrPositions(
               $classBuilder->buildAttributes(),
-              $attrComments);
+              $tokens,
+              $attrPositions);
             yield true;
 
             // Get the full version of the tokens now.
@@ -343,11 +358,10 @@ abstract class FileTokenParser implements FileTokenParserInterface {
 
             $this->skipClassLikeExtendsImplements($tokens, $pos);
             \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
-            yield from $this->parseClassLikeBody(
+            yield from $classParser->parseClassLikeBody(
               $tokens, 
               $pos,
-              $classBuilder->buildClassBody(),
-              $attrCommentMultiParser);
+              $classBuilder->buildClassBody());
             \assert(ParserAssertUtil::expect($tokens, $pos, '}'));
             yield true;
             break;
@@ -426,17 +440,15 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
    * @param \Donquixote\QuickAttributes\Builder\ClassBody\ClassBodyBuilderInterface $classBodyBuilder
-   * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser $attrCommentMultiParser
-   *   Attribute comment multi parser, filled with current context.
    *
    * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
    */
-  private function parseClassLikeBody(array $tokens, int &$pos, ClassBodyBuilderInterface $classBodyBuilder, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
+  private function parseClassLikeBody(array $tokens, int &$pos, ClassBodyBuilderInterface $classBodyBuilder): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
-    $attributeComments = [];
+    $attrPositions = [];
     for (++$pos;; ++$pos) {
       $token = $tokens[$pos];
       if (\is_string($token)) {
@@ -473,13 +485,15 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case \T_COMMENT:
             if (\substr($token[1], 0, 2) === '#[') {
               // This is an attribute!
-              $attributeComments[] = $token[1];
+              $attrPositions[] = $pos;
             }
             // Don't clear attributes.
             continue 2;
 
           case VersionDependentTokens::T_ATTRIBUTE:
-            $attributeComments[] = $this->parseNativeAttribute($tokens, $pos);
+            $attrPositions[] = $pos;
+            $this->skipNativeAttribute($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, ']'));
             continue 2;
 
           case \T_PRIVATE:
@@ -508,15 +522,15 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             $method = $this->parseFunctionHead($tokens, $pos, true);
             \assert($method !== null);
             $methodBuilder = $classBodyBuilder->addMethod($method);
-            $attrCommentMultiParser->parseMultiple(
+            $this->parseAttrPositions(
               $methodBuilder->buildAttributes(),
-              $attributeComments);
+              $tokens,
+              $attrPositions);
             yield true;
             yield from $this->parseParams(
               $tokens,
               $pos,
-              $methodBuilder->buildParameters(),
-              $attrCommentMultiParser);
+              $methodBuilder->buildParameters());
             \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
             ++$pos;
             $id = ParserUtil::skipFillerWs($tokens, $pos);
@@ -549,9 +563,10 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case \T_VARIABLE:
             foreach ($this->parseClassPropertyGroup($tokens, $pos) as $name) {
               $propertyBuilder = $classBodyBuilder->addProperty($name);
-              $attrCommentMultiParser->parseMultiple(
+              $this->parseAttrPositions(
                 $propertyBuilder,
-                $attributeComments);
+                $tokens,
+                $attrPositions);
             }
             yield true;
             break;
@@ -559,9 +574,10 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case \T_CONST:
             foreach ($this->parseClassConstGroup($tokens, $pos) as $name) {
               $constBuilder = $classBodyBuilder->addConstant($name);
-              $attrCommentMultiParser->parseMultiple(
+              $this->parseAttrPositions(
                 $constBuilder,
-                $attributeComments);
+                $tokens,
+                $attrPositions);
             }
             yield true;
             break;
@@ -570,7 +586,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             throw SyntaxException::unexpected($tokens, $pos, 'in class body');
         }
       }
-      $attributeComments = [];
+      $attrPositions = [];
     }
   }  // @codeCoverageIgnore
 
@@ -628,15 +644,14 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    *   Before: Position at '(' before the parameters.
    *   After: Position at ')' after the parameters.
    * @param \Donquixote\QuickAttributes\Builder\Parameters\ParametersBuilderInterface $parametersBuilder
-   * @param \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser $attrCommentMultiParser
    *
    * @return \Iterator<int, true>
    *
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseParams(array $tokens, int &$pos, ParametersBuilderInterface $parametersBuilder, AttributeCommentMultiParser $attrCommentMultiParser): \Iterator {
+  private function parseParams(array $tokens, int &$pos, ParametersBuilderInterface $parametersBuilder): \Iterator {
     \assert(ParserAssertUtil::expect($tokens, $pos, '('));
-    $attributeComments = [];
+    $attrPositions = [];
     for (++$pos;; ++$pos) {
       if (\is_string($tokens[$pos])) {
         switch ($tokens[$pos]) {
@@ -689,12 +704,14 @@ abstract class FileTokenParser implements FileTokenParserInterface {
           case \T_COMMENT:
             if (\substr($tokens[$pos][1], 0, 2) === '#[') {
               // This is an attribute!
-              $attributeComments[] = $tokens[$pos][1];
+              $attrPositions[] = $pos;
             }
             continue 2;
 
           case VersionDependentTokens::T_ATTRIBUTE:
-            $attributeComments[] = $this->parseNativeAttribute($tokens, $pos);
+            $attrPositions[] = $pos;
+            $this->skipNativeAttribute($tokens, $pos);
+            \assert(ParserAssertUtil::expect($tokens, $pos, ']'));
             continue 2;
 
           case \T_PRIVATE:
@@ -758,11 +775,12 @@ abstract class FileTokenParser implements FileTokenParserInterface {
       \assert(ParserAssertUtil::expect($tokens, $pos, \T_VARIABLE));
       $name = \substr($tokens[$pos][1], 1);
       $attributesBuilder = $parametersBuilder->addParameter($name);
-      $attrCommentMultiParser->parseMultiple(
+      $this->parseAttrPositions(
         $attributesBuilder,
-        $attributeComments);
+        $tokens,
+        $attrPositions);
       yield true;
-      $attributeComments = [];
+      $attrPositions = [];
       ++$pos;
       $id = ParserUtil::skipFillerWs($tokens, $pos);
       if ($id === '=') {
@@ -785,21 +803,21 @@ abstract class FileTokenParser implements FileTokenParserInterface {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   *   Before: Position of T_ATTRIBUTE = '#['.
-   *   After: Position of closing ']'.
    *
-   * @return string
-   *   Snippet starting with '#[', ending with ']\n'.
-   *
-   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  private function parseNativeAttribute(array $tokens, int &$pos): string {
-    $begin = $pos;
-    ParserUtil::skipSubtree($tokens, $pos);
-    \assert(ParserAssertUtil::expect($tokens, $pos, ']'));
-    $snippet = ParserUtil::concatTokens($tokens, $begin, $pos + 1);
-    \assert(\preg_match('@^#\[.*\]$@', $snippet));
-    return $snippet . "\n";
+  private function skipNativeAttribute(array $tokens, int &$pos): void {
+    $startpos = $pos;
+    try {
+      // Skip the attribute, in the fast way.
+      ParserUtil::skipSubtree($tokens, $pos);
+    }
+    catch (ParserException $e) {
+      $pos = $startpos;
+      // Produce an exception with a more meaningful message.
+      ($this->class !== null ? $this : $this->withClass(\stdClass::class))
+        ->parseAttributes(new AttributesBuilder_NoOp(), $tokens, $pos);
+    }
   }
 
   /**
@@ -1071,5 +1089,390 @@ abstract class FileTokenParser implements FileTokenParserInterface {
       }
     }
   }  // @codeCoverageIgnore
+
+  /**
+   * @param \Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface $builder
+   * @param list<string|array{int, string, int}> $tokens
+   * @param list<int> $positions
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseAttrPositions(AttributesBuilderInterface $builder, array $tokens, array $positions): void {
+    foreach ($positions as $pos) {
+      if ($tokens[$pos][0] === \T_COMMENT) {
+        $this->parseAttrComment($builder, $tokens, $pos);
+      }
+      elseif ($tokens[$pos][0] === VersionDependentTokens::T_ATTRIBUTE) {
+        $this->parseAttributes($builder, $tokens, $pos);
+      }
+    }
+  }
+
+  /**
+   * @param \Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface $builder
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseAttrComment(AttributesBuilderInterface $builder, array $tokens, int $pos): void {
+    $comment = $tokens[$pos][1];
+    [$line, $chrpos] = TokenPositionUtil::findLineChrPos($tokens, $pos);
+    $tokens = $this->tokenizeAttrComment($comment, $line, $chrpos);
+    \assert(\end($tokens) === '#');
+    \assert(ParserAssertUtil::expect($tokens, 0, VersionDependentTokens::T_ATTRIBUTE));
+    $i = 0;
+    while (true) {
+      \assert(ParserAssertUtil::expect($tokens, $i, VersionDependentTokens::T_ATTRIBUTE));
+      $this->parseAttributes($builder, $tokens, $i);
+      \assert(ParserAssertUtil::expect($tokens, $i, ']'));
+      ++$i;
+      $id = ParserUtil::skipFillerWs($tokens, $i);
+      if ($id === '#') {
+        // EOF reached.
+        return;
+      }
+      if ($id === VersionDependentTokens::T_ATTRIBUTE) {
+        continue;
+      }
+      throw UnsupportedSyntaxException::fromTokenPos($tokens, $i, 'Cannot have regular code after an attribute in the same line.');
+    }
+  }  // @codeCoverageIgnore
+
+  /**
+   * @param string $comment
+   *   Single-line comment starting with '#[', ending with newline.
+   * @param int $line
+   * @param int $chrpos
+   *
+   * @return list<string|array{int, string, int}>
+   *   Tokens starting with T_ATTRIBUTE, terminated with `#`.
+   */
+  private function tokenizeAttrComment(string $comment, int $line, int $chrpos): array {
+    \assert(\substr($comment, 0, 2) === '#[');
+    \assert(\strpos($comment, "\n") === \strlen($comment) - 1);
+    \assert($line > 0 || $chrpos > 6);
+    $php = '<?php '
+      . \str_repeat("\n", $line - 1)
+      . \str_repeat(' ', ($line > 1) ? ($chrpos + 1) : ($chrpos - 5))
+      . \substr($comment, 2);
+    /** @var list<string|array{int, string, int}> $tokens */
+    $tokens = \token_get_all($php);
+    $tokens[0] = [VersionDependentTokens::T_ATTRIBUTE, '#[', 0];
+    /**
+     * Tell psalm that $tokens is still a list, after setting $tokens[0].
+     *
+     * @var list<string|array{int, string, int}> $tokens
+     */
+    while (true) {
+      $tkLast = \end($tokens);
+      if ($tkLast[0] !== \T_COMMENT) {
+        break;
+      }
+      // At this point it is known that $tkLast is an array, not a string.
+      /** @var array{int, string, int} $tkLast */
+      $comment = $tkLast[1];
+      if ($comment[1] !== '[') {
+        // That's a regular comment, not an attribute comment.
+        break;
+      }
+      $php = '<?php ' . \substr($comment, 2);
+      /** @var list<string|array{int, string, int}> $moreTokens */
+      $moreTokens = \token_get_all($php);
+      $moreTokens[0] = [VersionDependentTokens::T_ATTRIBUTE, '#[', 0];
+      \array_pop($tokens);
+      $tokens = [
+        ...$tokens,
+        ...$moreTokens,
+      ];
+    }
+
+    $tokens[] = '#';
+    return $tokens;
+  }
+
+  /**
+   * @param \Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilderInterface $builder
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of '#[' / T_ATTRIBUTE.
+   *   After: Position of ']'.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseAttributes(AttributesBuilderInterface $builder, array $tokens, int &$pos): void {
+    \assert(ParserAssertUtil::expect($tokens, $pos, VersionDependentTokens::T_ATTRIBUTE));
+    while (true) {
+      \assert(ParserAssertUtil::expectOneOf($tokens, $pos, [VersionDependentTokens::T_ATTRIBUTE, ',']));
+      ++$pos;
+      ParserUtil::skipFillerWs($tokens, $pos);
+      $iBkp0 = $pos;
+      $qcn = $this->parseAttributeName($tokens, $pos);
+      \assert($pos > $iBkp0);
+      $args = $builder->addAttribute($qcn);
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
+      if ($id === '(') {
+        $this->parseArgs($args, $tokens, $pos);
+        \assert(ParserAssertUtil::expect($tokens, $pos, ')'));
+        ++$pos;
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
+      }
+      if ($id === ']') {
+        return;
+      }
+      if ($id !== ',') {
+        throw SyntaxException::expectedButFound($tokens, $pos, "']' or ','");
+      }
+    }
+  }  // @codeCoverageIgnore
+
+  /**
+   * @param \Donquixote\QuickAttributes\Builder\Arguments\ArgumentsBuilderInterface $builder
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of '('.
+   *   After: Position of ')'.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseArgs(ArgumentsBuilderInterface $builder, array $tokens, int &$pos): void {
+    \assert(ParserAssertUtil::expect($tokens, $pos, '('));
+    $namedPart = false;
+    while (true) {
+      \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', ',']));
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
+      $key = null;
+      if ($id === ')') {
+        // Empty arg list, or trailing comma after last arg.
+        break;
+      }
+      if ($id === \T_STRING) {
+        // This could be a named arg, OR a part of a value expression.
+        $iNamed = $pos + 1;
+        $idNamed = ParserUtil::skipFillerWs($tokens, $iNamed);
+        if ($idNamed === ':') {
+          // This is indeed a named argument.
+          $key = $tokens[$pos][1];
+          $pos = $iNamed + 1;
+          ParserUtil::skipFillerWs($tokens, $pos);
+          $namedPart = true;
+        }
+      }
+      if ($key === null && $namedPart) {
+        throw SyntaxException::fromTokenPos($tokens, $pos, 'Cannot use positional argument after named argument');
+      }
+      $id = $this->parseValueExpression(
+        $builder->addArgument($key),
+        $tokens,
+        $pos);
+      if ($id === ')') {
+        break;
+      }
+      if ($id === ',') {
+        continue;
+      }
+      throw SyntaxException::expectedButFound($tokens, $pos, ', or )');
+    }
+
+    \assert($tokens[$pos] === ')');
+  }
+
+  /**
+   * Attribute name, as QCN or FQCN.
+   *
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before (good): Position of first T_STRING, T_NAME_QUALIFIED or
+   *     T_NAME_FULLY_QUALIFIED.
+   *   Before (bad): Anything else leads to a SyntaxException.
+   *   After: Position after last T_STRING.
+   *
+   * @return class-string
+   *   Resolved QCN.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\SyntaxException
+   */
+  abstract protected function parseAttributeName(array $tokens, int &$pos): string;
+
+  /**
+   * @param \Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface $result
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: First token of value expression.
+   *   After: Position of ')' or ',' or '}' or ']'.
+   *
+   * @return string|int
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseValueExpression(ValueBuilderInterface $result, array $tokens, int &$pos) {
+    $unary = '';
+    $operand = $result;
+    while (true) {
+      $token = $tokens[$pos];
+      if (\is_string($token)) {
+        switch ($token) {
+          case '-':
+          case '!':
+            $unary .= $token;
+            ++$pos;
+            ParserUtil::skipFillerWs($tokens, $pos);
+            continue 2;
+
+          case '(':
+            ++$pos;
+            ParserUtil::skipFillerWs($tokens, $pos);
+            $id = $this->parseValueExpression($operand, $tokens, $pos);
+            if ($id !== ')') {
+              throw SyntaxException::expectedButFound($tokens, $pos, ')');
+            }
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            break;
+
+          case '[':
+            $this->parseArray($operand->startArray(), $tokens, $pos, ']');
+            \assert($tokens[$pos] === ']');
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            break;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $pos, 'in const value expression');
+        }
+      }
+      else {
+        switch ($token[0]) {
+          case \T_ARRAY:
+            ++$pos;
+            ParserUtil::skipFillerWsExpectChar($tokens, $pos, '(');
+            $this->parseArray($operand->startArray(), $tokens, $pos, ')');
+            \assert($tokens[$pos] === ')');
+            ++$pos;
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            break;
+
+          case \T_LNUMBER:
+          case \T_CONSTANT_ENCAPSED_STRING:
+            $operand->setFixedValue(eval('return ' . $token[1] . ';'));
+            ++$pos;
+            /** @var string|int $id */
+            $id = ParserUtil::skipFillerWs($tokens, $pos);
+            break;
+
+          case VersionDependentTokens::T_NAME_FULLY_QUALIFIED:
+          case VersionDependentTokens::T_NAME_QUALIFIED:
+          case VersionDependentTokens::T_STRING_8:
+            $id = $this->parseConstRef($operand, $tokens, $pos);
+            break;
+
+          case VersionDependentTokens::T_STRING_7:
+          case VersionDependentTokens::T_NS_SEPARATOR_7:
+            $id = $this->parseConstRef($operand, $tokens, $pos);
+            break;
+
+          default:
+            throw SyntaxException::expectedButFound($tokens, $pos, 'const value expression');
+        }
+      }
+      if ($unary !== '') {
+        $operand->applyUnaryOperator($unary);
+      }
+      \assert($id === $tokens[$pos][0]);
+      if (\is_string($id)) {
+        switch ($id) {
+          case '-':
+          case '+':
+          case '*':
+          case '/':
+          case '.':
+          case '&':
+          case '|':
+            // Binary operator.
+            $operand = $result->appendBinaryOperator($id);
+            ++$pos;
+            ParserUtil::skipFillerWs($tokens, $pos);
+            continue 2;
+
+          case '[':
+            // Array offset.
+            // @todo Implement array offset.
+            throw new \RuntimeException('Array offset not implemented.');
+
+          case ')':
+          case ']':
+          case ',':
+            // End of value expression.
+            return $id;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $pos, 'in const value expression');
+        }
+      }
+      else {
+        switch ($id) {
+
+          case \T_DOUBLE_ARROW:
+            // End of value expression.
+            return $id;
+
+          default:
+            throw SyntaxException::unexpected($tokens, $pos, 'after value expression');
+        }
+      }
+    }
+  }
+
+  /**
+   * @param \Donquixote\QuickAttributes\Builder\Value\ArrayBuilderInterface $builder
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of '(' or '['.
+   *   After: Position of ')' or ']'.
+   * @param string $endchar
+   *   Expected end character. One of ')' or ']'.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseArray(ArrayBuilderInterface $builder, array $tokens, int &$pos, string $endchar): void {
+    \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', '[']));
+    while (true) {
+      \assert(ParserAssertUtil::expectOneOf($tokens, $pos, ['(', '[', ',']));
+      ++$pos;
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
+      if ($id === $endchar) {
+        return;
+      }
+      $id = $this->parseValueExpression($builder->add(), $tokens, $pos);
+      if ($id === \T_DOUBLE_ARROW) {
+        ++$pos;
+        ParserUtil::skipFillerWs($tokens, $pos);
+        $id = $this->parseValueExpression($builder->mapTo(), $tokens, $pos);
+      }
+      if ($id === $endchar) {
+        return;
+      }
+      if ($id !== ',') {
+        throw SyntaxException::expectedButFound($tokens, $pos, "$endchar or ,");
+      }
+    }
+  }
+
+  /**
+   * Expression referencing a global or class constant or *::class.
+   *
+   * @param \Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface $builder
+   * @param list<string|array{int, string, int}> $tokens
+   * @param int $pos
+   *   Before: Position of first T_STRING or T_NS_SEPARATOR.
+   *   After: Non-whitespace position after last T_STRING or T_CLASS.
+   *
+   * @return string|int
+   *   Token id following the constant expression.
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  abstract protected function parseConstRef(ValueBuilderInterface $builder, array $tokens, int &$pos);
 
 }

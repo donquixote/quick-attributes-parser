@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Tests;
 
-use Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentParser;
-use Donquixote\QuickAttributes\Builder\Attributes\AttributesBuilder;
 use Donquixote\QuickAttributes\Exception\ParserException;
+use Donquixote\QuickAttributes\Loader\SnippetReader;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
+use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
 use Donquixote\QuickAttributes\Tests\Util\TestExportUtil;
 
 /**
@@ -64,31 +65,38 @@ class AttrCommentParserTest extends YmlTestBase {
    * {@inheritdoc}
    */
   protected function processData(array &$data, string $name): void {
-    $namespace = $data['namespace'] ?? null;
-    if (null !== $class = $data['class'] ?? null) {
-      if (false !== $nspos = \strrpos($class, '\\')) {
+    $php = '<?php';
+    $php .= "\n" . $this->buildPhpFileHead($data);
+    $line = \substr_count($php, "\n");
+    if (isset($data['class'])) {
+      if (false !== $nspos = \strrpos($data['class'], '\\')) {
         // Class should only be the shortname in these fixtures.
         // The rest should be in the namespace key.
-        $class = $data['class'] = \substr($class, $nspos + 1);
+        $data['class'] = \substr($data['class'], $nspos + 1);
       }
-      if ($namespace !== null) {
-        $class = $namespace . '\\' . $class;
-      }
+      $php .= $data['comment']
+        . "\nclass $data[class] {}"
+        . "\n";
     }
-
-    $parser = new AttributeCommentParser();
-    /** @var class-string $class */
-    $parser = $parser->withContext(
-      $namespace,
-      $data['imports'] ?? [],
-      $class);
+    else {
+      $php .= $data['comment']
+        . "\nfunction f() {}"
+        . "\n";
+    }
 
     try {
-      $builder = new AttributesBuilder();
-      $parser->parse($builder, $data['comment'] . "\n");
-      $attributes = $builder->getAttributes();
+      $info = SnippetReader::create()->loadPhpSnippet($php);
+      /** @var ClassInfoInterface|FunctionInfoInterface $element */
+      $element = $info->readElements()->current();
+      $attributes = $element->getAttributes();
     }
-    catch (ParserException|\InvalidArgumentException $e) {
+    catch (ParserException $e) {
+      $e->setSourceFile(null, null, -$line);
+      unset($data['attributes']);
+      $data['exception'] = TestExportUtil::exportException($e);
+      return;
+    }
+    catch (\InvalidArgumentException $e) {
       unset($data['attributes']);
       $data['exception'] = TestExportUtil::exportException($e);
       return;
@@ -100,6 +108,30 @@ class AttrCommentParserTest extends YmlTestBase {
 
   protected function getYmlSubdir(): string {
     return 'attr-comments';
+  }
+
+  /**
+   * @param _AttrCommentsYaml $data
+   *
+   * @return string
+   */
+  protected function buildPhpFileHead(array $data): string {
+    $php = '';
+    if (isset($data['namespace'])) {
+      $php .= "namespace $data[namespace];\n";
+    }
+    foreach ($data['imports'] ?? [] as $alias => $qcn) {
+      // Optimize for the more common case where the alias has no space.
+      if (false !== $spacepos = \strpos($alias, ' ')) {
+        $type = \substr($alias, 0, $spacepos);
+        $alias = \substr($alias, $spacepos + 1);
+        $php .= "use $type $qcn as $alias;\n";
+      }
+      else {
+        $php .= "use $qcn as $alias;\n";
+      }
+    }
+    return $php;
   }
 
 }

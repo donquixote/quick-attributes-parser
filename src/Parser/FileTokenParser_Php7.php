@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Donquixote\QuickAttributes\Parser;
 
+use Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface;
 use Donquixote\QuickAttributes\Exception\SyntaxException;
 use Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException;
 use Donquixote\QuickAttributes\Util\ParserAssertUtil;
@@ -224,5 +225,152 @@ class FileTokenParser_Php7 extends FileTokenParser {
       }
     }
   }  // @codeCoverageIgnore
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function parseAttributeName(array $tokens, int &$pos): string {
+    \assert(\PHP_VERSION_ID < 80000);
+    if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+      $qcn = $tokens[$pos][1];
+      ++$pos;
+    }
+    elseif ($tokens[$pos][0] === \T_STRING) {
+      $name = $tokens[$pos][1];
+      $qcn = $this->imports[$name] ?? $this->terminatedNamespace . $name;
+      ++$pos;
+    }
+    else {
+      throw SyntaxException::expectedButFound($tokens, $pos, 'QCN or FQCN');
+    }
+    if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+      /** @var class-string $qcn */
+      return $qcn;
+    }
+    // Parse remaining part of the QCN.
+    while (true) {
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+      $qcn .= '\\' . $tokens[$pos][1];
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+        /** @var class-string $qcn */
+        return $qcn;
+      }
+    }
+  }  // @codeCoverageIgnore
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function parseConstRef(ValueBuilderInterface $builder, array $tokens, int &$pos) {
+    \assert(\PHP_VERSION_ID < 80000);
+    $startpos = $pos;
+    if ($tokens[$pos][0] === \T_STRING) {
+      $alias = $tokens[$pos][1];
+      ++$pos;
+      if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
+        // Resolve namespace alias.
+        $qn = $this->imports[$alias] ?? ($this->terminatedNamespace . $alias);
+        unset($alias);
+        while (true) {
+          ++$pos;
+          if ($tokens[$pos][0] !== \T_STRING) {
+            throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+          }
+          $qn .= '\\' . $tokens[$pos][1];
+          ++$pos;
+          if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+            break;
+          }
+        }
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
+        if ($id === '(') {
+          throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
+        }
+        if ($id !== \T_DOUBLE_COLON) {
+          $builder->setConstant($qn);
+          return $id;
+        }
+      }
+      else {
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
+        if ($id === '(') {
+          throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
+        }
+        if ($id !== \T_DOUBLE_COLON) {
+          if (isset($this->imports["const $alias"])) {
+            $qn = $this->imports["const $alias"];
+            $builder->setConstant($qn);
+          }
+          else {
+            $builder->setConstant($this->terminatedNamespace . $alias, $alias);
+          }
+          return $id;
+        }
+
+        // Class constant or ::class expression.
+        if (\strtolower($alias) === 'self') {
+          if ($this->class === null) {
+            throw SyntaxException::unexpected($tokens, $startpos, 'outside of class context');
+          }
+          $qn = $this->class;
+        }
+        else {
+          $qn = $this->imports[$alias] ?? $this->terminatedNamespace . $alias;
+        }
+
+        unset($alias);
+      }
+    }
+    else {
+      \assert($tokens[$pos][0] === \T_NS_SEPARATOR);
+      ++$pos;
+      if ($tokens[$pos][0] !== \T_STRING) {
+        throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+      }
+      $qn = $tokens[$pos][1];
+      while (true) {
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+          break;
+        }
+        ++$pos;
+        if ($tokens[$pos][0] !== \T_STRING) {
+          throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING');
+        }
+        $qn .= '\\' . $tokens[$pos][1];
+      }
+      $id = ParserUtil::skipFillerWs($tokens, $pos);
+    }
+
+    /** @var string|int $id */
+    if ($id !== \T_DOUBLE_COLON) {
+      // Global constant.
+      $builder->setConstant($qn);
+      return $id;
+    }
+
+    // Fqn refers to a class.
+    ++$pos;
+    $id = ParserUtil::skipFillerWs($tokens, $pos);
+    if ($id === \T_CLASS) {
+      $builder->setFixedValue($qn);
+    }
+    elseif ($id === \T_STRING) {
+      $builder->setConstant($qn . '::' . $tokens[$pos][1]);
+    }
+    else {
+      throw SyntaxException::expectedButFound($tokens, $pos, 'T_STRING or T_CLASS');
+    }
+    ++$pos;
+    return ParserUtil::skipFillerWs($tokens, $pos);
+  }
 
 }

@@ -38,23 +38,8 @@ class AttrCommentNativeTest extends AttrCommentParserTest {
       // Evaluating the snippet would lead to fatal error.
       return;
     }
-    $php = '';
-    $tns = '';
-    if (isset($data['namespace'])) {
-      $php .= "namespace $data[namespace];\n";
-      $tns = $data['namespace'] . '\\';
-    }
-    foreach ($data['imports'] ?? [] as $alias => $qcn) {
-      // Optimize for the more common case where the alias has no space.
-      if (false !== $spacepos = \strpos($alias, ' ')) {
-        $type = \substr($alias, 0, $spacepos);
-        $alias = \substr($alias, $spacepos + 1);
-        $php .= "use $type $qcn as $alias;\n";
-      }
-      else {
-        $php .= "use $qcn as $alias;\n";
-      }
-    }
+    $tns = isset($data['namespace']) ? $data['namespace'] . '\\' : '';
+    $php = $this->buildPhpFileHead($data);
     $attributes = [];
     try {
       $comment = $data['comment'];

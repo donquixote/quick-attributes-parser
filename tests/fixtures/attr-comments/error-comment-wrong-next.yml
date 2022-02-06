@@ -3,9 +3,14 @@ namespace: Donquixote\QuickAttributes\Tests\Fixture
 imports:
   A: N\M\A
 class: CMinimal
+attributes.php8:
+  -
+    name: N\M\A
+    arguments: {  }
 exception:
   class: Donquixote\QuickAttributes\Exception\UnsupportedSyntaxException
   message: 'Line 1:6: Cannot have regular code after an attribute in the same line.'
+exception.php8: null
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "class", expecting "function" or "fn" or "static" or "#["'
