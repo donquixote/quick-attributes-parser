@@ -44,9 +44,23 @@ Feel free to share your thoughts about any of these points, using the issue trac
 
 use Donquixote\QuickAttributes\RawAttribute\RawAttribute;
 use Donquixote\QuickAttributes\Loader\ClassInfoFinder;
+use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfo;
 use Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface;
 use Donquixote\QuickAttributes\SymbolInfo\File\FileInfo;
 use Donquixote\QuickAttributes\SymbolInfo\FunctionLike\FunctionInfoInterface;
+
+/**
+ * Analyse a class directly, without knowing the file.
+ */
+function processClass(string $class, ?string $attr_class) {
+  // Use default automatic autoload based on Composer.
+  $classInfo = ClassInfo::fromKnownClass($class);
+  $imports = $classInfo->getImports();
+  unset($imports);
+  $attributes = $classInfo->getAttributes();
+  $instances = RawAttribute::createInstances($attributes, $attr_class);
+  unset($instances);
+}
 
 /**
  * Analyse a file, e.g. during a discovery operation.
