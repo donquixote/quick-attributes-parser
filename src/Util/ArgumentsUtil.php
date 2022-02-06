@@ -95,8 +95,9 @@ class ArgumentsUtil {
         }
       }
     }
-    /** @var list<mixed> $mappedArgs */
+    /** @var array<int, mixed> $mappedArgs */
     \ksort($mappedArgs);
+    /** @var list<mixed> $mappedArgs */
     return $mappedArgs;
   }
 
