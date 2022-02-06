@@ -47,7 +47,7 @@ class ClassInfo extends GlobalSymbolInfoBase implements ClassInfoInterface {
    * @return \Donquixote\QuickAttributes\SymbolInfo\ClassLike\ClassInfoInterface
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
-  public static function fromExpectedClass(string $class): ClassInfoInterface {
+  public static function fromKnownClass(string $class): ClassInfoInterface {
     return ClassInfoFinder::create()->requireClass($class);
   }
 
