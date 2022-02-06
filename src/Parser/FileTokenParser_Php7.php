@@ -273,12 +273,15 @@ class FileTokenParser_Php7 extends FileTokenParser {
     \assert(\PHP_VERSION_ID < 80000);
     $startpos = $pos;
     if ($tokens[$pos][0] === \T_STRING) {
+      // Found a non-fully-qualified name like "aa" or "aa\\bb\\cc".
       $alias = $tokens[$pos][1];
       ++$pos;
       if ($tokens[$pos][0] === \T_NS_SEPARATOR) {
+        // Found a non-fully-qualified name with namespace, like "aa\\bb\\cc".
         // Resolve namespace alias.
         $qn = $this->imports[$alias] ?? ($this->terminatedNamespace . $alias);
         unset($alias);
+        // Append remaining parts of the QN.
         while (true) {
           ++$pos;
           if ($tokens[$pos][0] !== \T_STRING) {
@@ -287,9 +290,11 @@ class FileTokenParser_Php7 extends FileTokenParser {
           $qn .= '\\' . $tokens[$pos][1];
           ++$pos;
           if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+            // The non-fully-qualified name ends here.
             break;
           }
         }
+        // Find the next non-whitespace after the QN.
         $id = ParserUtil::skipFillerWs($tokens, $pos);
         if ($id === '(') {
           throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
@@ -300,6 +305,8 @@ class FileTokenParser_Php7 extends FileTokenParser {
         }
       }
       else {
+        // Found a non-fully-qualified name without namespace, like "aa".
+        // Find the next non-whitespace after the name.
         $id = ParserUtil::skipFillerWs($tokens, $pos);
         if ($id === '(') {
           throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
@@ -330,6 +337,7 @@ class FileTokenParser_Php7 extends FileTokenParser {
       }
     }
     else {
+      // Found a fully-qualified name like "\\aa" or "\\aa\\bb".
       \assert($tokens[$pos][0] === \T_NS_SEPARATOR);
       ++$pos;
       if ($tokens[$pos][0] !== \T_STRING) {
@@ -339,6 +347,7 @@ class FileTokenParser_Php7 extends FileTokenParser {
       while (true) {
         ++$pos;
         if ($tokens[$pos][0] !== \T_NS_SEPARATOR) {
+          // The fully-qualified name ends here.
           break;
         }
         ++$pos;
@@ -347,6 +356,7 @@ class FileTokenParser_Php7 extends FileTokenParser {
         }
         $qn .= '\\' . $tokens[$pos][1];
       }
+      // Find the next non-whitespace after the FQN.
       $id = ParserUtil::skipFillerWs($tokens, $pos);
     }
 
