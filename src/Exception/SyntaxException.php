@@ -28,23 +28,6 @@ class SyntaxException extends ParserException {
   /**
    * @param list<string|array{int, string, int}> $tokens
    * @param int $pos
-   * @param string|null $preceding
-   *
-   * @return static
-   */
-  public static function unexpectedAfter(array $tokens, int $pos, string $preceding = null): self {
-    return static::fromTokenPos(
-      $tokens,
-      $pos,
-      \vsprintf('Unexpected %s after %s.', [
-        ParserUtil::formatToken($tokens[$pos]),
-        $preceding ?? ParserUtil::formatToken($tokens[$pos - 1]),
-      ]));
-  }
-
-  /**
-   * @param list<string|array{int, string, int}> $tokens
-   * @param int $pos
    * @param string $expected
    *
    * @return static
