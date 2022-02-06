@@ -17,6 +17,8 @@ class TokenizerUtil {
    * @throws \Donquixote\QuickAttributes\Exception\ParserException
    */
   public static function tokenGetAll(string $php, int $flags = 0): array {
+    // @todo Is the try/catch really needed?
+    // See https://stackoverflow.com/questions/71011315.
     try {
       // set_error_handler() cannot intercept warnings from token_get_all().
       // So we need to use something else.
