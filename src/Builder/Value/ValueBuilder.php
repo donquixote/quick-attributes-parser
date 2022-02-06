@@ -55,7 +55,7 @@ class ValueBuilder implements ValueExpressionInterface, ValueBuilderInterface {
   /**
    * {@inheritdoc}
    */
-  public function appendBinaryOperator(string $operator): self {
+  public function appendBinaryOperator(string $operator): ValueBuilderInterface {
     if (!$this->value instanceof OperatorSoupBuilder) {
       $this->value = new OperatorSoupBuilder($this->value);
     }

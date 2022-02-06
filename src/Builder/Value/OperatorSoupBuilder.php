@@ -35,7 +35,7 @@ class OperatorSoupBuilder implements ValueExpressionInterface, OperatorSoupBuild
   /**
    * {@inheritdoc}
    */
-  public function add(string $operator): ValueBuilder {
+  public function add(string $operator): ValueBuilderInterface {
     $this->php .= ' ' . $operator . ' $_[' . \count($this->operands) . ']';
     return $this->operands[] = ValueBuilder::start();
   }
