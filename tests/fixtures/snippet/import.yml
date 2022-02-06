@@ -4,9 +4,11 @@ php: |
   namespace N;
 
   use M\C as C0;
+  use \M\C as C1;
   use MM\C;
   use function M\MM\f;
   use const M\X as X0;
+  use const \M\X as X1;
   use const N\AA, N\BB;
 
   function f() {}
@@ -15,16 +17,20 @@ php: |
 importss:
   N\f():
     C0: M\C
+    C1: M\C
     C: MM\C
     'function f': M\MM\f
     'const X0': M\X
+    'const X1': M\X
     'const AA': N\AA
     'const BB': N\BB
   N\C:
     C0: M\C
+    C1: M\C
     C: MM\C
     'function f': M\MM\f
     'const X0': M\X
+    'const X1': M\X
     'const AA': N\AA
     'const BB': N\BB
 attributess:
