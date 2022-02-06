@@ -16,6 +16,7 @@ class TokenPositionUtil {
    *
    * @return string
    *   Format: "$line:$chrpos".
+   *   Both start at 1.
    */
   public static function formatLineChrPos(array $tokens, int $pos): string {
     [$line, $chrpos] = self::findLineChrPos($tokens, $pos);
@@ -30,8 +31,9 @@ class TokenPositionUtil {
    * @param int $pos
    *   Token index.
    *
-   * @return int[]
+   * @return array{int, int}
    *   Format: [$line, $chrpos].
+   *   Both start at 1.
    *
    * @see findLineNumber()
    * @see findChrPos()
@@ -53,7 +55,7 @@ class TokenPositionUtil {
         }
       }
     }
-    return [0, $chrpos];
+    return [1, $chrpos + 1];
   }
 
   /**
@@ -65,7 +67,7 @@ class TokenPositionUtil {
    *   Token index.
    *
    * @return int
-   *   Line number.
+   *   Line number, starting from 1.
    */
   public static function findLineNumber(array $tokens, int $pos): int {
     for ($i = $pos; $tokens[$i] !== '#'; ++$i) {
@@ -78,7 +80,7 @@ class TokenPositionUtil {
         return $tokens[$i][2] + \substr_count($tokens[$i][1], "\n");
       }
     }
-    return 0;
+    return 1;
   }
 
   /**
@@ -90,7 +92,7 @@ class TokenPositionUtil {
    *   Token index.
    *
    * @return int
-   *   Number of chars in same line before the token.
+   *   Position of the token in the line, starting from 1.
    */
   public static function findChrPos(array $tokens, int $pos): int {
     $chrpos = 0;
@@ -105,7 +107,7 @@ class TokenPositionUtil {
         }
       }
     }
-    return $chrpos;
+    return $chrpos + 1;
   }
 
 }

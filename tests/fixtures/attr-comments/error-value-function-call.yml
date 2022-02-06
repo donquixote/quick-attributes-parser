@@ -2,4 +2,4 @@ comment: '#[A(foo())]'
 fatal: true
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:7: Function call not allowed in constant expression.'
+  message: 'Line 1:8: Function call not allowed in constant expression.'

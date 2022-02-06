@@ -1,7 +1,7 @@
 comment: '#[A(self::U)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:4: Unexpected T_STRING / ''self'' outside of class context.'
+  message: 'Line 1:5: Unexpected T_STRING / ''self'' outside of class context.'
 exception.native:
   class: Exception
   message: 'Unexpected ''self::'' outside of class context.'

@@ -1,7 +1,7 @@
 comment: '#[A(x: 5,,)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:9: Cannot use positional argument after named argument'
+  message: 'Line 1:10: Cannot use positional argument after named argument'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token ",", expecting ")"'

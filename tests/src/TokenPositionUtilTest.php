@@ -31,12 +31,11 @@ EOT;
       $linechrpos = TokenPositionUtil::formatLineChrPos($tokens, $pos);
       [$line, $chrpos] = TokenPositionUtil::findLineChrPos($tokens, $pos);
       self::assertSame($linechrpos, "$line:$chrpos");
-      // @todo Fix inconsistency in returned line number.
-      self::assertSame($line ?: 1, TokenPositionUtil::findLineNumber($tokens, $pos));
-      self::assertSame($chrpos, TokenPositionUtil::findChrPos($tokens, $pos));
+      $line = TokenPositionUtil::findLineNumber($tokens, $pos);
+      $chrpos = TokenPositionUtil::findChrPos($tokens, $pos);
+      self::assertSame($linechrpos, "$line:$chrpos");
       if (\is_array($token)) {
-        // @todo Fix inconsistency in returned line number.
-        self::assertSame($line ?: 1, $token[2]);
+        self::assertSame($line, $token[2]);
         /** @noinspection JsonEncodingApiUsageInspection */
         $report .= $linechrpos
           . ': ' . \json_encode($token[1])
@@ -48,9 +47,8 @@ EOT;
           . "\n";
       }
     }
-    // @todo Fix inconsistency on first entry.
     self::assertSame(<<<'EOT'
-0:0: "<?php\n"
+1:1: "<?php\n"
 2:1: "\n"
 3:1: "function"
 3:9: " "

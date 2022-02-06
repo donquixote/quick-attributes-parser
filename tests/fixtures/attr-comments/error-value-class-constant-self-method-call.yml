@@ -3,4 +3,4 @@ class: Donquixote\QuickAttributes\Tests\Fixture\CAdvanced
 fatal: true
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:13: Unexpected ''('' in const value expression.'
+  message: 'Line 1:14: Unexpected ''('' in const value expression.'

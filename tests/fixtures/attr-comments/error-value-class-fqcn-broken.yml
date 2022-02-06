@@ -1,10 +1,10 @@
 comment: '#[A(\N\M\ )]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:9: Expected T_STRING, but found T_WHITESPACE / '' ''.'
+  message: 'Line 1:10: Expected T_STRING, but found T_WHITESPACE / '' ''.'
 exception.php8:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:8: Unexpected T_NS_SEPARATOR / ''\\'' after value expression.'
+  message: 'Line 1:9: Unexpected T_NS_SEPARATOR / ''\\'' after value expression.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "\", expecting ")"'

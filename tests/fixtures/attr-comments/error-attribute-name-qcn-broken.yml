@@ -1,10 +1,10 @@
 comment: '#[N\M\()]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:6: Expected T_STRING, but found ''(''.'
+  message: 'Line 1:7: Expected T_STRING, but found ''(''.'
 exception.php8:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:5: Expected '']'' or '','', but found T_NS_SEPARATOR / ''\\''.'
+  message: 'Line 1:6: Expected '']'' or '','', but found T_NS_SEPARATOR / ''\\''.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "\", expecting "]"'

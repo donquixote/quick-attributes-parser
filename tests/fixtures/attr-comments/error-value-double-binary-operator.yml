@@ -1,7 +1,7 @@
 comment: '#[A(5 * * 1)]'
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 0:8: Unexpected ''*'' in const value expression.'
+  message: 'Line 1:9: Unexpected ''*'' in const value expression.'
 exception.native:
   class: ParseError
   message: 'syntax error, unexpected token "*"'
