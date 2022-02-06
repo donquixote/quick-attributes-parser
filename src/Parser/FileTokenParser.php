@@ -1411,7 +1411,6 @@ abstract class FileTokenParser implements FileTokenParserInterface {
       }
       else {
         switch ($id) {
-
           case \T_DOUBLE_ARROW:
             // End of value expression.
             return $id;
