@@ -22,6 +22,16 @@ use Donquixote\QuickAttributes\Util\VersionDependentTokens;
 abstract class FileTokenParser implements FileTokenParserInterface {
 
   /**
+   * @var string
+   */
+  private string $terminatedNamespace = '';
+
+  /**
+   * @var string|null
+   */
+  private ?string $namespace = null;
+
+  /**
    * @var \Donquixote\QuickAttributes\AttributeCommentParser\AttributeCommentMultiParser
    */
   private AttributeCommentMultiParser $attrCommentMultiParser;
@@ -42,6 +52,20 @@ abstract class FileTokenParser implements FileTokenParserInterface {
   }
 
   /**
+   * @param string|null $namespace
+   *
+   * @return static
+   */
+  private function withNamespace(?string $namespace): self {
+    $clone = clone $this;
+    $clone->namespace = $namespace;
+    $clone->terminatedNamespace = ($namespace !== null)
+      ? $namespace . '\\'
+      : '';
+    return $clone;
+  }
+
+  /**
    * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface $fileTokens
    * @param \Donquixote\QuickAttributes\Builder\File\FileBuilderInterface $fileBuilder
    *
@@ -51,17 +75,28 @@ abstract class FileTokenParser implements FileTokenParserInterface {
    */
   public function parseFileTokens(FileTokensInterface $fileTokens, FileBuilderInterface $fileBuilder): \Iterator {
 
-    $headFirst = true;
     $tokens = $fileTokens->getClassFileHead();
 
     if ($tokens === null) {
-      $headFirst = false;
       $tokens = $fileTokens->getAll();
+      return $this->parseFileScope($tokens, null, $fileBuilder);
     }
 
+    return $this->parseFileScope($tokens, $fileTokens, $fileBuilder);
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface|null $remainingFileTokens
+   * @param \Donquixote\QuickAttributes\Builder\File\FileBuilderInterface $fileBuilder
+   *
+   * @return \Iterator<int, true>
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseFileScope(array $tokens, ?FileTokensInterface $remainingFileTokens, FileBuilderInterface $fileBuilder): \Iterator {
+
     $namespace = null;
-    $terminatedNamespace = '';
-    $imports = [];
     if ($tokens[0][0] !== \T_OPEN_TAG) {
       throw UnsupportedSyntaxException::fromTokenPos($tokens, 0, 'Only files starting with T_OPEN_TAG are supported.');
     }
@@ -104,7 +139,6 @@ abstract class FileTokenParser implements FileTokenParserInterface {
 
         case \T_NAMESPACE:
           $namespace = $this->parseNamespace($tokens, $pos);
-          $terminatedNamespace = $namespace . '\\';
           \assert(ParserAssertUtil::expect($tokens, $pos, ';'));
           ++$pos;
           break 2;
@@ -115,6 +149,27 @@ abstract class FileTokenParser implements FileTokenParserInterface {
       }
     }
 
+    return $this
+      ->withNamespace($namespace)
+      ->parseNamespaceContents(
+        $tokens,
+        $remainingFileTokens,
+        $pos,
+        $fileBuilder);
+  }
+
+  /**
+   * @param list<string|array{int, string, int}> $tokens
+   * @param \Donquixote\QuickAttributes\FileTokens\FileTokensInterface|null $remainingFileTokens
+   * @param int $pos
+   * @param \Donquixote\QuickAttributes\Builder\File\FileBuilderInterface $fileBuilder
+   *
+   * @return \Iterator<int, true>
+   *
+   * @throws \Donquixote\QuickAttributes\Exception\ParserException
+   */
+  private function parseNamespaceContents(array $tokens, ?FileTokensInterface $remainingFileTokens, int $pos, FileBuilderInterface $fileBuilder): \Iterator {
+    $imports = [];
     $attrComments = [];
     for (;; ++$pos) {
       $token = $tokens[$pos];
@@ -140,10 +195,11 @@ abstract class FileTokenParser implements FileTokenParserInterface {
               // the head of a supposed class file.
               // This can be the case if the class is declared within an if ().
               // Load the complete token list, and try again.
-              if (!$headFirst) {
+              if ($remainingFileTokens === null) {
                 throw $e;
               }
-              $tokens = $fileTokens->getAll();
+              $tokens = $remainingFileTokens->getAll();
+              $remainingFileTokens = null;
               $pos = $subtreeStartPos;
               \assert(ParserAssertUtil::expect($tokens, $pos, '{'));
               ParserUtil::skipSubtree($tokens, $pos);
@@ -203,7 +259,7 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             continue 2;
 
           case \T_NAMESPACE:
-            if ($namespace !== null) {
+            if ($this->terminatedNamespace !== '') {
               throw SyntaxException::fromTokenPos($tokens, $pos, 'Cannot redeclare namespace.');
             }
             throw SyntaxException::unexpected($tokens, $pos, 'after non-declare statements');
@@ -234,9 +290,9 @@ abstract class FileTokenParser implements FileTokenParserInterface {
               break;
             }
             /** @var callable-string $functionQcn */
-            $functionQcn = $terminatedNamespace . $shortname;
+            $functionQcn = $this->terminatedNamespace . $shortname;
             $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
-              $namespace,
+              $this->namespace,
               $imports,
               null);
             $functionBuilder = $fileBuilder->addFunction($functionQcn, $imports);
@@ -268,9 +324,9 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             ++$pos;
             $shortname = ParserUtil::skipFillerWsExpectTString($tokens, $pos);
             /** @var class-string $class */
-            $class = $terminatedNamespace . $shortname;
+            $class = $this->terminatedNamespace . $shortname;
             $attrCommentMultiParser = $this->attrCommentMultiParser->withContext(
-              $namespace,
+              $this->namespace,
               $imports,
               $class);
             $classBuilder = $fileBuilder->addClass($class, $imports);
@@ -280,8 +336,9 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             yield true;
 
             // Get the full version of the tokens now.
-            if ($headFirst) {
-              $tokens = $fileTokens->getAll();
+            if ($remainingFileTokens !== null) {
+              $tokens = $remainingFileTokens->getAll();
+              $remainingFileTokens = null;
             }
 
             $this->skipClassLikeExtendsImplements($tokens, $pos);
