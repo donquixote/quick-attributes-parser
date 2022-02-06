@@ -1,0 +1,10 @@
+comment: '#[A(!false, !!false, -E_STRICT, -(-\E_STRICT), -5)]'
+attributes:
+  -
+    name: A
+    arguments:
+      - true
+      - false
+      - -2048
+      - 2048
+      - -5
