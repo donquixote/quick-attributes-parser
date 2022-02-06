@@ -1,0 +1,6 @@
+comment: '#[A([11, 22, 33][1])]'
+attributes:
+  -
+    name: A
+    arguments:
+      - 22

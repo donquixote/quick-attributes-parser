@@ -43,6 +43,14 @@ class OperatorSoupBuilder implements ValueExpressionInterface, OperatorSoupBuild
   /**
    * {@inheritdoc}
    */
+  public function addArrayOffset(): ValueBuilderInterface {
+    $this->php .= '[$_[' . \count($this->operands) . ']]';
+    return $this->operands[] = ValueBuilder::start();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getValue() {
     $_ = [];
     foreach ($this->operands as $part) {

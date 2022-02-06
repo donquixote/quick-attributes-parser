@@ -17,4 +17,9 @@ interface OperatorSoupBuilderInterface {
    */
   public function add(string $operator): ValueBuilderInterface;
 
+  /**
+   * @return \Donquixote\QuickAttributes\Builder\Value\ValueBuilderInterface
+   */
+  public function addArrayOffset(): ValueBuilderInterface;
+
 }

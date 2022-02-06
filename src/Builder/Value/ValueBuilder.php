@@ -65,6 +65,16 @@ class ValueBuilder implements ValueExpressionInterface, ValueBuilderInterface {
   /**
    * {@inheritdoc}
    */
+  public function appendArrayOffset(): ValueBuilderInterface {
+    if (!$this->value instanceof OperatorSoupBuilder) {
+      $this->value = new OperatorSoupBuilder($this->value);
+    }
+    return $this->value->addArrayOffset();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function close(): self {
     if ($this->value instanceof OperatorSoupBuilder) {
       $this->value = new ValueExpression_IdentityDecorator($this->value);

@@ -1379,6 +1379,18 @@ abstract class FileTokenParser implements FileTokenParserInterface {
         $operand->applyUnaryOperator($unary);
       }
       \assert($id === $tokens[$pos][0]);
+      while ($id === '[') {
+        // Array offset.
+        $offset = $result->appendArrayOffset();
+        ++$pos;
+        ParserUtil::skipFillerWs($tokens, $pos);
+        $id = $this->parseValueExpression($offset, $tokens, $pos);
+        if ($id !== ']') {
+          throw SyntaxException::expectedButFound($tokens, $pos, ']');
+        }
+        ++$pos;
+        $id = ParserUtil::skipFillerWs($tokens, $pos);
+      }
       if (\is_string($id)) {
         switch ($id) {
           case '-':
@@ -1393,11 +1405,6 @@ abstract class FileTokenParser implements FileTokenParserInterface {
             ++$pos;
             ParserUtil::skipFillerWs($tokens, $pos);
             continue 2;
-
-          case '[':
-            // Array offset.
-            // @todo Implement array offset.
-            throw new \RuntimeException('Array offset not implemented.');
 
           case ')':
           case ']':

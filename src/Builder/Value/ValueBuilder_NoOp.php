@@ -37,6 +37,13 @@ class ValueBuilder_NoOp implements ValueBuilderInterface {
   /**
    * {@inheritdoc}
    */
+  public function appendArrayOffset(): ValueBuilderInterface {
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function close(): ValueBuilderInterface {
     return $this;
   }

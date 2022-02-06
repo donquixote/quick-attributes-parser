@@ -40,6 +40,13 @@ interface ValueBuilderInterface {
    */
   public function appendBinaryOperator(string $operator): self;
 
+
+  /**
+   * @return self
+   *   Array or string offset.
+   */
+  public function appendArrayOffset(): self;
+
   /**
    * Closes the current operator soup.
    *
