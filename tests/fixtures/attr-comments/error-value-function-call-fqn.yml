@@ -2,7 +2,4 @@ comment: '#[A(\N\foo())]'
 fatal: true
 exception:
   class: Donquixote\QuickAttributes\Exception\SyntaxException
-  message: 'Line 1:11: Unexpected ''('' in const value expression.'
-exception.php8:
-  class: Donquixote\QuickAttributes\Exception\SyntaxException
   message: 'Line 1:11: Function call not allowed in constant expression.'

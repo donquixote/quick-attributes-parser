@@ -358,16 +358,19 @@ class FileTokenParser_Php7 extends FileTokenParser {
       }
       // Find the next non-whitespace after the FQN.
       $id = ParserUtil::skipFillerWs($tokens, $pos);
-    }
-
-    /** @var string|int $id */
-    if ($id !== \T_DOUBLE_COLON) {
-      // Global constant.
-      $builder->setConstant($qn);
-      return $id;
+      if ($id === '(') {
+        throw SyntaxException::fromTokenPos($tokens, $pos, 'Function call not allowed in constant expression.');
+      }
+      if ($id !== \T_DOUBLE_COLON) {
+        // Global constant.
+        $builder->setConstant($qn);
+        return $id;
+      }
     }
 
     // Fqn refers to a class.
+    \assert(ParserAssertUtil::expect($tokens, $pos, \T_DOUBLE_COLON));
+
     ++$pos;
     $id = ParserUtil::skipFillerWs($tokens, $pos);
     if ($id === \T_CLASS) {
